@@ -1,0 +1,6451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programme Team — Electronic City Sector</title>
+<style>
+:root{
+  --m:#7B1A1A;--md:#4A0E0E;--gold:#C8922A;--gold-lt:#F0C96B;
+  --bg:#F7F2EA;--card:#fff;--text:#2C1810;--tlt:#6B4C35;
+  --brd:#E8D5B7;--sh:0 2px 12px rgba(123,26,26,.10);--sh2:0 6px 24px rgba(123,26,26,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── HEADER ── */
+header{background:linear-gradient(135deg,var(--m) 0%,var(--md) 100%);color:#fff;padding:20px 26px 16px;position:sticky;top:0;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.hd{max-width:1500px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.hd-logo{display:flex;align-items:center;justify-content:center;}
+.hd-logo img{height:52px;width:auto;object-fit:contain;display:block;}
+.hd-text h1{font-size:1.25rem;font-weight:800;}
+.hd-text p{font-size:.78rem;opacity:.72;margin-top:2px;}
+.hd-badge{margin-left:auto;background:rgba(200,146,42,.22);border:1px solid var(--gold);color:var(--gold-lt);padding:4px 13px;border-radius:20px;font-size:.73rem;font-weight:700;white-space:nowrap;}
+
+/* ── NAV ── */
+.tnav{background:#2C1810;padding:0 26px;display:flex;overflow-x:auto;scrollbar-width:none;}
+.tnav::-webkit-scrollbar{display:none;}
+.tnav-inner{display:flex;max-width:1500px;margin:0 auto;width:100%;}
+.tab{padding:12px 17px;font-size:.76rem;font-weight:700;color:rgba(255,255,255,.52);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;text-transform:uppercase;letter-spacing:.4px;}
+.tab:hover{color:var(--gold-lt);}
+.tab.active{color:var(--gold-lt);border-bottom-color:var(--gold);background:rgba(200,146,42,.08);}
+.tsep{align-self:center;color:rgba(255,255,255,.18);padding:0 3px;}
+
+/* ── LAYOUT ── */
+main{max-width:1500px;margin:0 auto;padding:22px 18px 60px;}
+.panel{display:none;}.panel.active{display:block;}
+
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:16px 20px;background:var(--card);border-radius:12px;border-left:5px solid var(--m);box-shadow:var(--sh);}
+.sec-head .ic{font-size:1.9rem;}
+.sec-head h2{font-size:1.15rem;color:var(--m);font-weight:800;}
+.sec-head p{font-size:.82rem;color:var(--tlt);margin-top:2px;}
+
+/* ── SECTOR HERO ── */
+.sector-hero{background:linear-gradient(135deg,#3E0D0D 0%,#7B1A1A 60%,#C8922A 100%);border-radius:14px;padding:24px 26px 20px;color:#fff;margin-bottom:20px;box-shadow:var(--sh2);position:relative;overflow:hidden;}
+.sector-hero::before{content:'🙏';position:absolute;right:18px;top:12px;font-size:3.5rem;opacity:.1;}
+.sh-lbl{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;opacity:.68;margin-bottom:3px;}
+.sh-title{font-size:1.5rem;font-weight:800;}
+.sh-sub{font-size:.82rem;opacity:.76;margin-top:3px;}
+.sh-chips{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.sh-chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);border-radius:16px;padding:4px 12px;font-size:.72rem;font-weight:600;}
+
+/* ── SECTOR OVERALL COORD BAR ── */
+.soc-bar{background:var(--card);border-radius:10px;padding:14px 18px;margin-bottom:20px;box-shadow:var(--sh);display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-left:4px solid var(--gold);}
+.soc-lbl{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);min-width:130px;}
+.soc-name{font-size:.9rem;font-weight:700;}
+.soc-phone{font-size:.74rem;color:var(--tlt);}
+.soc-empty{font-size:.8rem;font-style:italic;color:#ccc;}
+.soc-btn{padding:5px 13px;border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid var(--m);background:#fff;color:var(--m);transition:all .15s;}
+.soc-btn:hover{background:var(--m);color:#fff;}
+
+/* ═══════════════════════════════════════
+   PROGRAM HIERARCHY CARD (sector page)
+═══════════════════════════════════════ */
+.prog-hier-cards{display:flex;flex-direction:column;gap:20px;}
+
+.phc{background:var(--card);border-radius:14px;box-shadow:var(--sh);overflow:hidden;}
+
+.phc-header{padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;}
+.phc-icon{font-size:1.5rem;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:10px;flex-shrink:0;}
+.phc-title{font-weight:800;font-size:.98rem;}
+.phc-sub{font-size:.75rem;opacity:.68;margin-top:2px;}
+.phc-toggle{margin-left:auto;font-size:.95rem;opacity:.4;transition:transform .2s;}
+.phc-toggle.open{transform:rotate(180deg);}
+
+.phc-body{display:none;padding:0 18px 18px;border-top:1px solid var(--brd);}
+.phc-body.open{display:block;}
+
+/* Sector coordinator row inside hierarchy card */
+.phc-sector-row{display:flex;align-items:center;justify-content:center;padding:14px 0 6px;}
+.phc-sector-node{
+  display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,#FFF8E7,#FEF3CC);
+  border:2px solid var(--gold);border-radius:12px;
+  padding:10px 18px;min-width:220px;justify-content:space-between;
+}
+.phc-sn-left{display:flex;align-items:center;gap:8px;}
+.phc-sn-icon{font-size:1.4rem;}
+.phc-sn-label{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--gold);}
+.phc-sn-name{font-size:.86rem;font-weight:700;color:var(--text);}
+.phc-sn-phone{font-size:.7rem;color:var(--tlt);}
+.phc-sn-empty{font-size:.78rem;font-style:italic;color:#bbb;}
+.phc-sn-btn{padding:4px 11px;border-radius:7px;font-size:.7rem;font-weight:700;cursor:pointer;background:var(--gold);color:#fff;border:none;white-space:nowrap;}
+.phc-sn-btn:hover{opacity:.82;}
+
+/* 1→3 SVG connector */
+.phc-connector{width:100%;line-height:0;padding:0 18px;}
+.phc-connector svg{display:block;width:100%;}
+
+/* Three center columns */
+.phc-centers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 4px;}
+
+.phc-center-col{border-radius:10px;overflow:hidden;border:1.5px solid var(--brd);}
+.phc-center-title{padding:9px 12px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:6px;cursor:pointer;}
+.phc-center-title .goto-link{margin-left:auto;font-size:.65rem;opacity:.7;font-weight:600;}
+.phc-center-title:hover .goto-link{opacity:1;}
+
+.phc-role-rows{padding:8px 10px 10px;display:flex;flex-direction:column;gap:6px;background:#fff;}
+.phc-role-row{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:7px;}
+.phc-role-row.coord-row  {background:#FDF0F0;}
+.phc-role-row.sup-row    {background:#EEF4FF;}
+.phc-role-row.exec-row   {background:#EEF8EE;}
+.phc-role-icon{font-size:.9rem;flex-shrink:0;}
+.phc-role-lbl{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.3px;min-width:50px;flex-shrink:0;}
+.phc-role-row.coord-row .phc-role-lbl{color:var(--m);}
+.phc-role-row.sup-row   .phc-role-lbl{color:#1565C0;}
+.phc-role-row.exec-row  .phc-role-lbl{color:#2E7D32;}
+.phc-vol-name{font-size:.78rem;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.phc-empty-name{font-size:.72rem;font-style:italic;color:#ccc;flex:1;}
+.phc-mini-btn{padding:3px 8px;border-radius:5px;font-size:.64rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.phc-mini-assign{background:var(--m);color:#fff;border:none;}
+.phc-mini-edit{background:transparent;color:var(--m);border:1.5px solid var(--m);}
+.phc-mini-rm{background:transparent;color:#ccc;border:1.5px solid #ddd;font-size:.6rem;padding:2px 5px;}
+
+/* ═══════════════════════════════════════
+   CENTER HERO & PROGRAM CARDS
+═══════════════════════════════════════ */
+.center-hero{border-radius:14px;padding:20px 24px;color:#fff;margin-bottom:20px;box-shadow:var(--sh2);}
+.ch-lbl{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;opacity:.72;margin-bottom:2px;}
+.ch-name{font-size:1.35rem;font-weight:800;}
+.ch-sub{font-size:.8rem;opacity:.78;margin-top:3px;}
+.ch-chips{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap;}
+.ch-chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);border-radius:14px;padding:3px 11px;font-size:.72rem;font-weight:600;}
+
+.progs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;}
+
+/* Program card */
+.prog-card{background:var(--card);border-radius:12px;box-shadow:var(--sh);overflow:hidden;transition:box-shadow .2s,transform .2s;}
+.prog-card:hover{box-shadow:var(--sh2);transform:translateY(-2px);}
+.pc-head{padding:13px 16px;display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none;}
+.pc-icon{font-size:1.4rem;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:9px;flex-shrink:0;}
+.pc-title{font-weight:800;font-size:.94rem;}
+.pc-sub{font-size:.74rem;opacity:.68;margin-top:2px;}
+.pc-toggle{margin-left:auto;font-size:.9rem;opacity:.38;transition:transform .2s;}
+.pc-toggle.open{transform:rotate(180deg);}
+.pc-body{display:none;padding:0 16px 14px;border-top:1px solid var(--brd);}
+.pc-body.open{display:block;}
+
+.pc-tasks-title{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--tlt);margin:10px 0 7px;}
+.pc-task-list{list-style:none;}
+.pc-task-list li{padding:5px 0;font-size:.81rem;border-bottom:1px solid var(--brd);display:flex;gap:6px;align-items:flex-start;line-height:1.4;}
+.pc-task-list li:last-child{border-bottom:none;}
+.pc-dot{width:5px;height:5px;border-radius:50%;margin-top:7px;flex-shrink:0;}
+
+/* ═══════════════════════════════════════
+   ENHANCED VOLUNTEER SECTION
+   (Sector coord banner → triangle)
+═══════════════════════════════════════ */
+.vol-section{margin-top:12px;padding:12px 0 4px;border-top:2px dashed var(--brd);}
+.vol-sec-title{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--m);margin-bottom:10px;}
+
+/* Sector ref banner (top of vol section in center page) */
+.sector-ref-banner{
+  display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,#FFF9E8,#FEF3CC);
+  border:1.5px solid var(--gold);border-radius:10px;
+  padding:9px 12px;margin-bottom:0;
+  flex-wrap:wrap;
+}
+.srb-icon{font-size:1.1rem;flex-shrink:0;}
+.srb-label{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--gold);margin-bottom:1px;}
+.srb-name{font-size:.82rem;font-weight:700;color:var(--text);}
+.srb-phone{font-size:.68rem;color:var(--tlt);}
+.srb-empty{font-size:.75rem;font-style:italic;color:#c8a050;}
+.srb-actions{margin-left:auto;display:flex;gap:5px;flex-shrink:0;}
+.srb-btn{padding:4px 10px;border-radius:6px;font-size:.68rem;font-weight:700;cursor:pointer;}
+.srb-btn-assign{background:var(--gold);color:#fff;border:none;}
+.srb-btn-edit  {background:transparent;color:var(--m);border:1.5px solid var(--m);}
+.srb-btn-rm    {background:transparent;color:#ccc;border:1.5px solid #ddd;font-size:.62rem;padding:3px 6px;}
+.srb-btn:hover{opacity:.78;}
+
+/* Connector from sector banner to triangle apex */
+.vol-v-connector{display:flex;justify-content:center;margin:0;}
+.vol-v-connector svg{height:28px;width:40px;}
+
+/* Triangle */
+.vol-tree{display:flex;flex-direction:column;align-items:stretch;}
+.vol-apex{display:flex;justify-content:center;}
+.vol-apex .vol-node{width:76%;}
+.vol-connector{width:100%;line-height:0;}
+.vol-connector svg{display:block;width:100%;}
+.vol-base{display:flex;gap:7px;}
+.vol-base .vol-node{flex:1;}
+.vol-node{border-radius:9px;padding:10px 9px 9px;border:1.5px solid transparent;text-align:center;}
+.coord-nd  {background:#FDF0F0;border-color:rgba(123,26,26,.28);}
+.support-nd{background:#EEF4FF;border-color:rgba(21,101,192,.22);}
+.exec-nd   {background:#EEF8EE;border-color:rgba(46,125,50,.22);}
+.vn-crown{font-size:.9rem;margin-bottom:2px;display:block;}
+.vn-label{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;line-height:1.3;}
+.coord-nd   .vn-label{color:var(--m);}
+.support-nd .vn-label{color:#1565C0;}
+.exec-nd    .vn-label{color:#2E7D32;}
+.vn-name {font-size:.79rem;font-weight:700;color:var(--text);margin-bottom:2px;word-break:break-word;}
+.vn-phone{font-size:.67rem;color:var(--tlt);margin-bottom:4px;}
+.vn-empty{font-size:.72rem;font-style:italic;color:#c0b0a0;margin-bottom:4px;}
+.vn-actions{display:flex;gap:3px;justify-content:center;margin-top:2px;}
+.vbtn{padding:3px 8px;border-radius:6px;font-size:.66rem;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+.vbtn:hover{opacity:.72;}
+.vbtn-add {background:var(--m);color:#fff;border:none;}
+.vbtn-edit{background:transparent;color:var(--m);border:1.5px solid var(--m);}
+.vbtn-rm  {background:transparent;color:#c0b0a0;border:1.5px solid #ddd;font-size:.6rem;padding:2px 5px;}
+
+/* ── MODAL ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--card);border-radius:13px;padding:24px 24px 20px;width:100%;max-width:390px;box-shadow:0 20px 60px rgba(0,0,0,.3);position:relative;margin:16px;}
+.modal h3{font-size:.96rem;color:var(--m);margin-bottom:2px;}
+.modal-sub{font-size:.74rem;color:var(--tlt);margin-bottom:16px;}
+.modal label{font-size:.7rem;font-weight:700;color:var(--tlt);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px;}
+.modal input{width:100%;padding:8px 12px;border-radius:7px;border:1.5px solid var(--brd);font-size:.88rem;color:var(--text);background:var(--bg);outline:none;margin-bottom:11px;transition:border-color .2s;}
+.modal input:focus{border-color:var(--m);}
+.m-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;}
+.btn-cancel,.btn-sec{padding:7px 15px;border-radius:7px;border:1.5px solid var(--brd);background:transparent;color:var(--tlt);font-size:.8rem;font-weight:600;cursor:pointer;}
+.btn-save,.btn-pri  {padding:7px 19px;border-radius:7px;border:none;background:var(--m);color:#fff;font-size:.8rem;font-weight:700;cursor:pointer;}
+.btn-save:hover,.btn-pri:hover{opacity:.84;}
+.modal-x{position:absolute;top:11px;right:13px;background:none;border:none;font-size:1.05rem;cursor:pointer;color:var(--tlt);}
+
+/* ── TEAM TABLE ── */
+.team-tb{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.tf{padding:5px 13px;border-radius:16px;border:1.5px solid var(--brd);background:var(--card);color:var(--tlt);font-size:.74rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.tf.active,.tf:hover{background:var(--m);color:#fff;border-color:var(--m);}
+.exp-btn{margin-left:auto;padding:6px 14px;border-radius:7px;background:var(--gold);color:#2C1810;border:none;font-size:.76rem;font-weight:700;cursor:pointer;}
+.imp-btn{padding:6px 14px;border-radius:7px;background:var(--card);color:var(--m);border:1.5px solid var(--m);font-size:.76rem;font-weight:700;cursor:pointer;}
+.tbl-wrap{background:var(--card);border-radius:11px;box-shadow:var(--sh);overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.8rem;}
+th{background:var(--m);color:#fff;padding:10px 13px;text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;}
+td{padding:9px 13px;border-bottom:1px solid var(--brd);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#faf6ef;}
+.tbadge{display:inline-block;padding:2px 7px;border-radius:9px;font-size:.65rem;font-weight:700;}
+.nov{color:#ccc;font-style:italic;font-size:.74rem;}
+
+/* ── PHASES ── */
+.phases-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.ph-card{background:var(--card);border-radius:11px;box-shadow:var(--sh);overflow:hidden;}
+.ph-head{padding:13px 16px;display:flex;align-items:center;gap:9px;cursor:pointer;}
+.ph-title{font-weight:800;font-size:.9rem;}
+.ph-sub{font-size:.72rem;opacity:.68;margin-top:1px;}
+.ph-tog{margin-left:auto;font-size:.88rem;opacity:.38;transition:transform .2s;}
+.ph-tog.open{transform:rotate(180deg);}
+.ph-body{display:none;padding:0 16px 12px;border-top:1px solid var(--brd);}
+.ph-body.open{display:block;}
+.ph-list{list-style:none;margin-top:9px;}
+.ph-list li{padding:5px 0;font-size:.8rem;border-bottom:1px solid var(--brd);display:flex;gap:6px;line-height:1.4;}
+.ph-list li:last-child{border-bottom:none;}
+
+/* ═══════════════════════════════════════
+   CALENDAR
+═══════════════════════════════════════ */
+.cal-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.cal-ctr-tabs{display:flex;gap:6px;flex-wrap:wrap;}
+.cal-ctr-tab{padding:6px 14px;border-radius:18px;border:1.5px solid var(--brd);background:var(--card);color:var(--tlt);font-size:.76rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.cal-ctr-tab.active,.cal-ctr-tab:hover{background:var(--m);color:#fff;border-color:var(--m);}
+.cal-year-lbl{font-size:.9rem;font-weight:800;color:var(--m);margin-left:8px;}
+
+.cal-guide-bar{background:linear-gradient(135deg,#FFF8E7,#FEF3CC);border:1.5px solid var(--gold);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:.78rem;color:var(--tlt);line-height:1.6;}
+.cal-guide-bar strong{color:var(--m);}
+
+.cal-wrap{background:var(--card);border-radius:12px;box-shadow:var(--sh);overflow-x:auto;margin-bottom:20px;}
+.cal-grid{min-width:900px;}
+.cal-head-row{display:grid;grid-template-columns:160px repeat(12,1fr);background:var(--m);}
+.cal-head-cell{padding:9px 6px;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#fff;text-align:center;border-right:1px solid rgba(255,255,255,.15);}
+.cal-head-cell.prog-col{text-align:left;padding-left:12px;background:#4A0E0E;}
+.cal-prog-row{display:grid;grid-template-columns:160px repeat(12,1fr);border-bottom:1px solid var(--brd);}
+.cal-prog-row:last-child{border-bottom:none;}
+.cal-prog-label{padding:10px 12px;display:flex;align-items:center;gap:7px;border-right:1px solid var(--brd);background:#faf6ef;}
+.cal-prog-label .pl-icon{font-size:1.1rem;}
+.cal-prog-label .pl-name{font-size:.74rem;font-weight:700;line-height:1.3;}
+.cal-cell{padding:5px 4px;border-right:1px solid var(--brd);min-height:54px;cursor:pointer;transition:background .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+.cal-cell:hover{background:#faf6ef;}
+.cal-cell-empty{font-size:.9rem;color:#ddd;}
+.cal-event{width:100%;padding:4px 5px;border-radius:5px;font-size:.64rem;font-weight:700;line-height:1.3;word-break:break-word;text-align:center;}
+.cal-event.planned  {background:#FFF3E0;color:#E65100;border:1px solid #FFB74D;}
+.cal-event.confirmed{background:#E8F5E9;color:#2E7D32;border:1px solid #81C784;}
+.cal-event.done     {background:#F5F5F5;color:#757575;border:1px solid #BDBDBD;}
+.cal-add-btn{font-size:.68rem;color:#ccc;border:1.5px dashed #ddd;border-radius:5px;padding:2px 6px;background:none;}
+
+.cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:.75rem;}
+.cal-leg-item{display:flex;align-items:center;gap:5px;}
+.cal-leg-dot{width:10px;height:10px;border-radius:3px;}
+
+/* Calendar event modal */
+.cev-modal{background:var(--card);border-radius:13px;padding:22px 22px 18px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3);position:relative;margin:16px;}
+.cev-modal h3{font-size:.94rem;color:var(--m);margin-bottom:2px;}
+.cev-sub{font-size:.72rem;color:var(--tlt);margin-bottom:14px;}
+.cev-modal label{font-size:.68rem;font-weight:700;color:var(--tlt);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px;}
+.cev-modal input,.cev-modal textarea,.cev-modal select{width:100%;padding:7px 11px;border-radius:7px;border:1.5px solid var(--brd);font-size:.86rem;color:var(--text);background:var(--bg);outline:none;margin-bottom:10px;}
+.cev-modal select{cursor:pointer;}
+.cev-modal input:focus,.cev-modal textarea:focus,.cev-modal select:focus{border-color:var(--m);}
+.cev-del-btn{padding:6px 13px;border-radius:7px;background:transparent;color:#e74c3c;border:1.5px solid #e74c3c;font-size:.78rem;font-weight:700;cursor:pointer;}
+
+.cal-rec-banner{background:#E8F5E9;border:1.5px solid #81C784;border-radius:10px;padding:12px 16px;margin-bottom:18px;}
+.cal-rec-title{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#2E7D32;margin-bottom:8px;}
+.cal-rec-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px;}
+.cal-rec-item{font-size:.76rem;color:var(--text);display:flex;gap:6px;align-items:flex-start;line-height:1.4;}
+
+/* ═══════════════════════════════════════
+   RESOURCES
+═══════════════════════════════════════ */
+.res-toolbar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+.res-cat-tab{padding:5px 13px;border-radius:16px;border:1.5px solid var(--brd);background:var(--card);color:var(--tlt);font-size:.74rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.res-cat-tab.active,.res-cat-tab:hover{background:var(--m);color:#fff;border-color:var(--m);}
+.add-res-btn{margin-left:auto;padding:7px 16px;border-radius:8px;background:var(--m);color:#fff;border:none;font-size:.78rem;font-weight:700;cursor:pointer;}
+
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.res-card{background:var(--card);border-radius:11px;box-shadow:var(--sh);padding:16px;border-left:4px solid var(--m);transition:box-shadow .2s,transform .2s;}
+.res-card:hover{box-shadow:var(--sh2);transform:translateY(-2px);}
+.res-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
+.res-cat-badge{display:inline-block;padding:2px 8px;border-radius:9px;font-size:.64rem;font-weight:800;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;margin-top:2px;}
+.res-title{font-weight:800;font-size:.9rem;color:var(--text);margin-bottom:3px;}
+.res-prog-tag{font-size:.68rem;font-weight:700;color:var(--tlt);}
+.res-notes{font-size:.76rem;color:var(--tlt);margin-top:5px;line-height:1.5;}
+.res-actions{display:flex;gap:7px;margin-top:10px;align-items:center;}
+.res-open-btn{padding:5px 13px;border-radius:7px;background:var(--m);color:#fff;border:none;font-size:.74rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;}
+.res-edit-btn{padding:5px 10px;border-radius:7px;background:transparent;color:var(--m);border:1.5px solid var(--m);font-size:.72rem;font-weight:700;cursor:pointer;}
+.res-del-btn {padding:5px 10px;border-radius:7px;background:transparent;color:#ccc;border:1.5px solid #ddd;font-size:.7rem;cursor:pointer;}
+.res-empty{text-align:center;padding:40px;color:#bbb;font-style:italic;font-size:.9rem;}
+
+/* ═══════════════════════════════════════
+   MESSAGE TEMPLATES
+═══════════════════════════════════════ */
+.tpl-layout{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start;}
+.tpl-form{background:var(--card);border-radius:13px;box-shadow:var(--sh);padding:22px;}
+.tpl-form-title{font-size:.82rem;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;}
+.tpl-type-tabs{display:flex;gap:6px;margin-bottom:16px;}
+.tpl-type-tab{flex:1;padding:8px 6px;border-radius:8px;border:1.5px solid var(--brd);background:var(--bg);color:var(--tlt);font-size:.73rem;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;}
+.tpl-type-tab.active{background:var(--m);color:#fff;border-color:var(--m);}
+.tpl-field{margin-bottom:11px;}
+.tpl-field label{font-size:.66rem;font-weight:800;color:var(--tlt);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.35px;}
+.tpl-field input,.tpl-field select,.tpl-field textarea{width:100%;padding:7px 10px;border-radius:7px;border:1.5px solid var(--brd);font-size:.84rem;color:var(--text);background:var(--bg);outline:none;font-family:inherit;box-sizing:border-box;}
+.tpl-field input:focus,.tpl-field select:focus,.tpl-field textarea:focus{border-color:var(--m);}
+.tpl-divider{border:none;border-top:1px solid var(--brd);margin:14px 0;}
+.tpl-field .tpl-hint{font-size:.65rem;color:#aaa;margin-top:3px;}
+
+.tpl-preview-col{position:sticky;top:80px;}
+.tpl-wa-phone{background:#0B141A;border-radius:13px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.35);}
+.tpl-wa-topbar{background:#1F2C33;padding:12px 16px;display:flex;align-items:center;gap:10px;}
+.tpl-wa-avatar{width:36px;height:36px;border-radius:50%;background:#2A373F;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.tpl-wa-name{font-size:.82rem;font-weight:700;color:#E9FEEA;}
+.tpl-wa-sub{font-size:.66rem;color:#8696A0;}
+.tpl-wa-body{background:#0B141A;padding:16px 14px;min-height:220px;}
+.tpl-wa-bubble{background:#005C4B;border-radius:0 10px 10px 10px;padding:12px 14px;color:#E9FEEA;font-size:.82rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;display:inline-block;max-width:100%;position:relative;}
+.tpl-wa-bubble::after{content:'';position:absolute;top:0;left:-7px;border:7px solid transparent;border-right-color:#005C4B;border-top:0;border-left:0;}
+.tpl-wa-time{font-size:.6rem;color:#8696A0;text-align:right;margin-top:6px;}
+.tpl-copy-btn{width:100%;margin-top:14px;padding:11px;border-radius:9px;background:#25D366;color:#fff;border:none;font-size:.84rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .15s;}
+.tpl-copy-btn:hover{opacity:.88;}
+.tpl-copied{background:#128C7E!important;}
+
+.tpl-form-guide{background:#FFF8E1;border:1.5px solid #FFD54F;border-radius:10px;padding:14px 16px;margin-top:16px;}
+.tpl-form-guide-title{font-size:.73rem;font-weight:800;color:#E65100;margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;}
+.tpl-form-field-row{display:flex;align-items:center;gap:9px;padding:6px 10px;background:#fff;border-radius:7px;margin-bottom:5px;border:1px solid #FFE0B2;}
+.tpl-form-field-row .ff-icon{font-size:.9rem;}
+.tpl-form-field-row .ff-label{font-size:.76rem;font-weight:600;color:#5D4037;flex:1;}
+.tpl-form-field-row .ff-type{font-size:.64rem;color:#aaa;background:#f5f5f5;padding:2px 6px;border-radius:5px;}
+
+/* ═══════════════════════════════════════
+   MATERIALS
+═══════════════════════════════════════ */
+.mat-toolbar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+.mat-ctr-tab,.mat-prog-tab{padding:6px 14px;border-radius:16px;border:1.5px solid var(--brd);background:var(--card);color:var(--tlt);font-size:.74rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.mat-ctr-tab.active,.mat-ctr-tab:hover,.mat-prog-tab.active,.mat-prog-tab:hover{background:var(--m);color:#fff;border-color:var(--m);}
+.mat-prog-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.mat-add-btn{margin-left:auto;padding:7px 16px;border-radius:8px;background:var(--m);color:#fff;border:none;font-size:.78rem;font-weight:700;cursor:pointer;}
+
+.mat-summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:20px;}
+.mat-sum-card{background:var(--card);border-radius:10px;padding:13px 16px;box-shadow:var(--sh);text-align:center;}
+.mat-sum-num{font-size:1.6rem;font-weight:900;line-height:1;}
+.mat-sum-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--tlt);margin-top:3px;}
+
+.mat-table-wrap{background:var(--card);border-radius:12px;box-shadow:var(--sh);overflow:hidden;}
+.mat-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.mat-table th{background:var(--m);color:#fff;padding:9px 12px;text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;}
+.mat-table td{padding:9px 12px;border-bottom:1px solid var(--brd);vertical-align:middle;}
+.mat-table tr:last-child td{border-bottom:none;}
+.mat-table tr:hover td{background:#faf6ef;}
+.mat-status-badge{display:inline-block;padding:3px 9px;border-radius:9px;font-size:.65rem;font-weight:800;}
+.mat-status-badge.available {background:#E8F5E9;color:#2E7D32;}
+.mat-status-badge.sourced   {background:#E3F2FD;color:#1565C0;}
+.mat-status-badge.needed    {background:#FFF3E0;color:#E65100;}
+.mat-status-badge.missing   {background:#FCE8E8;color:#B71C1C;}
+.mat-unlinked-flag{display:inline-block;padding:2px 7px;border-radius:7px;background:#FFF8E1;color:#F57F17;font-size:.62rem;font-weight:800;border:1px solid #FFD54F;margin-left:5px;}
+.mat-action-btn{padding:4px 9px;border-radius:6px;border:1.5px solid var(--brd);background:transparent;font-size:.7rem;cursor:pointer;color:var(--tlt);}
+.mat-action-btn:hover{border-color:var(--m);color:var(--m);}
+.mat-del-btn{padding:4px 8px;border-radius:6px;border:1.5px solid #eee;background:transparent;font-size:.68rem;cursor:pointer;color:#ccc;}
+.mat-empty{text-align:center;padding:36px;color:#bbb;font-style:italic;}
+
+/* ═══════════════════════════════════════
+   ANALYTICS
+═══════════════════════════════════════ */
+.an-stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:24px;}
+.an-stat{background:var(--card);border-radius:12px;padding:16px 18px;box-shadow:var(--sh);border-top:4px solid var(--m);}
+.an-stat-num{font-size:2rem;font-weight:900;color:var(--m);line-height:1;}
+.an-stat-lbl{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--tlt);margin-top:4px;}
+.an-stat-sub{font-size:.68rem;color:#aaa;margin-top:2px;}
+.an-chart-wrap{background:var(--card);border-radius:12px;box-shadow:var(--sh);padding:20px;margin-bottom:20px;}
+.an-chart-title{font-size:.82rem;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;}
+.an-bar-chart{display:flex;align-items:flex-end;gap:6px;height:180px;border-bottom:2px solid var(--brd);padding-bottom:0;}
+.an-bar-col{display:flex;flex-direction:column;align-items:center;flex:1;min-width:32px;}
+.an-bar{width:100%;border-radius:5px 5px 0 0;transition:opacity .2s;cursor:default;min-width:28px;}
+.an-bar:hover{opacity:.78;}
+.an-bar-val{font-size:.6rem;font-weight:800;color:var(--text);margin-bottom:3px;white-space:nowrap;}
+.an-bar-lbl{font-size:.6rem;color:var(--tlt);margin-top:4px;white-space:nowrap;}
+.an-month-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.an-month-card{background:var(--bg);border-radius:8px;padding:10px 8px;text-align:center;border:1.5px solid var(--brd);}
+.an-month-card.has-data{border-color:var(--m);background:linear-gradient(135deg,#FDF0F0,#fff);}
+.an-month-name{font-size:.68rem;font-weight:700;color:var(--tlt);text-transform:uppercase;letter-spacing:.3px;}
+.an-month-val{font-size:1.2rem;font-weight:900;color:var(--m);margin:3px 0;}
+.an-month-val.zero{color:#ddd;font-size:.9rem;}
+.an-compare{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:3px;}
+.an-cmp{font-size:.6rem;padding:1px 4px;border-radius:4px;font-weight:700;}
+.an-cmp.up  {background:#E8F5E9;color:#2E7D32;}
+.an-cmp.dn  {background:#FCE8E8;color:#B71C1C;}
+.an-cmp.neu {background:#F5F5F5;color:#999;}
+.an-legend{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;}
+.an-leg{display:flex;align-items:center;gap:6px;font-size:.74rem;font-weight:600;color:var(--tlt);}
+.an-leg-dot{width:12px;height:12px;border-radius:3px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:750px){
+  header{padding:14px 12px 10px;}
+  main{padding:14px 8px 50px;}
+  .tnav{padding:0 6px;}.tab{padding:10px 9px;font-size:.7rem;}
+  .progs-grid{grid-template-columns:1fr;}
+  .phases-grid{grid-template-columns:1fr;}
+  .phc-centers{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- CALENDAR / RESOURCE MODAL OVERLAY -->
+<div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeModal()"></div>
+
+<!-- ASSIGN MODAL -->
+<div class="modal-ov" id="volModal">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3 id="mTitle">Assign Volunteer</h3>
+    <div class="modal-sub" id="mSub"></div>
+    <label>Name *</label>
+    <input type="text"  id="vName"  placeholder="e.g. Ramesh Kumar">
+    <label>Phone</label>
+    <input type="tel"   id="vPhone" placeholder="9876543210">
+    <label>Email (optional)</label>
+    <input type="email" id="vEmail" placeholder="ramesh@example.com">
+    <div class="m-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save"   onclick="saveVol()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-ov" id="importModal">
+  <div class="modal">
+    <button class="modal-x" onclick="closeImport()">✕</button>
+    <h3>Import Data</h3>
+    <div class="modal-sub">Paste exported JSON below</div>
+    <textarea id="importTxt" style="width:100%;height:110px;border:1.5px solid var(--brd);border-radius:7px;padding:9px;font-size:.78rem;resize:vertical;outline:none;font-family:monospace"></textarea>
+    <div class="m-actions" style="margin-top:9px">
+      <button class="btn-cancel" onclick="closeImport()">Cancel</button>
+      <button class="btn-save"   onclick="importData()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hd">
+    <div class="hd-logo">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1NSIgaGVpZ2h0PSI1MiIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDU1IDUyIj48bWFzayBpZD0iYSIgd2lkdGg9IjUyIiBoZWlnaHQ9IjQ0IiB4PSIzIiB5PSI0IiBtYXNrVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBzdHlsZT0ibWFzay10eXBlOmx1bWluYW5jZSI+PHBhdGggZmlsbD0iI2ZmZiIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMy43NTYgNC42Mkg1NC4wMXY0Mi44MTlIMy43NTV6IiBjbGlwLXJ1bGU9ImV2ZW5vZGQiLz48L21hc2s+PGcgbWFzaz0idXJsKCNhKSI+PHBhdGggZmlsbD0iI2ZmZiIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNNDQuNzMgMzMuMTFjLTIuMjk2LjM2MS00LjI4NyAxLjUyLTUuODIgMy41NzItLjIyLjI5My0uMzg2LjY1My0uNTE2IDEuMDEtLjIzOC42NDktLjA1IDEuMTc2LjQ5MiAxLjQ2OC4xNzMuMDk0LjM3LjE0My41Ni4xODcgMS40LjMyNyAyLjc5LjE0NSA0LjE2LS4xOTIgMS44NDMtLjQ1NSAzLjU2OC0xLjI0NyA0Ljk0NC0yLjc5Mi4zOC0uNDI1LjYzOC0uNzguOTY3LTEuNDY3LjMyNi0uNjg2LjE3My0xLjE4LS40OTctMS40OTQtLjY2OC0uMzEyLTIuMjg5LS42MDctNC4yOS0uMjkyTTE1LjExNyA4LjQ2MmMuMDQzLS44NjguMTA5LTEuNzM1LjE3NS0yLjYwMi4wMTctLjIyMS4wNTktLjQ0Ni4xMjMtLjY1NS4xNTMtLjQ4OS40MjEtLjY5Mi44NS0uNTMyLjM4OS4xNDMuNzkxLjM0OCAxLjA5NC42NS42MDcuNjA3IDEuMTc4IDEuMjcgMS43MTMgMS45NjQuNDg2LjYzLjY1NyAxLjM1NC41NjIgMi4yNTMtLjM4OCAzLjcwOC0uNzg4IDcuNDE5LTEuMDE0IDExLjE0Mi0uMjIxIDMuNjQzLS4zMjggNy4zLS4xMDkgMTAuOTU1LjA4NiAxLjQzLjEyOCAyLjg2Mi4xOTQgNC4yOTIuMDEyLjI3Mi4wNDQuNTQyLjA4Ljk2OS4yLS4yNjcuMzI5LS40MTQuNDMzLS41ODIuOTIyLTEuNDg5IDEuODMyLTIuOTg2IDIuNzU4LTQuNDcuNjY1LTEuMDYzIDEuNTQyLTEuNzg3IDIuNjU4LTIuMTIzIDEuNjE2LS40ODcgMy4wMS4wNjYgNC4yNCAxLjIzMy43MzUuNjk2IDEuNDEgMS40OCAyLjA4NCAyLjI1NiAxLjEwNiAxLjI3NiAyLjE4OSAyLjU4IDMuMjg0IDMuODY4LjIyLjI2LjQ1My41MDQuNzMzLjgxNCA0LjA3OS02LjM3MSA5LjcxMi03Ljg0IDE2LjE3OC02Ljc4NmwuMTMzLTEuMjgxYy44Ny0uMzc4IDEuNzM2LS4zODggMi42NjMuMDQxLjAyMi4yMTYuMDYyLjIzLjA2LjY0NS0uMTc1IDMuNzMzLS4zMTkgNy40NjctLjEyNCAxMS4yMDcuMDMuNTg5LjEyNiAyLjc0Ni0uMTgyIDIuODY0LS4xNzguMDY4LS40MzgtLjQ5MS0uNTY2LS43NzItLjg3NS0xLjkxNi0xLjMxMy0zLjk4Mi0xLjU5LTYuMTAzLS4wMTgtLjEzNi0uMDMyLS4yNzQtLjA2MS0uNTMtNC4wMzkgMy43NjUtOC42NzUgNS4wMTMtMTMuODA4IDQuNjMxLjY0MiAxLjA2MiAxLjI1MyAyLjAzMSAxLjgyMyAzLjAzMS4zMzQuNTgzLjYxIDEuMjEuODk4IDEuODI4LjEuMjE3LjI2MS43MDUtLjA3Mi43MjUtLjMzNS4wMTgtMS4yNDItLjcxOC0xLjc1NC0xLjI1OC0xLjY0LTEuNzMzLTMuMjQ0LTMuNTEyLTQuODgyLTUuMjQ4YTYzNiA2MzYgMCAwIDAtNi4zNTItNi42NTRjLTEuMDgyLTEuMTEzLTIuMTA3LTEuMDcyLTMuMjEzLjA1NS0xLjI1NyAxLjI3Ny0yLjIzMSAyLjgzMS0zLjIzIDQuMzYyYTUxIDUxIDAgMCAxLTEuNTkzIDIuMzE2Yy0uMjUuMzM4LS41NTYuNjQyLS44OC44ODYtLjUuMzc2LS44NzQuMjYzLTEuMTUzLS4zNS0uMTY3LS4zNjgtLjI2My0uNzg1LS4zNS0xLjE5Mi0uNjQ3LTMuMDA5LS45MjUtNi4wODMtMS4xOC05LjE1OC0uMi0yLjQwNC0uNTQyLTcuODk2LS41ODQtOC4zMS0uOTQ2LS4wOTMtMS44MTEuMTc3LTIuNi42OTUtMi4zMjggMS41MjQtMy4yOTkgNC40NDYtMS45NjcgNy4yNzMuNDI2LjkxLjk4OCAxLjczNyAxLjUxMyAyLjU4Mi42MjMgMS4wMDUgMS4zMzUgMS45NDUgMS45MDIgMi45ODkuOTc1IDEuNzk4Ljc0OCA0LjAyMi0uNDU1IDUuNjM2LTEuMjc0IDEuNzEzLTIuOTI4IDIuOC00LjY3NCAzLjcyMS0uODY1LjQ1Ni0xLjc2Ni44My0yLjY2OSAxLjE5LS41MjguMjEtMS4wODYuMzQtMS42MzguNDYyLS4yNDEuMDU0LS43NjIuMTE4LS44MDctLjE1NS0uMDQ2LS4yNzIuNDEtLjQ5Ny42NS0uNjM4IDEuMDQ2LS42MTYgMi4xMTQtMS4xODUgMy4xNTYtMS44MDYgMS4wNjctLjYzNiAyLjA5LTEuMzQ2IDIuOTIyLTIuMzc3IDEuMjMtMS41MjQgMS4zMDItMy4zNTQuMzgyLTUuMDMxLS41Mi0uOTQ0LTEuMTc2LTEuNzk3LTEuODE3LTIuNjQ2LTEuMTA0LTEuNDYtMS45OS0zLjA2Ni0yLjU0OC00Ljg4Ny0uNDIxLTEuMzgtLjUzNC0yLjgxNi0uMTY0LTQuMjMuMzU0LTEuMzU1IDEuMjA0LTIuMjk3IDIuMjMxLTMuMDIzIDEuOTM4LTEuMzY4IDMuOTk0LTEuNTggNi4xNDQtLjc2OS4wOTIuMDM1LjI5NC4xNS4zODcuMTguMDIyLjAwNi0uMTg1LTkuNTAxLjAxMy0xMy41NDciIGNsaXAtcnVsZT0iZXZlbm9kZCIvPjwvZz48cGF0aCBmaWxsPSIjZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik01LjMyMyAyNi45NDRjLS4wMTEgMS4wMjMtLjI0NiA5LjM4Ny0uMTkzIDEzLjc4Mi4wMTMgMS4wMDYuMDAyIDIuMDE1LS4wMTQgMy4wMjItLjAwNS4zNS0uMTIzLjk0Ny0uMzYuOTU0LS4yMzYuMDA4LS41NjctLjY2OC0uNzQ4LTEuMDc0LS44MTctMS44MjctMS4yMzctMy43OTQtMS41NjEtNS43NzctLjU1MS0zLjM2Ni0uNzQ0LTYuNzY2LS42NS0xMC4xODUuMDA3LS4yNy4wMzItLjU0LjA0Ny0uNzgyLjk5NS0uNTkxIDIuNDk0LS41NjggMy40NzkuMDYiIGNsaXAtcnVsZT0iZXZlbm9kZCIvPjxtYXNrIGlkPSJiIiB3aWR0aD0iNSIgaGVpZ2h0PSI0IiB4PSIxIiB5PSIyMSIgbWFza1VuaXRzPSJ1c2VyU3BhY2VPblVzZSIgc3R5bGU9Im1hc2stdHlwZTpsdW1pbmFuY2UiPjxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTEuNzc0IDIxLjE1Nmg0LjIxdjMuMzQ2aC00LjIxeiIgY2xpcC1ydWxlPSJldmVub2RkIi8+PC9tYXNrPjxnIG1hc2s9InVybCgjYikiPjxwYXRoIGZpbGw9IiNFQzY3MUIiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTMuNzY2IDIxLjE1OGMuODUtLjA1OCAxLjYyIDEuMDE2IDIuMDc3IDEuODc0LjI5Ny41NTkuMTIyIDEuMDM0LS41MTYgMS4yOC0uNjQuMjQ4LTIuMzk3LjIzNS0yLjg2LjA2Ny0uNTYtLjIwMy0uOTAxLS42OTQtLjU1LTEuMzA0LjQ2LS43OTkuOTk4LTEuODU4IDEuODQ5LTEuOTE3IiBjbGlwLXJ1bGU9ImV2ZW5vZGQiLz48L2c+PC9zdmc+" alt="Isha">
+      <span style="display:none;font-size:1.9rem">🙏</span>
+    </div>
+    <div class="hd-text">
+      <h1>Programme Team — Electronic City Sector</h1>
+      <p>Electronic City · Singasandhra · Chandapura &nbsp;|&nbsp; Volunteer Roles & Hierarchy</p>
+    </div>
+    <div class="hd-badge">Sector Reference</div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="tnav">
+  <div class="tnav-inner">
+    <div class="tab active" onclick="showPanel('sector')">📍 Sector</div>
+    <div class="tsep">|</div>
+    <div class="tab" onclick="showPanel('center-ec')">🏙️ Electronic City</div>
+    <div class="tab" onclick="showPanel('center-ss')">🌿 Singasandhra</div>
+    <div class="tab" onclick="showPanel('center-cp')">🏘️ Chandapura</div>
+    <div class="tsep">|</div>
+    <div class="tab" onclick="showPanel('phases')">📋 Phases</div>
+    <div class="tab" onclick="showPanel('team');renderTeamTable()">👥 Team View</div>
+    <div class="tab" onclick="showPanel('voled')">📚 Vol. Education</div>
+    <div class="tsep">|</div>
+    <div class="tab" onclick="showPanel('calendar');renderCalendar()">📅 Calendar</div>
+    <div class="tab" onclick="showPanel('resources');renderResources()">📁 Resources</div>
+    <div class="tab" onclick="showPanel('templates');renderTemplates()">📱 Templates</div>
+    <div class="tab" onclick="showPanel('materials');renderMaterials()">📦 Materials</div>
+    <div class="tab" onclick="showPanel('analytics');renderAnalytics()">📊 IE Analytics</div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ══════════════ SECTOR PANEL ══════════════ -->
+<div class="panel active" id="panel-sector">
+
+  <div class="sector-hero">
+    <div class="sh-lbl">Sector</div>
+    <div class="sh-title">📍 Electronic City</div>
+    <div class="sh-sub">3 Centres · 5 Programme Types · One Sector Team</div>
+    <div class="sh-chips">
+      <div class="sh-chip">🏙️ Electronic City</div>
+      <div class="sh-chip">🌿 Singasandhra</div>
+      <div class="sh-chip">🏘️ Chandapura</div>
+    </div>
+  </div>
+
+  <!-- Overall sector coordinator -->
+  <div class="soc-bar" id="socBar"></div>
+
+  <!-- Programme hierarchy cards -->
+  <div class="prog-hier-cards" id="sectorProgCards"></div>
+
+</div>
+
+<!-- ══════════════ CENTRE PANELS ══════════════ -->
+<div class="panel" id="panel-center-ec"></div>
+<div class="panel" id="panel-center-ss"></div>
+<div class="panel" id="panel-center-cp"></div>
+
+<!-- ══════════════ PHASES ══════════════ -->
+<div class="panel" id="panel-phases">
+  <div class="sec-head"><div class="ic">📋</div><div><h2>Programme Phase Activities</h2><p>Phase-wise tasks applicable across all programmes and centres</p></div></div>
+  <div class="phases-grid">
+    <div class="ph-card"><div class="ph-head" style="background:#E3F2FD" onclick="tph(this)"><span style="font-size:1.3rem">🌐</span><div><div class="ph-title" style="color:#1565C0">Phase 1 — Web Listing & Setup</div><div class="ph-sub" style="color:#1565C0">6–8 weeks before</div></div><div class="ph-tog">▼</div></div><div class="ph-body"><ul class="ph-list"><li><span>🔹</span>Raise programme request with Isha national team</li><li><span>🔹</span>Verify listing on isha.sadhguru.org — dates, venue, fee</li><li><span>🔹</span>Confirm registration link live for correct centre</li><li><span>🔹</span>Block hall dates on centre calendar</li><li><span>🔹</span>Identify and form volunteer team — assign roles</li><li><span>🔹</span>Set up fee collection QR / payment link</li></ul></div></div>
+    <div class="ph-card"><div class="ph-head" style="background:#FFF3E0" onclick="tph(this)"><span style="font-size:1.3rem">📣</span><div><div class="ph-title" style="color:#E65100">Phase 2 — Promotion</div><div class="ph-sub" style="color:#E65100">4–6 weeks before</div></div><div class="ph-tog">▼</div></div><div class="ph-body"><ul class="ph-list"><li><span>🔸</span>Create programme poster — date, time, venue, fee</li><li><span>🔸</span>Share in all centre WhatsApp groups with link</li><li><span>🔸</span>Post on Instagram / Facebook</li><li><span>🔸</span>Personalised WhatsApp to eligible past participants</li><li><span>🔸</span>Reminder broadcasts — 3 weeks, 2 weeks, 1 week before</li><li><span>🔸</span>Personal calling — divide list among volunteers</li></ul></div></div>
+    <div class="ph-card"><div class="ph-head" style="background:#F3E5F5" onclick="tph(this)"><span style="font-size:1.3rem">📝</span><div><div class="ph-title" style="color:#6A1B9A">Phase 3 — Registration</div><div class="ph-sub" style="color:#6A1B9A">2–4 weeks before</div></div><div class="ph-tog">▼</div></div><div class="ph-body"><ul class="ph-list"><li><span>🔹</span>Monitor website registrations daily</li><li><span>🔹</span>Handle offline / walk-in registrations</li><li><span>🔹</span>Send confirmation to each registered participant</li><li><span>🔹</span>Manage waitlist if programme is full</li><li><span>🔹</span>Send reminder with map and timing — 2 days before</li><li><span>🔹</span>Prepare printed attendance sheet</li></ul></div></div>
+    <div class="ph-card"><div class="ph-head" style="background:#E8F5E9" onclick="tph(this)"><span style="font-size:1.3rem">🧑‍🤝‍🧑</span><div><div class="ph-title" style="color:#2E7D32">Phase 4 — Volunteer Briefing</div><div class="ph-sub" style="color:#2E7D32">1 week before</div></div><div class="ph-tog">▼</div></div><div class="ph-body"><ul class="ph-list"><li><span>🔸</span>Confirm all volunteers — no last-minute dropouts</li><li><span>🔸</span>Briefing session — roles, timings, what to expect</li><li><span>🔸</span>Assign stations clearly</li><li><span>🔸</span>Share volunteer roster with everyone</li><li><span>🔸</span>Logistics check — mats, AV, water, signage</li></ul></div></div>
+    <div class="ph-card"><div class="ph-head" style="background:#E8EAF6" onclick="tph(this)"><span style="font-size:1.3rem">🎯</span><div><div class="ph-title" style="color:#283593">Phase 5 — Conducting</div><div class="ph-sub" style="color:#283593">Programme days</div></div><div class="ph-tog">▼</div></div><div class="ph-body"><ul class="ph-list"><li><span>🔹</span>Arrive 90 min early — hall setup, AV test, welcome desk</li><li><span>🔹</span>Check-in participants — mark attendance</li><li><span>🔹</span>Receive & brief teacher / facilitator on arrival</li><li><span>🔹</span>Manage session timing, silence, no disturbances</li><li><span>🔹</span>Handle walk-in payments — cash and UPI</li><li><span>🔹</span>First-aid kit on standby</li></ul></div></div>
+    <div class="ph-card"><div class="ph-head" style="background:#FCE4EC" onclick="tph(this)"><span style="font-size:1.3rem">✅</span><div><div class="ph-title" style="color:#880E4F">Phase 6 — Windup</div><div class="ph-sub" style="color:#880E4F">Post programme</div></div><div class="ph-tog">▼</div></div><div class="ph-body"><ul class="ph-list"><li><span>🔸</span>Collect feedback before participants leave</li><li><span>🔸</span>Send thank-you message within 24 hrs</li><li><span>🔸</span>Follow up with no-shows</li><li><span>🔸</span>Finance reconciliation — submit collection report</li><li><span>🔸</span>Update participant database</li><li><span>🔸</span>Restore venue; return all equipment</li></ul></div></div>
+  </div>
+</div>
+
+<!-- ══════════════ TEAM VIEW ══════════════ -->
+<div class="panel" id="panel-team">
+  <div class="sec-head"><div class="ic">👥</div><div><h2>Full Team Assignment View</h2><p>All volunteer assignments across all centres and programmes</p></div></div>
+  <div class="team-tb">
+    <button class="tf active" onclick="ftm('all',this)">All</button>
+    <button class="tf" onclick="ftm('sector',this)">⭐ Sector Level</button>
+    <button class="tf" onclick="ftm('ec',this)">🏙️ Electronic City</button>
+    <button class="tf" onclick="ftm('ss',this)">🌿 Singasandhra</button>
+    <button class="tf" onclick="ftm('cp',this)">🏘️ Chandapura</button>
+    <button class="imp-btn" onclick="openImport()">⬆ Import</button>
+    <button class="exp-btn" onclick="exportData()">⬇ Export</button>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Level</th><th>Programme</th><th>Role</th><th>Volunteer</th><th>Phone</th><th>Email</th></tr></thead>
+      <tbody id="teamTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════ VOL EDUCATION ══════════════ -->
+<div class="panel" id="panel-voled">
+  <div class="sec-head"><div class="ic">📚</div><div><h2>Volunteer Education & Orientation</h2><p>What every volunteer must know before their first programme assignment</p></div></div>
+  <div class="phases-grid">
+    <div class="ph-card"><div class="ph-head" style="background:#E8F5E9" onclick="tph(this)"><span style="font-size:1.2rem">📖</span><div><div class="ph-title" style="color:#2E7D32">Programme Knowledge</div><div class="ph-sub" style="color:#2E7D32">Core must-knows</div></div><div class="ph-tog">▼</div></div><div class="ph-body"><ul class="ph-list"><li><span>🔹</span>Know programme name, format, duration, target audience</li><li><span>🔹</span>Know eligibility — prerequisite programmes if any</li><li><span>🔹</span>Be able to answer: "What will I experience?"</li><li><span>🔹</span>Know programme fee and all payment modes</li><li><span>🔹</span>Know what participants should bring / wear / avoid</li><li><span>🔹</span>Refer content queries to coordinator — do not guess</li></ul></div></div>
+    <div class="ph-card"><div class="ph-head" style="background:#E8F5E9" onclick="tph(this)"><span style="font-size:1.2rem">🎭</span><div><div class="ph-title" style="color:#2E7D32">Role Clarity & Boundaries</div><div class="ph-sub" style="color:#2E7D32">Escalation path</div></div><div class="ph-tog">▼</div></div><div class="ph-body"><ul class="ph-list"><li><span>🔹</span>Know your exact role — stay in lane</li><li><span>🔹</span>Sector Coord → Centre OC → Supporting → Executing</li><li><span>🔹</span>Know who to escalate to for medical / financial / conflict issues</li><li><span>🔹</span>Your energy and presence sets the tone for participants</li><li><span>🔹</span>Dress code — comfortable, modest, Isha-appropriate</li></ul></div></div>
+    <div class="ph-card"><div class="ph-head" style="background:#E8F5E9" onclick="tph(this)"><span style="font-size:1.2rem">💬</span><div><div class="ph-title" style="color:#2E7D32">Communication Standards</div><div class="ph-sub" style="color:#2E7D32">With participants</div></div><div class="ph-tog">▼</div></div><div class="ph-body"><ul class="ph-list"><li><span>🔹</span>Always greet with "Namaskaram" — warm, not stiff</li><li><span>🔹</span>Speak clearly and concisely</li><li><span>🔹</span>Do not promote anything beyond the current programme</li><li><span>🔹</span>Complaint? Acknowledge, don't argue; involve coordinator</li><li><span>🔹</span>WhatsApp to participants — only what coordinator authorises</li></ul></div></div>
+    <div class="ph-card"><div class="ph-head" style="background:#E8F5E9" onclick="tph(this)"><span style="font-size:1.2rem">🛠️</span><div><div class="ph-title" style="color:#2E7D32">Tools & Processes</div><div class="ph-sub" style="color:#2E7D32">Trackers, sheets, forms</div></div><div class="ph-tog">▼</div></div><div class="ph-body"><ul class="ph-list"><li><span>🔹</span>Know how to use the participant registration tracker</li><li><span>🔹</span>Know how to mark attendance</li><li><span>🔹</span>Know how to log a payment (cash and UPI)</li><li><span>🔹</span>Know how to fill the post-programme summary form</li><li><span>🔹</span>Practice all tools before programme day</li></ul></div></div>
+  </div>
+</div>
+
+<!-- ══════════════ CALENDAR ══════════════ -->
+<div class="panel" id="panel-calendar">
+  <div class="sec-head"><div class="ic">📅</div><div><h2>Programme Calendar 2026</h2><p>Plan and track all centre programmes across the sector</p></div></div>
+  <div class="cal-toolbar">
+    <div class="cal-ctr-tabs" id="cal-ctr-tabs">
+      <div class="cal-ctr-tab active" onclick="switchCalCtr('all',this)">🌐 All Centres</div>
+      <div class="cal-ctr-tab" onclick="switchCalCtr('ec',this)">🏙️ Electronic City</div>
+      <div class="cal-ctr-tab" onclick="switchCalCtr('ss',this)">🌿 Singasandhra</div>
+      <div class="cal-ctr-tab" onclick="switchCalCtr('cp',this)">🏘️ Chandapura</div>
+    </div>
+    <span class="cal-year-lbl">2026</span>
+  </div>
+  <div class="cal-legend">
+    <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#FFF3E0;border:1px solid #FFB74D"></span> Planned</span>
+    <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#E8F5E9;border:1px solid #81C784"></span> Confirmed</span>
+    <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#F5F5F5;border:1px solid #BDBDBD"></span> Done</span>
+  </div>
+  <div class="cal-rec-banner">
+    <div class="cal-rec-title">📋 KA Region Frequency Guidelines</div>
+    <div class="cal-rec-list" id="cal-rec-list"></div>
+  </div>
+  <div id="cal-content"></div>
+</div>
+
+<!-- ══════════════ MATERIALS ══════════════ -->
+<div class="panel" id="panel-materials">
+  <div class="sec-head"><div class="ic">📦</div><div><h2>Materials Tracker</h2><p>Track programme materials per centre — items needed, sourced, available, and unlinked</p></div></div>
+
+  <div class="mat-toolbar">
+    <div id="mat-ctr-tabs" style="display:flex;gap:6px;flex-wrap:wrap;">
+      <div class="mat-ctr-tab active" onclick="setMatCtr('ec',this)">🏙️ Electronic City</div>
+      <div class="mat-ctr-tab" onclick="setMatCtr('ss',this)">🌿 Singasandhra</div>
+      <div class="mat-ctr-tab" onclick="setMatCtr('cp',this)">🏘️ Chandapura</div>
+    </div>
+    <button class="mat-add-btn" onclick="openMatModal()">+ Add Item</button>
+  </div>
+
+  <div class="mat-prog-tabs" id="mat-prog-tabs">
+    <div class="mat-prog-tab active" onclick="setMatProg('all',this)">All Programmes</div>
+    <div class="mat-prog-tab" onclick="setMatProg('ie',this)">🧘 Inner Engineering</div>
+    <div class="mat-prog-tab" onclick="setMatProg('hy',this)">🤸 Hatha Yoga</div>
+    <div class="mat-prog-tab" onclick="setMatProg('ms',this)">🕉️ Monthly Satsang</div>
+    <div class="mat-prog-tab" onclick="setMatProg('pcs',this)">🎯 Practice Correction</div>
+    <div class="mat-prog-tab" onclick="setMatProg('ap',this)">✨ Advanced Programs</div>
+  </div>
+
+  <div class="mat-summary" id="mat-summary"></div>
+
+  <div class="mat-table-wrap">
+    <table class="mat-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Category</th>
+          <th>Programme</th>
+          <th>Qty Needed</th>
+          <th>Qty Available</th>
+          <th>Status</th>
+          <th>Responsible</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="mat-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══════════════ IE ANALYTICS ══════════════ -->
+<div class="panel" id="panel-analytics">
+  <div class="sec-head"><div class="ic">📊</div><div><h2>IE Analytics — Electronic City Sector</h2><p>Inner Engineering participant data from IE_Ecity master document</p></div></div>
+  <div class="an-stat-row" id="an-stats"></div>
+  <div class="an-chart-wrap">
+    <div class="an-chart-title">Year-over-Year IE Participants (2015–2026)</div>
+    <div class="an-bar-chart" id="an-yoy-chart"></div>
+  </div>
+  <div class="an-chart-wrap">
+    <div class="an-chart-title">Monthly Breakdown — 2026 vs 2025</div>
+    <div class="an-legend">
+      <div class="an-leg"><span class="an-leg-dot" style="background:#7B1A1A"></span>2026</div>
+      <div class="an-leg"><span class="an-leg-dot" style="background:#C8922A"></span>2025</div>
+    </div>
+    <div class="an-month-grid" id="an-month-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════ MESSAGE TEMPLATES ══════════════ -->
+<div class="panel" id="panel-templates">
+  <div class="sec-head"><div class="ic">📱</div><div><h2>Message Templates</h2><p>Ready-to-send WhatsApp templates for participant invitations and volunteer recruitment</p></div></div>
+  <div class="tpl-layout">
+
+    <!-- LEFT: Form -->
+    <div class="tpl-form">
+      <div class="tpl-form-title">Build Your Message</div>
+
+      <div class="tpl-type-tabs">
+        <div class="tpl-type-tab active" onclick="setTplType('participant',this)">🎯 Participant Invite</div>
+        <div class="tpl-type-tab" onclick="setTplType('volunteer',this)">🤝 Volunteer Recruit</div>
+      </div>
+
+      <div class="tpl-field">
+        <label>Programme</label>
+        <select id="tpl-prog" onchange="updateTplPreview()">
+          <option value="ie">🧘 Inner Engineering</option>
+          <option value="hy">🤸 Hatha Yoga Programs</option>
+          <option value="ms">🕉️ Monthly Satsang</option>
+          <option value="pcs">🎯 Practice Correction Session</option>
+          <option value="ap">✨ Advanced Programs (Guru Puja)</option>
+        </select>
+      </div>
+
+      <div class="tpl-field" id="tpl-subprog-wrap" style="display:none">
+        <label>Hatha Yoga Type</label>
+        <select id="tpl-subprog" onchange="updateTplPreview()">
+          <option value="Angamardana">Angamardana</option>
+          <option value="Surya Kriya">Surya Kriya</option>
+          <option value="Yogasanas">Yogasanas</option>
+        </select>
+      </div>
+
+      <div class="tpl-field">
+        <label>Centre</label>
+        <select id="tpl-centre" onchange="updateTplPreview()">
+          <option value="Electronic City Isha Center">Electronic City</option>
+          <option value="Singasandhra Isha Center">Singasandhra</option>
+          <option value="Chandapura Isha Center">Chandapura</option>
+        </select>
+      </div>
+
+      <div class="tpl-field">
+        <label>Date</label>
+        <input id="tpl-date" type="text" placeholder="e.g. Sunday, 7 Jun 2026" oninput="updateTplPreview()">
+      </div>
+
+      <div class="tpl-field">
+        <label>Time</label>
+        <input id="tpl-time" type="text" placeholder="e.g. 6:00 AM – 8:00 AM" oninput="updateTplPreview()">
+      </div>
+
+      <div class="tpl-field">
+        <label>Venue</label>
+        <input id="tpl-venue" type="text" placeholder="e.g. Electronic City Isha Center" oninput="updateTplPreview()">
+      </div>
+
+      <div id="tpl-reglink-wrap" class="tpl-field">
+        <label>Registration Link</label>
+        <input id="tpl-reglink" type="text" placeholder="https://isha.sadhguru.org/..." oninput="updateTplPreview()">
+        <div class="tpl-hint">Paste the Isha registration or Nettai/MyISHA link</div>
+      </div>
+
+      <div id="tpl-vollink-wrap" class="tpl-field" style="display:none">
+        <label>Volunteer Interest Form Link</label>
+        <input id="tpl-vollink" type="text" placeholder="https://forms.gle/..." oninput="updateTplPreview()">
+        <div class="tpl-hint">Paste your Google Form link here</div>
+      </div>
+
+      <div class="tpl-field">
+        <label>Coordinator Name</label>
+        <input id="tpl-coord" type="text" placeholder="Your name" oninput="updateTplPreview()">
+      </div>
+
+      <div class="tpl-field">
+        <label>Coordinator Phone</label>
+        <input id="tpl-phone" type="text" placeholder="+91 9XXXXXXXXX" oninput="updateTplPreview()">
+      </div>
+
+      <!-- Google Form Template Guide (volunteer mode) -->
+      <div class="tpl-form-guide" id="tpl-form-guide" style="display:none">
+        <div class="tpl-form-guide-title">📋 Suggested Google Form Fields</div>
+        <div class="tpl-form-field-row"><span class="ff-icon">📛</span><span class="ff-label">Full Name</span><span class="ff-type">Short answer</span></div>
+        <div class="tpl-form-field-row"><span class="ff-icon">📧</span><span class="ff-label">Email Address</span><span class="ff-type">Short answer</span></div>
+        <div class="tpl-form-field-row"><span class="ff-icon">📱</span><span class="ff-label">WhatsApp Number</span><span class="ff-type">Short answer</span></div>
+        <div class="tpl-form-field-row"><span class="ff-icon">🏙️</span><span class="ff-label">Isha Centre (EC / Singasandhra / Chandapura)</span><span class="ff-type">Dropdown</span></div>
+        <div class="tpl-form-field-row"><span class="ff-icon">📅</span><span class="ff-label">Dates you can support</span><span class="ff-type">Checkboxes</span></div>
+        <div class="tpl-form-field-row"><span class="ff-icon">🕗</span><span class="ff-label">Preferred time slot (Morning / Evening / Full day)</span><span class="ff-type">Multiple choice</span></div>
+        <div class="tpl-form-field-row"><span class="ff-icon">🧘</span><span class="ff-label">Isha programmes completed</span><span class="ff-type">Checkboxes</span></div>
+        <div class="tpl-form-field-row"><span class="ff-icon">💬</span><span class="ff-label">Any previous volunteering experience at Isha</span><span class="ff-type">Paragraph</span></div>
+        <div class="tpl-form-field-row"><span class="ff-icon">🔧</span><span class="ff-label">Skills you can offer (IT / Medical / Logistics / Teaching / Other)</span><span class="ff-type">Checkboxes</span></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Preview -->
+    <div class="tpl-preview-col">
+      <div class="tpl-wa-phone">
+        <div class="tpl-wa-topbar">
+          <div class="tpl-wa-avatar">🕉️</div>
+          <div>
+            <div class="tpl-wa-name" id="tpl-wa-name">EC Isha Volunteers</div>
+            <div class="tpl-wa-sub">WhatsApp Group</div>
+          </div>
+        </div>
+        <div class="tpl-wa-body">
+          <div class="tpl-wa-bubble" id="tpl-wa-bubble">Select options on the left to preview your message…</div>
+          <div class="tpl-wa-time" id="tpl-wa-time"></div>
+        </div>
+      </div>
+      <button class="tpl-copy-btn" id="tpl-copy-btn" onclick="copyTplMessage()">
+        <span>📋</span> Copy Message
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════ RESOURCES ══════════════ -->
+<div class="panel" id="panel-resources">
+  <div class="sec-head"><div class="ic">📁</div><div><h2>Resource Library</h2><p>Planning guides, reference documents, forms and links</p></div></div>
+  <div class="res-toolbar">
+    <div class="res-cat-tab active" onclick="filterRes('all',this)">All</div>
+    <div class="res-cat-tab" onclick="filterRes('planning',this)">Planning</div>
+    <div class="res-cat-tab" onclick="filterRes('forms',this)">Forms</div>
+    <div class="res-cat-tab" onclick="filterRes('calendar',this)">Calendars</div>
+    <div class="res-cat-tab" onclick="filterRes('reference',this)">Reference</div>
+    <div class="res-cat-tab" onclick="filterRes('template',this)">Templates</div>
+    <button class="add-res-btn" onclick="openResModal()">+ Add Resource</button>
+  </div>
+  <div class="res-grid" id="res-grid"></div>
+</div>
+
+</main>
+
+<script>
+// ═══════════════════════════════
+// DATA DEFINITIONS
+// ═══════════════════════════════
+const PROGS = [
+  { key:'ie',  name:'Inner Engineering',      icon:'🧘', color:'#6A1B9A', bg:'#F3E5F5', lt:'#FAF4FF',
+    tasks:['Verify participant eligibility — completed IEO online','Confirm teacher availability and programme dates','Prepare participant kit / materials if required','Ensure hall is quiet, dimly lit for practices','Strict no-phone policy during all sessions','Post-programme: share sadhana continuation guidance'] },
+  { key:'hy',  name:'Hatha Yoga Programs',    icon:'🤸', color:'#BF360C', bg:'#FBE9E7', lt:'#FFF5F3',
+    tasks:['Confirm programme type — Surya Kriya / Angamardana / Yogasanas','Arrange yoga mats & props — check condition before programme','Ensure 6×6 ft space per participant in hall','Confirm teacher has relevant Isha teacher training','Register participants with correct programme type in tracker','Post-programme: share practice schedule for home practice'] },
+  { key:'ms',  name:'Monthly Satsangs',       icon:'🕉️', color:'#1565C0', bg:'#E3F2FD', lt:'#F0F7FF',
+    tasks:['Fix monthly date early and share in all centre groups','Arrange hall — seating, Sadhguru photo/idol, flowers','Prepare sound system for chants & Sadhguru Spot playback','Keep attendance register for satsang participants','Create warm, inclusive atmosphere — open to all','Share follow-up content / video links post satsang'] },
+  { key:'pcs', name:'Practice Correction',    icon:'🎯', color:'#00695C', bg:'#E0F2F1', lt:'#F0FAFA',
+    tasks:['Identify participants needing correction from tracker','Send targeted invitations — only eligible practitioners','Confirm a qualified teacher or senior practitioner to guide','Keep group small — max 20 for quality correction','Maintain confidentiality — corrections are personal','Update practice status in database post session'] },
+  { key:'ap',  name:'Advanced Programs',      icon:'✨', color:'#7B1A1A', bg:'#FCE8E8', lt:'#FFF5F5',
+    tasks:['Strict eligibility check — only qualified participants','Coordinate with zone/national team for teacher & materials','Special venue setup — altar, flowers, specific arrangements','Heightened silence and sanctity during the programme','Confidentiality from all participants if required','Post-programme integration support and check-in'] },
+];
+
+const CTRS = [
+  { key:'ec', name:'Electronic City', icon:'🏙️', color:'#283593', grad:'linear-gradient(135deg,#1A237E,#283593,#3949AB)' },
+  { key:'ss', name:'Singasandhra',    icon:'🌿', color:'#1B5E20', grad:'linear-gradient(135deg,#1B3A1E,#2E7D32,#43A047)' },
+  { key:'cp', name:'Chandapura',      icon:'🏘️', color:'#BF360C', grad:'linear-gradient(135deg,#7B1A1A,#BF360C,#E64A19)' },
+];
+
+const ROLES = [
+  { key:'coord',   lbl:'Overall Coordinator',    icon:'👑', cls:'coord-nd',   badge:'#7B1A1A', bg:'#FDF0F0' },
+  { key:'support', lbl:'Supporting Coordinator', icon:'🤝', cls:'support-nd', badge:'#1565C0', bg:'#EEF4FF' },
+  { key:'exec',    lbl:'Executing Volunteer',     icon:'⚡', cls:'exec-nd',    badge:'#2E7D32', bg:'#EEF8EE' },
+];
+
+// ═══════════════════════════════
+// STORE
+// ═══════════════════════════════
+const SK = 'isha_ecity_v3';
+function ls(){ try{ return JSON.parse(localStorage.getItem(SK))||{}; }catch{ return {}; } }
+function ss(s){ localStorage.setItem(SK, JSON.stringify(s)); }
+let store = ls();
+function gv(vid,rk){ return (store[vid]||{})[rk]||null; }
+function sv(vid,rk,d){ if(!store[vid]) store[vid]={}; store[vid][rk]=d; ss(store); }
+function dv(vid,rk){ if(store[vid]) delete store[vid][rk]; ss(store); }
+
+// ═══════════════════════════════
+// TRIANGLE (centre page)
+// ═══════════════════════════════
+function triNode(vid, rk, lbl) {
+  const r = ROLES.find(x=>x.key===rk);
+  const p = gv(vid, rk);
+  if (p && p.name) return `<div class="vol-node ${r.cls}">
+    <span class="vn-crown">${r.icon}</span>
+    <div class="vn-label">${r.lbl}</div>
+    <div class="vn-name">${p.name}</div>
+    ${p.phone?`<div class="vn-phone">📞 ${p.phone}</div>`:''}
+    <div class="vn-actions">
+      <button class="vbtn vbtn-edit" onclick="openModal('${vid}','${rk}','${lbl}',event)">Edit</button>
+      <button class="vbtn vbtn-rm"   onclick="rmv('${vid}','${rk}',event)">✕</button>
+    </div></div>`;
+  return `<div class="vol-node ${r.cls}">
+    <span class="vn-crown">${r.icon}</span>
+    <div class="vn-label">${r.lbl}</div>
+    <div class="vn-empty">Not assigned</div>
+    <div class="vn-actions">
+      <button class="vbtn vbtn-add" onclick="openModal('${vid}','${rk}','${lbl}',event)">+ Assign</button>
+    </div></div>`;
+}
+
+const triSVG = `<svg viewBox="0 0 200 36" preserveAspectRatio="none" style="height:32px">
+  <line x1="100" y1="0"  x2="100" y2="13" stroke="#C8A882" stroke-width="1.8"/>
+  <line x1="43"  y1="13" x2="157" y2="13" stroke="#C8A882" stroke-width="1.8"/>
+  <line x1="43"  y1="13" x2="43"  y2="36" stroke="#C8A882" stroke-width="1.8"/>
+  <line x1="157" y1="13" x2="157" y2="36" stroke="#C8A882" stroke-width="1.8"/>
+</svg>`;
+
+const vertSVG = `<svg viewBox="0 0 40 28" preserveAspectRatio="none" style="height:28px;width:100%">
+  <line x1="20" y1="0" x2="20" y2="28" stroke="#C8A882" stroke-width="1.8"/>
+</svg>`;
+
+// Enhanced vol section for centre page: sector banner → vertical line → triangle
+function buildVolSection(ctrKey, progKey) {
+  const vid   = `${ctrKey}-${progKey}`;
+  const svid  = `sector-${progKey}`;
+  const ctr   = CTRS.find(c=>c.key===ctrKey);
+  const prog  = PROGS.find(p=>p.key===progKey);
+  const lbl   = `${ctr.name} · ${prog.name}`;
+  const slbl  = `Sector · ${prog.name}`;
+  const sp    = gv(svid, 'coord');
+
+  // Sector ref banner
+  let sban = `<div class="sector-ref-banner">
+    <span class="srb-icon">⭐</span>
+    <div style="flex:1;min-width:0">
+      <div class="srb-label">Sector Coordinator — ${prog.name}</div>`;
+  if (sp && sp.name) {
+    sban += `<div class="srb-name">${sp.name}</div>
+      ${sp.phone?`<div class="srb-phone">📞 ${sp.phone}</div>`:''}`;
+  } else {
+    sban += `<div class="srb-empty">Not assigned — go to Sector tab</div>`;
+  }
+  sban += `</div><div class="srb-actions">`;
+  if (sp && sp.name) {
+    sban += `<button class="srb-btn srb-btn-edit" onclick="openModal('${svid}','coord','${slbl}',event)">Edit</button>
+      <button class="srb-btn srb-btn-rm" onclick="rmv('${svid}','coord',event)">✕</button>`;
+  } else {
+    sban += `<button class="srb-btn srb-btn-assign" onclick="openModal('${svid}','coord','${slbl}',event)">+ Assign</button>`;
+  }
+  sban += `</div></div>`;
+
+  return `<div class="vol-section">
+    <div class="vol-sec-title">👤 Volunteer Hierarchy</div>
+    ${sban}
+    <div class="vol-v-connector">${vertSVG}</div>
+    <div class="vol-tree">
+      <div class="vol-apex">${triNode(vid,'coord',lbl)}</div>
+      <div class="vol-connector">${triSVG}</div>
+      <div class="vol-base">${triNode(vid,'support',lbl)}${triNode(vid,'exec',lbl)}</div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════
+// SECTOR PAGE HIERARCHY CARDS
+// ═══════════════════════════════
+
+// Mini role row inside sector hierarchy card
+function miniRoleRow(ctrKey, progKey, rk) {
+  const r = ROLES.find(x=>x.key===rk);
+  const vid = `${ctrKey}-${progKey}`;
+  const prog = PROGS.find(p=>p.key===progKey);
+  const ctr  = CTRS.find(c=>c.key===ctrKey);
+  const lbl  = `${ctr.name} · ${prog.name}`;
+  const p = gv(vid, rk);
+  const rowCls = rk==='coord'?'coord-row':rk==='support'?'sup-row':'exec-row';
+  return `<div class="phc-role-row ${rowCls}">
+    <span class="phc-role-icon">${r.icon}</span>
+    <span class="phc-role-lbl">${r.lbl.split(' ')[0]}</span>
+    ${p && p.name
+      ? `<span class="phc-vol-name" title="${p.name}">${p.name}</span>
+         <button class="phc-mini-btn phc-mini-edit" onclick="openModal('${vid}','${rk}','${lbl}',event)">Edit</button>
+         <button class="phc-mini-btn phc-mini-rm"   onclick="rmv('${vid}','${rk}',event)">✕</button>`
+      : `<span class="phc-empty-name">Not assigned</span>
+         <button class="phc-mini-btn phc-mini-assign" onclick="openModal('${vid}','${rk}','${lbl}',event)">+</button>`}
+  </div>`;
+}
+
+function buildSectorProgCard(prog) {
+  const svid = `sector-${prog.key}`;
+  const sp   = gv(svid,'coord');
+
+  // 1→3 SVG connector
+  const c13 = `<svg viewBox="0 0 300 44" preserveAspectRatio="none" style="height:38px;width:100%">
+    <line x1="150" y1="0"  x2="150" y2="14" stroke="#C8A882" stroke-width="1.8"/>
+    <line x1="50"  y1="14" x2="250" y2="14" stroke="#C8A882" stroke-width="1.8"/>
+    <line x1="50"  y1="14" x2="50"  y2="44" stroke="#C8A882" stroke-width="1.8"/>
+    <line x1="150" y1="14" x2="150" y2="44" stroke="#C8A882" stroke-width="1.8"/>
+    <line x1="250" y1="14" x2="250" y2="44" stroke="#C8A882" stroke-width="1.8"/>
+  </svg>`;
+
+  const sectorNodeInner = sp && sp.name
+    ? `<div class="phc-sn-left">
+        <span class="phc-sn-icon">⭐</span>
+        <div>
+          <div class="phc-sn-label">Sector Coordinator</div>
+          <div class="phc-sn-name">${sp.name}</div>
+          ${sp.phone?`<div class="phc-sn-phone">📞 ${sp.phone}</div>`:''}
+        </div>
+      </div>
+      <button class="phc-sn-btn" onclick="openModal('${svid}','coord','Sector · ${prog.name}',event)">Edit</button>`
+    : `<div class="phc-sn-left">
+        <span class="phc-sn-icon">⭐</span>
+        <div>
+          <div class="phc-sn-label">Sector Coordinator</div>
+          <div class="phc-sn-empty">Not assigned yet</div>
+        </div>
+      </div>
+      <button class="phc-sn-btn" onclick="openModal('${svid}','coord','Sector · ${prog.name}',event)">+ Assign</button>`;
+
+  const centerCols = CTRS.map(ctr => `
+    <div class="phc-center-col">
+      <div class="phc-center-title" style="background:${ctr.grad};color:#fff"
+           onclick="showPanel('center-${ctr.key}')">
+        ${ctr.icon} ${ctr.name}
+        <span class="goto-link">Open ↗</span>
+      </div>
+      <div class="phc-role-rows">
+        ${miniRoleRow(ctr.key, prog.key, 'coord')}
+        ${miniRoleRow(ctr.key, prog.key, 'support')}
+        ${miniRoleRow(ctr.key, prog.key, 'exec')}
+      </div>
+    </div>`).join('');
+
+  return `<div class="phc" id="phc-${prog.key}">
+    <div class="phc-header" style="background:${prog.lt}" onclick="tphc(this)">
+      <div class="phc-icon" style="background:${prog.bg}">${prog.icon}</div>
+      <div>
+        <div class="phc-title" style="color:${prog.color}">${prog.name}</div>
+        <div class="phc-sub" style="color:${prog.color}">${prog.tasks[0]}</div>
+      </div>
+      <div class="phc-toggle">▼</div>
+    </div>
+    <div class="phc-body" id="phcb-${prog.key}">
+      <div class="phc-sector-row">
+        <div class="phc-sector-node">${sectorNodeInner}</div>
+      </div>
+      <div class="phc-connector">${c13}</div>
+      <div class="phc-centers">${centerCols}</div>
+    </div>
+  </div>`;
+}
+
+function renderSectorProgCards(){
+  document.getElementById('sectorProgCards').innerHTML = PROGS.map(p=>buildSectorProgCard(p)).join('');
+}
+
+// Overall sector coordinator bar
+function renderSocBar(){
+  const p = gv('sector-overall','coord');
+  document.getElementById('socBar').innerHTML = `
+    <div class="soc-lbl">👑 Overall Sector Head</div>
+    ${p && p.name
+      ? `<div><div class="soc-name">${p.name}</div>${p.phone?`<div class="soc-phone">📞 ${p.phone}</div>`:''}</div>
+         <button class="soc-btn" onclick="openModal('sector-overall','coord','Overall Sector Head',null)">Edit</button>
+         <button class="soc-btn" style="border-color:#ccc;color:#ccc" onclick="rmv('sector-overall','coord',null)">✕</button>`
+      : `<span class="soc-empty">Not assigned yet</span>
+         <button class="soc-btn" onclick="openModal('sector-overall','coord','Overall Sector Head',null)">+ Assign</button>`}`;
+}
+
+// ═══════════════════════════════
+// RENDER CENTRE PANELS
+// ═══════════════════════════════
+function renderCenter(ctr){
+  const panel = document.getElementById(`panel-center-${ctr.key}`);
+  let html = `<div class="center-hero" style="background:${ctr.grad}">
+    <div class="ch-lbl">Isha Centre</div>
+    <div class="ch-name">${ctr.icon} ${ctr.name}</div>
+    <div class="ch-sub">Electronic City Sector · Expand any programme card to assign volunteers</div>
+    <div class="ch-chips">${PROGS.map(p=>`<div class="ch-chip">${p.icon} ${p.name}</div>`).join('')}</div>
+  </div>
+  <div class="progs-grid">`;
+
+  PROGS.forEach(prog => {
+    const vid = `${ctr.key}-${prog.key}`;
+    const tasks = prog.tasks.map(t=>`<li><div class="pc-dot" style="background:${prog.color}"></div>${t}</li>`).join('');
+    html += `<div class="prog-card">
+      <div class="pc-head" style="background:${prog.lt}" onclick="tpc(this)">
+        <div class="pc-icon" style="background:${prog.bg}">${prog.icon}</div>
+        <div>
+          <div class="pc-title" style="color:${prog.color}">${prog.name}</div>
+          <div class="pc-sub"   style="color:${prog.color}">${prog.tasks[0]}</div>
+        </div>
+        <div class="pc-toggle">▼</div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-tasks-title">Key Activities</div>
+        <ul class="pc-task-list">${tasks}</ul>
+        <div id="vs-${vid}">${buildVolSection(ctr.key, prog.key)}</div>
+      </div>
+    </div>`;
+  });
+
+  html += `</div>`;
+  panel.innerHTML = html;
+}
+
+// ═══════════════════════════════
+// REFRESH AFTER SAVE / REMOVE
+// ═══════════════════════════════
+function afterUpdate(vid) {
+  const isSector = vid.startsWith('sector-') && vid !== 'sector-overall';
+  const isOverall = vid === 'sector-overall';
+
+  if (isOverall) {
+    renderSocBar();
+  } else if (isSector) {
+    // e.g. 'sector-ie' → progKey = 'ie'
+    const progKey = vid.slice(7);
+    refreshSectorCard(progKey);
+    // also refresh sector banner in all center panels
+    CTRS.forEach(c => {
+      const el = document.getElementById(`vs-${c.key}-${progKey}`);
+      if (el) el.innerHTML = buildVolSection(c.key, progKey);
+    });
+  } else {
+    // e.g. 'ec-ie' → ctrKey = 'ec', progKey = 'ie'
+    const dash = vid.indexOf('-');
+    const ctrKey  = vid.slice(0, dash);
+    const progKey = vid.slice(dash + 1);
+    const el = document.getElementById(`vs-${vid}`);
+    if (el) el.innerHTML = buildVolSection(ctrKey, progKey);
+    refreshSectorCard(progKey);
+  }
+  renderTeamTable();
+}
+
+function refreshSectorCard(progKey) {
+  const prog = PROGS.find(p=>p.key===progKey);
+  const old  = document.getElementById(`phc-${progKey}`);
+  if (!old) return;
+  const wasOpen = old.querySelector('.phc-body').classList.contains('open');
+  const div = document.createElement('div');
+  div.innerHTML = buildSectorProgCard(prog);
+  const newCard = div.firstElementChild;
+  if (wasOpen) {
+    newCard.querySelector('.phc-toggle').classList.add('open');
+    newCard.querySelector('.phc-body').classList.add('open');
+  }
+  old.replaceWith(newCard);
+}
+
+// ═══════════════════════════════
+// MODAL
+// ═══════════════════════════════
+let _vid='', _rk='';
+function openModal(vid, rk, label, e) {
+  if (e) e.stopPropagation();
+  _vid=vid; _rk=rk;
+  const role = ROLES.find(r=>r.key===rk);
+  const p = gv(vid, rk)||{};
+  document.getElementById('mTitle').textContent = `${role?role.icon:'⭐'} ${role?role.lbl:'Sector Coordinator'}`;
+  document.getElementById('mSub').textContent   = label;
+  document.getElementById('vName').value  = p.name||'';
+  document.getElementById('vPhone').value = p.phone||'';
+  document.getElementById('vEmail').value = p.email||'';
+  document.getElementById('volModal').classList.add('open');
+  setTimeout(()=>document.getElementById('vName').focus(),80);
+}
+function closeModal(){
+  document.getElementById('volModal').classList.remove('open');
+  const mo = document.getElementById('modal-overlay');
+  if(mo){ mo.style.display='none'; mo.innerHTML=''; }
+}
+function saveVol(){
+  const name = document.getElementById('vName').value.trim();
+  if(!name){ document.getElementById('vName').style.borderColor='red'; return; }
+  document.getElementById('vName').style.borderColor='';
+  sv(_vid, _rk, { name, phone:document.getElementById('vPhone').value.trim(), email:document.getElementById('vEmail').value.trim() });
+  closeModal();
+  afterUpdate(_vid);
+}
+function rmv(vid, rk, e){
+  if(e) e.stopPropagation();
+  dv(vid, rk);
+  afterUpdate(vid);
+}
+
+// ═══════════════════════════════
+// TEAM TABLE
+// ═══════════════════════════════
+let _tmf = 'all';
+function renderTeamTable(){
+  const tbody = document.getElementById('teamTbody');
+  let rows = '';
+
+  // Sector-level rows
+  if (_tmf==='all'||_tmf==='sector') {
+    // Overall sector head
+    const oh = gv('sector-overall','coord');
+    rows += `<tr>
+      <td><strong>⭐ Sector</strong></td>
+      <td>All Programmes</td>
+      <td><span class="tbadge" style="background:#FFF8E7;color:var(--gold)">👑 Overall Sector Head</span></td>
+      <td>${oh&&oh.name?`<strong>${oh.name}</strong>`:'<span class="nov">Not assigned</span>'}</td>
+      <td>${oh&&oh.phone?oh.phone:'<span class="nov">—</span>'}</td>
+      <td>${oh&&oh.email?oh.email:'<span class="nov">—</span>'}</td>
+    </tr>`;
+    PROGS.forEach(prog=>{
+      const p = gv(`sector-${prog.key}`,'coord');
+      rows += `<tr>
+        <td><strong>⭐ Sector</strong></td>
+        <td>${prog.icon} ${prog.name}</td>
+        <td><span class="tbadge" style="background:#FEF3CC;color:var(--gold)">⭐ Sector Coord</span></td>
+        <td>${p&&p.name?`<strong>${p.name}</strong>`:'<span class="nov">Not assigned</span>'}</td>
+        <td>${p&&p.phone?p.phone:'<span class="nov">—</span>'}</td>
+        <td>${p&&p.email?p.email:'<span class="nov">—</span>'}</td>
+      </tr>`;
+    });
+  }
+
+  // Centre-level rows
+  CTRS.forEach(ctr => {
+    if (_tmf!=='all'&&_tmf!==ctr.key) return;
+    PROGS.forEach(prog => {
+      const vid = `${ctr.key}-${prog.key}`;
+      ROLES.forEach(role => {
+        const p = gv(vid, role.key);
+        rows += `<tr>
+          <td><strong>${ctr.icon} ${ctr.name}</strong></td>
+          <td>${prog.icon} ${prog.name}</td>
+          <td><span class="tbadge" style="background:${role.bg};color:${role.badge}">${role.icon} ${role.lbl}</span></td>
+          <td>${p&&p.name?`<strong>${p.name}</strong>`:'<span class="nov">Not assigned</span>'}</td>
+          <td>${p&&p.phone?p.phone:'<span class="nov">—</span>'}</td>
+          <td>${p&&p.email?p.email:'<span class="nov">—</span>'}</td>
+        </tr>`;
+      });
+    });
+  });
+
+  tbody.innerHTML = rows || `<tr><td colspan="6" style="text-align:center;padding:22px;color:#bbb">No assignments yet.</td></tr>`;
+}
+function ftm(k, btn){
+  _tmf=k;
+  document.querySelectorAll('.tf').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTeamTable();
+}
+
+// ═══════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════
+function exportData(){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(store,null,2)],{type:'application/json'}));
+  a.download='isha_ecity_volunteers.json'; a.click();
+}
+function openImport(){ document.getElementById('importTxt').value=''; document.getElementById('importModal').classList.add('open'); }
+function closeImport(){ document.getElementById('importModal').classList.remove('open'); }
+function importData(){
+  try{
+    store={...store,...JSON.parse(document.getElementById('importTxt').value)};
+    ss(store); closeImport(); init(); alert('Import successful!');
+  }catch{ alert('Invalid JSON.'); }
+}
+
+// ═══════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════
+const PANELS = ['sector','center-ec','center-ss','center-cp','phases','team','voled','calendar','resources','templates','materials','analytics'];
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active', PANELS[i]===id));
+  if(id==='team') renderTeamTable();
+  window.scrollTo(0,0);
+}
+
+// ═══════════════════════════════
+// TOGGLES
+// ═══════════════════════════════
+function tphc(h){ const b=h.nextElementSibling,t=h.querySelector('.phc-toggle'); b.classList.toggle('open'); t.classList.toggle('open'); }
+function tpc(h) { const b=h.nextElementSibling,t=h.querySelector('.pc-toggle');  b.classList.toggle('open'); t.classList.toggle('open'); }
+function tph(h) { const b=h.nextElementSibling,t=h.querySelector('.ph-tog');     b.classList.toggle('open'); t.classList.toggle('open'); }
+
+// ═══════════════════════════════
+// KEYBOARD & OVERLAY
+// ═══════════════════════════════
+document.getElementById('volModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+document.getElementById('importModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeImport();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('volModal').classList.contains('open')) saveVol();
+  if(e.key==='Escape'){ closeModal(); closeImport(); }
+});
+
+// ═══════════════════════════════
+// INIT
+// ═══════════════════════════════
+function init(){
+  renderSocBar();
+  renderSectorProgCards();
+  CTRS.forEach(c=>renderCenter(c));
+  seedMonthlySatsangs();
+}
+document.addEventListener('DOMContentLoaded', init);
+
+// ═══════════════════════════════════════════════════
+//  CALENDAR
+// ═══════════════════════════════════════════════════
+const CAL_SK = 'isha_cal_v1';
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+let calActiveCtr = 'all';
+
+const VENUES = {
+  ec: [
+    'Isha Yoga Center – Electronic City',
+    'Electronic City Cultural & Convention Hall',
+    'Narayana e-Techno School Auditorium',
+    'Infosys Multipurpose Hall, EC Phase II',
+    'Wipro Convention Center, Sarjapur Road',
+    'Sri Venkateshwara Temple Community Hall',
+    'Prestige Tech Park Amphitheatre',
+  ],
+  ss: [
+    'Isha Yoga Center – Singasandhra',
+    'Singasandhra Gram Panchayat Hall',
+    'Sri Raghavendra Swamy Temple Hall',
+    'Singasandhra Community Kalyana Mantapa',
+    'Govt. Higher Primary School Grounds',
+    'Kanakadasa Community Hall',
+    'Sri Anjaneya Temple Hall, Singasandhra',
+  ],
+  cp: [
+    'Isha Yoga Center – Chandapura',
+    'Chandapura Community Centre',
+    'Sri Sai Baba Temple Hall, Chandapura',
+    'DPS East Auditorium, Chandapura',
+    'Chandapura Gram Panchayat Meeting Hall',
+    'Anugraha Kalyana Mantapa',
+    'Sri Lakshmi Venkataramana Temple Hall',
+  ],
+};
+
+const CAL_FREQ = [
+  { prog:'ie',  icon:'🧘', name:'Inner Engineering', freq:'Monthly at all centres (English + Kannada batches). Aim for 1–2 batches/month.' },
+  { prog:'hy',  icon:'🤸', name:'Hatha Yoga Programs', freq:'Once a month per Isha place (Angamardana / Surya Kriya / Yogasanas).' },
+  { prog:'ms',  icon:'🕉️', name:'Monthly Satsangs', freq:'1st Sunday of every month at each centre.' },
+  { prog:'pcs', icon:'🎯', name:'Practice Correction', freq:'One session the week following each programme completion.' },
+  { prog:'ap',  icon:'✨', name:'Advanced Programs (Guru Puja)', freq:'Once in 6 months per Isha place. SSB once in 3 months. 2026 Guru Puja: Jan-Malleshwaram, Feb-JN, Mar-Marathalli, Apr-Mysore, May-VJN, Jul-Malleshwaram, Oct-VJN.' },
+];
+
+function getCalData(){ try{ return JSON.parse(localStorage.getItem(CAL_SK)||'{}'); }catch(e){ return {}; } }
+function saveCalData(d){ localStorage.setItem(CAL_SK, JSON.stringify(d)); }
+
+function seedMonthlySatsangs(){
+  // Seed Monthly Satsang on the 1st Sunday of each month, June–Dec 2026, for all 3 centres.
+  // Only writes if no entry exists yet (never overwrites user data).
+  const YEAR = 2026;
+  const data = getCalData();
+  let changed = false;
+
+  function firstSundayDate(year, monthIdx){
+    const d = new Date(year, monthIdx, 1);
+    const dow = d.getDay(); // 0=Sun
+    const offset = dow === 0 ? 0 : 7 - dow;
+    return 1 + offset;
+  }
+
+  // June (5) through December (11)
+  for(let mi = 5; mi <= 11; mi++){
+    const day = firstSundayDate(YEAR, mi);
+    const rawDate = `${YEAR}-${String(mi+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dateDisp = `${day} ${MONTHS[mi]}`;
+
+    CTRS.forEach(ctr => {
+      const key = `${ctr.key}-ms-${mi}`;
+      if(!data[key]){
+        data[key] = {
+          label:   'Monthly Satsang',
+          date:    dateDisp,
+          rawDate: rawDate,
+          status:  'planned',
+          venue:   '',
+          teacher: '',
+          notes:   '1st Sunday of the month',
+        };
+        changed = true;
+      }
+    });
+  }
+
+  if(changed) saveCalData(data);
+}
+
+function renderCalendar(){
+  // Frequency guide
+  const rl = document.getElementById('cal-rec-list');
+  if(rl) rl.innerHTML = CAL_FREQ.map(f=>
+    `<div class="cal-rec-item">${f.icon} <span><strong>${f.name}:</strong> ${f.freq}</span></div>`
+  ).join('');
+
+  const cc = document.getElementById('cal-content');
+  if(!cc) return;
+
+  const ctrsToShow = calActiveCtr === 'all' ? CTRS : CTRS.filter(c=>c.key===calActiveCtr);
+
+  cc.innerHTML = ctrsToShow.map(ctr => `
+    <div style="margin-bottom:28px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 16px;background:${ctr.grad};border-radius:10px;">
+        <span style="font-size:1.2rem">${ctr.icon}</span>
+        <span style="font-weight:800;font-size:.95rem;color:#fff;">${ctr.name}</span>
+      </div>
+      <div class="cal-wrap">
+        <div class="cal-grid">
+          <div class="cal-head-row">
+            <div class="cal-head-cell prog-col">Programme</div>
+            ${MONTHS.map((m,i)=>`<div class="cal-head-cell">${m}</div>`).join('')}
+          </div>
+          ${PROGS.map(prog => buildCalRow(ctr.key, prog)).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function buildCalRow(ctrKey, prog){
+  const data = getCalData();
+  const cells = MONTHS.map((m,mi) => {
+    const key = `${ctrKey}-${prog.key}-${mi}`;
+    const ev = data[key];
+    if(ev){
+      const cls = ev.status || 'planned';
+      const dateStr = ev.date ? `<span style="font-size:.6rem;opacity:.8">${ev.date}</span>` : '';
+      const venueStr = ev.venue ? `<span style="font-size:.58rem;color:#666;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px">${ev.venue}</span>` : '';
+      return `<div class="cal-cell" onclick="openCalModal('${ctrKey}','${prog.key}',${mi})">
+        <div class="cal-event ${cls}">${ev.label||m}${dateStr}</div>
+        ${venueStr}
+      </div>`;
+    }
+    return `<div class="cal-cell" onclick="openCalModal('${ctrKey}','${prog.key}',${mi})">
+      <span class="cal-cell-empty">+</span>
+    </div>`;
+  }).join('');
+  return `<div class="cal-prog-row">
+    <div class="cal-prog-label" style="border-left:3px solid ${prog.color}">
+      <span class="pl-icon">${prog.icon}</span>
+      <span class="pl-name" style="color:${prog.color}">${prog.name}</span>
+    </div>
+    ${cells}
+  </div>`;
+}
+
+function switchCalCtr(key, el){
+  calActiveCtr = key;
+  document.querySelectorAll('.cal-ctr-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderCalendar();
+}
+
+// Calendar modal
+let _calCtx = {};
+function openCalModal(ctrKey, progKey, monthIdx){
+  const ctr   = CTRS.find(c=>c.key===ctrKey);
+  const prog  = PROGS.find(p=>p.key===progKey);
+  const data  = getCalData();
+  const key   = `${ctrKey}-${progKey}-${monthIdx}`;
+  const ev    = data[key] || {};
+
+  _calCtx = {ctrKey, progKey, monthIdx, key};
+
+  // Build date options for this month
+  const year = 2026;
+  const daysInMonth = new Date(year, monthIdx+1, 0).getDate();
+  const dateMin = `${year}-${String(monthIdx+1).padStart(2,'0')}-01`;
+  const dateMax = `${year}-${String(monthIdx+1).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`;
+
+  // Build venue options for this centre
+  const venueList = VENUES[ctrKey] || [];
+  const savedVenue = ev.venue || '';
+  const isCustomVenue = savedVenue && !venueList.includes(savedVenue);
+  const venueOpts = venueList.map(v =>
+    `<option value="${v}" ${savedVenue===v?'selected':''}>${v}</option>`
+  ).join('');
+
+  const existing = !!data[key];
+  const mo = document.getElementById('modal-overlay');
+  mo.innerHTML = `
+    <div class="cev-modal" style="max-width:420px">
+      <button onclick="closeModal()" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999">✕</button>
+      <h3>${prog.icon} ${prog.name}</h3>
+      <div class="cev-sub">${ctr.name} · ${MONTH_FULL[monthIdx]} 2026</div>
+
+      <label>Programme Date</label>
+      <input id="cev-date" type="date" min="${dateMin}" max="${dateMax}" value="${ev.date||dateMin}">
+
+      <label>Label / Title</label>
+      <input id="cev-label" placeholder="${MONTH_FULL[monthIdx]} ${prog.name}" value="${ev.label||''}">
+
+      <label>Status</label>
+      <select id="cev-status">
+        <option value="planned"   ${(ev.status||'planned')==='planned'   ?'selected':''}>📋 Planned</option>
+        <option value="confirmed" ${ev.status==='confirmed'?'selected':''}>✅ Confirmed</option>
+        <option value="done"      ${ev.status==='done'     ?'selected':''}>☑️ Done</option>
+      </select>
+
+      <label>Venue</label>
+      <select id="cev-venue" onchange="toggleCustomVenue(this)">
+        <option value="" ${!savedVenue?'selected':''}>— Select venue —</option>
+        ${venueOpts}
+        <option value="__other__" ${isCustomVenue?'selected':''}>Other (type below)</option>
+      </select>
+      <input id="cev-venue-other" placeholder="Enter venue name" style="display:${isCustomVenue?'block':'none'};margin-top:-4px" value="${isCustomVenue?savedVenue:''}">
+
+      <label>Teacher / Facilitator</label>
+      <input id="cev-teacher" placeholder="Name" value="${ev.teacher||''}">
+
+      <label>Notes</label>
+      <textarea id="cev-notes" rows="2" placeholder="Timing, batch count, special instructions...">${ev.notes||''}</textarea>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;align-items:center;">
+        ${existing ? `<button class="cev-del-btn" onclick="deleteCalEvent()">Delete</button>` : ''}
+        <button class="btn-sec" onclick="closeModal()">Cancel</button>
+        <button class="btn-pri" onclick="saveCalEvent()">Save</button>
+      </div>
+    </div>`;
+  mo.style.display='flex';
+}
+
+function toggleCustomVenue(sel){
+  const other = document.getElementById('cev-venue-other');
+  other.style.display = sel.value==='__other__' ? 'block' : 'none';
+}
+
+function saveCalEvent(){
+  const {key,ctrKey,progKey,monthIdx} = _calCtx;
+  const data = getCalData();
+  const venueEl  = document.getElementById('cev-venue');
+  const venueOth = document.getElementById('cev-venue-other');
+  const venueVal = venueEl.value==='__other__'
+    ? (venueOth?venueOth.value.trim():'')
+    : venueEl.value;
+
+  // Format date for display: "15 Jan"
+  const rawDate = document.getElementById('cev-date').value;
+  let dateDisp = '';
+  if(rawDate){
+    const d = new Date(rawDate+'T00:00:00');
+    dateDisp = d.getDate()+' '+MONTHS[d.getMonth()];
+  }
+
+  data[key] = {
+    label:   document.getElementById('cev-label').value.trim() || MONTHS[monthIdx],
+    date:    dateDisp,
+    rawDate: rawDate,
+    status:  document.getElementById('cev-status').value,
+    venue:   venueVal,
+    teacher: document.getElementById('cev-teacher').value.trim(),
+    notes:   document.getElementById('cev-notes').value.trim(),
+  };
+  saveCalData(data);
+  closeModal();
+  renderCalendar();
+}
+
+function deleteCalEvent(){
+  const {key} = _calCtx;
+  const data = getCalData();
+  delete data[key];
+  saveCalData(data);
+  closeModal();
+  renderCalendar();
+}
+
+// ═══════════════════════════════════════════════════
+//  RESOURCES
+// ═══════════════════════════════════════════════════
+const RES_SK = 'isha_res_v1';
+let resActiveCat = 'all';
+
+const DEFAULT_RESOURCES = [
+  { id:'r1', title:'KA Region TeamUp Calendar 2026', category:'calendar', prog:'all', notes:'Live shared calendar for all KA region programmes.', url:'https://teamup.com/ksenmv72i55hu67d3n', color:'#1565C0' },
+  { id:'r2', title:'KA Region Programme Calendar 2026 (Doc)', category:'reference', prog:'all', notes:'Official KA region programme schedule — IE, Hatha Yoga, Advanced Programs frequencies.', url:'', color:'#2E7D32' },
+  { id:'r3', title:'Participant Registration Tracker Template', category:'forms', prog:'ie', notes:'Use to track registrations, payments, and attendance for IE programmes.', url:'', color:'#7B1A1A' },
+  { id:'r4', title:'Post-Programme Summary Form', category:'forms', prog:'all', notes:'Fill after every programme and submit to centre coordinator.', url:'', color:'#7B1A1A' },
+  { id:'r5', title:'Programme Planning Checklist', category:'planning', prog:'all', notes:'Step-by-step checklist from web listing → promotion → registration → conduct → windup.', url:'', color:'#BF360C' },
+  { id:'r6', title:'Volunteer Orientation Guide', category:'reference', prog:'all', notes:'Essential reading for all new volunteers — roles, escalation path, communication guidelines.', url:'', color:'#6A1B9A' },
+];
+
+const CAT_META = {
+  planning:  { label:'Planning',   color:'#1565C0', bg:'#E3F2FD' },
+  forms:     { label:'Forms',      color:'#BF360C', bg:'#FBE9E7' },
+  calendar:  { label:'Calendar',   color:'#2E7D32', bg:'#E8F5E9' },
+  reference: { label:'Reference',  color:'#6A1B9A', bg:'#F3E5F5' },
+  template:  { label:'Template',   color:'#00695C', bg:'#E0F2F1' },
+};
+
+function getResData(){
+  const raw = localStorage.getItem(RES_SK);
+  if(!raw) return [...DEFAULT_RESOURCES];
+  try{ return JSON.parse(raw); }catch(e){ return [...DEFAULT_RESOURCES]; }
+}
+function saveResData(d){ localStorage.setItem(RES_SK, JSON.stringify(d)); }
+
+function renderResources(){
+  const data = getResData();
+  const grid = document.getElementById('res-grid');
+  if(!grid) return;
+  const filtered = resActiveCat==='all' ? data : data.filter(r=>r.category===resActiveCat);
+  if(!filtered.length){ grid.innerHTML = '<div class="res-empty">No resources in this category yet.</div>'; return; }
+
+  grid.innerHTML = filtered.map(r => {
+    const cm = CAT_META[r.category] || {label:r.category, color:'#555', bg:'#eee'};
+    const prog = r.prog && r.prog!=='all' ? PROGS.find(p=>p.key===r.prog) : null;
+    return `<div class="res-card" style="border-left-color:${r.color||cm.color}">
+      <div class="res-card-top">
+        <span class="res-cat-badge" style="background:${cm.bg};color:${cm.color}">${cm.label}</span>
+        <div>
+          <div class="res-title">${r.title}</div>
+          ${prog ? `<div class="res-prog-tag">${prog.icon} ${prog.name}</div>` : '<div class="res-prog-tag">All Programmes</div>'}
+        </div>
+      </div>
+      ${r.notes ? `<div class="res-notes">${r.notes}</div>` : ''}
+      <div class="res-actions">
+        ${r.url ? `<a class="res-open-btn" href="${r.url}" target="_blank">Open ↗</a>` : '<span style="font-size:.72rem;color:#bbb">No link</span>'}
+        <button class="res-edit-btn" onclick="openResModal('${r.id}')">Edit</button>
+        <button class="res-del-btn" onclick="deleteRes('${r.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterRes(cat, el){
+  resActiveCat = cat;
+  document.querySelectorAll('.res-cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderResources();
+}
+
+let _resEditId = null;
+function openResModal(id){
+  const data = getResData();
+  const r = id ? data.find(x=>x.id===id) : null;
+  _resEditId = id || null;
+
+  const mo = document.getElementById('modal-overlay');
+  mo.innerHTML = `
+    <div class="cev-modal" style="max-width:440px">
+      <button onclick="closeModal()" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999">✕</button>
+      <h3>${r ? '✏️ Edit Resource' : '+ Add Resource'}</h3>
+      <div style="height:8px"></div>
+      <label>Title</label>
+      <input id="res-title" placeholder="Document or link name" value="${r?r.title:''}">
+      <label>Category</label>
+      <select id="res-cat">
+        ${Object.entries(CAT_META).map(([k,v])=>`<option value="${k}" ${r&&r.category===k?'selected':''}>${v.label}</option>`).join('')}
+      </select>
+      <label>Programme (optional)</label>
+      <select id="res-prog">
+        <option value="all" ${!r||r.prog==='all'?'selected':''}>All Programmes</option>
+        ${PROGS.map(p=>`<option value="${p.key}" ${r&&r.prog===p.key?'selected':''}>${p.icon} ${p.name}</option>`).join('')}
+      </select>
+      <label>URL / Link (optional)</label>
+      <input id="res-url" placeholder="https://..." value="${r?r.url:''}">
+      <label>Notes</label>
+      <textarea id="res-notes" rows="2" placeholder="Brief description...">${r?r.notes:''}</textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+        <button class="btn-sec" onclick="closeModal()">Cancel</button>
+        <button class="btn-pri" onclick="saveRes()">Save</button>
+      </div>
+    </div>`;
+  mo.style.display='flex';
+}
+
+function saveRes(){
+  const data = getResData();
+  const cm = CAT_META[document.getElementById('res-cat').value] || {};
+  const item = {
+    id:       _resEditId || ('r'+Date.now()),
+    title:    document.getElementById('res-title').value.trim(),
+    category: document.getElementById('res-cat').value,
+    prog:     document.getElementById('res-prog').value,
+    url:      document.getElementById('res-url').value.trim(),
+    notes:    document.getElementById('res-notes').value.trim(),
+    color:    cm.color || '#555',
+  };
+  if(!item.title){ alert('Please add a title.'); return; }
+  if(_resEditId){
+    const idx = data.findIndex(x=>x.id===_resEditId);
+    if(idx>=0) data[idx] = item; else data.push(item);
+  } else {
+    data.push(item);
+  }
+  saveResData(data);
+  closeModal();
+  renderResources();
+}
+
+function deleteRes(id){
+  if(!confirm('Remove this resource?')) return;
+  const data = getResData().filter(x=>x.id!==id);
+  saveResData(data);
+  renderResources();
+}
+
+// ═══════════════════════════════════════════════════
+//  MATERIALS
+// ═══════════════════════════════════════════════════
+const MAT_SK = 'isha_mat_v2';
+let matActiveCtr  = 'ec';
+let matActiveProg = 'all';
+
+const MAT_CATS = ['AV Equipment','Documentation','Dais & Backdrop','Sadhana Items','Cleaning & Toiletries','Water & Refreshments','Tent & Furniture','Kitchen','Games & Medical','Registration','Venue Setup','Consumables','Safety','Other'];
+const MAT_STATUS = ['available','sourced','needed','missing'];
+
+const DEFAULT_MATERIALS = [
+{
+"id": "ie7_000-ec",
+"prog": "ie",
+"cat": "Documentation",
+"name": "IE Registration Form",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_001-ec",
+"prog": "ie",
+"cat": "Documentation",
+"name": "IE Completion form",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_002-ec",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Name tags",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_003-ec",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Practice review sheet ( without upa yoga)",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_004-ec",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Recipe sheet",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_005-ec",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Bhava Spandana - New brochers",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_006-ec",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Announcement sheet ( closer to the date)",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_007-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Projector screen and stand / LED",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_008-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Projector with remote",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_009-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Projector power cable",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_010-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Box / small stool to keep the projector",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_011-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Amplifier",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_012-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Speakers",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_013-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Speakers wires",
+"qtyN": 8,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_014-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Aux cable",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_015-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "mic with cable",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_016-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "mic stand with base",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_017-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Laptop  (Ishanga may  get their laptop)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_018-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "HDMI cable ( one for backup )",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_019-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Extension box",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_020-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Inverter",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_021-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Battery",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_022-ec",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Generator For initiation day",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_023-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Back drop - Gada cloth ( length and width)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_024-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Triangular banner",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_025-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Sadhguru class photo",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_026-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Sadhguru initiation day photo",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_027-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Dais cloth",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_028-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "12/4 whites to drape chair with safety pins",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_029-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Chair with arms",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_030-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Sadhguru cloth roll for support",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_031-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Rope for Sadhguru chair",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_032-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Deepam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_033-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Padam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_034-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Chair cleaning cloth",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_035-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Carpets",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_036-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Dark cloth for window",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_037-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "12/4 for sadhguru chair, registration, isha life",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_038-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "6/4 for table top, projector box and Vajrasana",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_039-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Padam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_040-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Deepam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_041-ec",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "few more to drape if needed as per venue",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_042-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Lamp and chimney set with base plate",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_043-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Lamp oil",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_044-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "wicks",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_045-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "matchbox",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_046-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Agarbatti stand",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_047-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Agarbatti pack",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_048-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Tissue paper pack",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_049-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Tweezer",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_050-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Guru pooja set",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_051-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Guru pooja offerings (chandanam + akshatham + beetle nut + leaf + vastram  + fruit + coconut",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_052-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Pen",
+"qtyN": 150,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_053-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "A4 sheets",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_054-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "A4 folder",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_055-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Basket",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_056-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Black Marker",
+"qtyN": 3,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_057-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Red Marker",
+"qtyN": 3,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_058-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Green Marker",
+"qtyN": 3,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_059-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Sketch Pen",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_060-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Name tag pouches",
+"qtyN": 150,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_061-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Safety pin",
+"qtyN": 150,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_062-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "masking tap (big + small )",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_063-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "cello tape",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_064-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Double side tape",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_065-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "scissors",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_066-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Cutter",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_067-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Needle (big)",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_068-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Thread (thick)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_069-ec",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Attendance book",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_070-ec",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Liquid handwash  + dispenser",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_071-ec",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Bathroom chappals",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_072-ec",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "brooms",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_073-ec",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Mops",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_074-ec",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "200ml floor cleaner",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_075-ec",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "200ml toilet cleaner",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_076-ec",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "A few rags for cleaning.",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_077-ec",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Toilet brush",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_078-ec",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "floor mats",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_079-ec",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Bathroom floor mats",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_080-ec",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "water can ( 20 liters)",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "ie7_081-ec",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "water dispenser jar",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "ie7_082-ec",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "Steel glasses",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "ie7_083-ec",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "Tray to keep the glass",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "ie7_084-ec",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "5 Rupee coins for water",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "ie7_085-ec",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Chairs",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_086-ec",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Tables",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_087-ec",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS buckets (kanji +salad+upma)",
+"qtyN": 10,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_088-ec",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS serving spoons ( salad serving 4+ kanjiserving4)",
+"qtyN": 8,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_089-ec",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS basins",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_090-ec",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS jugs",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_091-ec",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Big mixing Vessels",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_092-ec",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Big Vessel (Ganji) + Ladle + Lid",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_093-ec",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Raisers for dais",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_094-ec",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "steel glasses or paper glasses",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_095-ec",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "Adike Plates",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_096-ec",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "garbage bag ( 1 big +1small)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_097-ec",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "knife, peelers, chopping board, graters,",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_098-ec",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "coconut breaker",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_099-ec",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "tarpaulin",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_100-ec",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "water cans",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_101-ec",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "dish wash soap and scrubber",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_102-ec",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "Dust bins",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ec"
+},
+{
+"id": "ie7_103-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Frisbie",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_104-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Cone",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_105-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "volleyball",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_106-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "air pump",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_107-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "milti color sticks",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_108-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "water bottle",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_109-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Frist aid kit",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_110-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Medical kit - paracetomol, electrolyte,cyclopam, nausea,dairreha tb",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_111-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Crip Bandage",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_112-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Ice pack",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ec"
+},
+{
+"id": "ie7_113-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Gas/Stove",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "ie7_114-ec",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "synthetic carpet",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "ie7_000-ss",
+"prog": "ie",
+"cat": "Documentation",
+"name": "IE Registration Form",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_001-ss",
+"prog": "ie",
+"cat": "Documentation",
+"name": "IE Completion form",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_002-ss",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Name tags",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_003-ss",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Practice review sheet ( without upa yoga)",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_004-ss",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Recipe sheet",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_005-ss",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Bhava Spandana - New brochers",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_006-ss",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Announcement sheet ( closer to the date)",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_007-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Projector screen and stand / LED",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_008-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Projector with remote",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_009-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Projector power cable",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_010-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Box / small stool to keep the projector",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_011-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Amplifier",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_012-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Speakers",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_013-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Speakers wires",
+"qtyN": 8,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_014-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Aux cable",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_015-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "mic with cable",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_016-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "mic stand with base",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_017-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Laptop  (Ishanga may  get their laptop)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_018-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "HDMI cable ( one for backup )",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_019-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Extension box",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_020-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Inverter",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_021-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Battery",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_022-ss",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Generator For initiation day",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_023-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Back drop - Gada cloth ( length and width)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_024-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Triangular banner",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_025-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Sadhguru class photo",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_026-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Sadhguru initiation day photo",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_027-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Dais cloth",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_028-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "12/4 whites to drape chair with safety pins",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_029-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Chair with arms",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_030-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Sadhguru cloth roll for support",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_031-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Rope for Sadhguru chair",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_032-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Deepam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_033-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Padam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_034-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Chair cleaning cloth",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_035-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Carpets",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_036-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Dark cloth for window",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_037-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "12/4 for sadhguru chair, registration, isha life",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_038-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "6/4 for table top, projector box and Vajrasana",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_039-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Padam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_040-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Deepam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_041-ss",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "few more to drape if needed as per venue",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_042-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Lamp and chimney set with base plate",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_043-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Lamp oil",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_044-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "wicks",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_045-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "matchbox",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_046-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Agarbatti stand",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_047-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Agarbatti pack",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_048-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Tissue paper pack",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_049-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Tweezer",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_050-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Guru pooja set",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_051-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Guru pooja offerings (chandanam + akshatham + beetle nut + leaf + vastram  + fruit + coconut",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_052-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Pen",
+"qtyN": 150,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_053-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "A4 sheets",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_054-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "A4 folder",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_055-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Basket",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_056-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Black Marker",
+"qtyN": 3,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_057-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Red Marker",
+"qtyN": 3,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_058-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Green Marker",
+"qtyN": 3,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_059-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Sketch Pen",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_060-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Name tag pouches",
+"qtyN": 150,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_061-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Safety pin",
+"qtyN": 150,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_062-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "masking tap (big + small )",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_063-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "cello tape",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_064-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Double side tape",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_065-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "scissors",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_066-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Cutter",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_067-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Needle (big)",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_068-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Thread (thick)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_069-ss",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Attendance book",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_070-ss",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Liquid handwash  + dispenser",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_071-ss",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Bathroom chappals",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_072-ss",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "brooms",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_073-ss",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Mops",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_074-ss",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "200ml floor cleaner",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_075-ss",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "200ml toilet cleaner",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_076-ss",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "A few rags for cleaning.",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_077-ss",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Toilet brush",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_078-ss",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "floor mats",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_079-ss",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Bathroom floor mats",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_080-ss",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "water can ( 20 liters)",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "ie7_081-ss",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "water dispenser jar",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "ie7_082-ss",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "Steel glasses",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "ie7_083-ss",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "Tray to keep the glass",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "ie7_084-ss",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "5 Rupee coins for water",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "ie7_085-ss",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Chairs",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_086-ss",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Tables",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_087-ss",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS buckets (kanji +salad+upma)",
+"qtyN": 10,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_088-ss",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS serving spoons ( salad serving 4+ kanjiserving4)",
+"qtyN": 8,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_089-ss",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS basins",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_090-ss",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS jugs",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_091-ss",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Big mixing Vessels",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_092-ss",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Big Vessel (Ganji) + Ladle + Lid",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_093-ss",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Raisers for dais",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_094-ss",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "steel glasses or paper glasses",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_095-ss",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "Adike Plates",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_096-ss",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "garbage bag ( 1 big +1small)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_097-ss",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "knife, peelers, chopping board, graters,",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_098-ss",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "coconut breaker",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_099-ss",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "tarpaulin",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_100-ss",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "water cans",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_101-ss",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "dish wash soap and scrubber",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_102-ss",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "Dust bins",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "ss"
+},
+{
+"id": "ie7_103-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Frisbie",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_104-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Cone",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_105-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "volleyball",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_106-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "air pump",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_107-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "milti color sticks",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_108-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "water bottle",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_109-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Frist aid kit",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_110-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Medical kit - paracetomol, electrolyte,cyclopam, nausea,dairreha tb",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_111-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Crip Bandage",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_112-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Ice pack",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "ss"
+},
+{
+"id": "ie7_113-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Gas/Stove",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "ie7_114-ss",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "synthetic carpet",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "ie7_000-cp",
+"prog": "ie",
+"cat": "Documentation",
+"name": "IE Registration Form",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_001-cp",
+"prog": "ie",
+"cat": "Documentation",
+"name": "IE Completion form",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_002-cp",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Name tags",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_003-cp",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Practice review sheet ( without upa yoga)",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_004-cp",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Recipe sheet",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_005-cp",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Bhava Spandana - New brochers",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_006-cp",
+"prog": "ie",
+"cat": "Documentation",
+"name": "Announcement sheet ( closer to the date)",
+"qtyN": 130,
+"qtyA": 0,
+"status": "needed",
+"owner": "Kumar Velu Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_007-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Projector screen and stand / LED",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_008-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Projector with remote",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_009-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Projector power cable",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_010-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Box / small stool to keep the projector",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_011-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Amplifier",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_012-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Speakers",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_013-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Speakers wires",
+"qtyN": 8,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_014-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Aux cable",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_015-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "mic with cable",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_016-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "mic stand with base",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_017-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Laptop  (Ishanga may  get their laptop)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_018-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "HDMI cable ( one for backup )",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_019-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Extension box",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_020-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Inverter",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_021-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Battery",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_022-cp",
+"prog": "ie",
+"cat": "AV Equipment",
+"name": "Generator For initiation day",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna/Tushar Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_023-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Back drop - Gada cloth ( length and width)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_024-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Triangular banner",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_025-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Sadhguru class photo",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_026-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Sadhguru initiation day photo",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_027-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Dais cloth",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_028-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "12/4 whites to drape chair with safety pins",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_029-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Chair with arms",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_030-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Sadhguru cloth roll for support",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_031-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Rope for Sadhguru chair",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_032-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Deepam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_033-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Padam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_034-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Chair cleaning cloth",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_035-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Carpets",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_036-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Dark cloth for window",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_037-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "12/4 for sadhguru chair, registration, isha life",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_038-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "6/4 for table top, projector box and Vajrasana",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_039-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Padam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_040-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "Deepam",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_041-cp",
+"prog": "ie",
+"cat": "Dais & Backdrop",
+"name": "few more to drape if needed as per venue",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_042-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Lamp and chimney set with base plate",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_043-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Lamp oil",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_044-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "wicks",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_045-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "matchbox",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_046-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Agarbatti stand",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_047-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Agarbatti pack",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_048-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Tissue paper pack",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_049-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Tweezer",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_050-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Guru pooja set",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_051-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Guru pooja offerings (chandanam + akshatham + beetle nut + leaf + vastram  + fruit + coconut",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Manjula Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_052-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Pen",
+"qtyN": 150,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_053-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "A4 sheets",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_054-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "A4 folder",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_055-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Basket",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_056-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Black Marker",
+"qtyN": 3,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_057-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Red Marker",
+"qtyN": 3,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_058-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Green Marker",
+"qtyN": 3,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_059-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Sketch Pen",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_060-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Name tag pouches",
+"qtyN": 150,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_061-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Safety pin",
+"qtyN": 150,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_062-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "masking tap (big + small )",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_063-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "cello tape",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_064-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Double side tape",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_065-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "scissors",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_066-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Cutter",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_067-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Needle (big)",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_068-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Thread (thick)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_069-cp",
+"prog": "ie",
+"cat": "Sadhana Items",
+"name": "Attendance book",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Amrutha Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_070-cp",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Liquid handwash  + dispenser",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_071-cp",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Bathroom chappals",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_072-cp",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "brooms",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_073-cp",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Mops",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_074-cp",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "200ml floor cleaner",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_075-cp",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "200ml toilet cleaner",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_076-cp",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "A few rags for cleaning.",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_077-cp",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Toilet brush",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_078-cp",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "floor mats",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_079-cp",
+"prog": "ie",
+"cat": "Cleaning & Toiletries",
+"name": "Bathroom floor mats",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_080-cp",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "water can ( 20 liters)",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "ie7_081-cp",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "water dispenser jar",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "ie7_082-cp",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "Steel glasses",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "ie7_083-cp",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "Tray to keep the glass",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "ie7_084-cp",
+"prog": "ie",
+"cat": "Water & Refreshments",
+"name": "5 Rupee coins for water",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "ie7_085-cp",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Chairs",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_086-cp",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Tables",
+"qtyN": 5,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_087-cp",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS buckets (kanji +salad+upma)",
+"qtyN": 10,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_088-cp",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS serving spoons ( salad serving 4+ kanjiserving4)",
+"qtyN": 8,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_089-cp",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS basins",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_090-cp",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "SS jugs",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_091-cp",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Big mixing Vessels",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_092-cp",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Big Vessel (Ganji) + Ladle + Lid",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_093-cp",
+"prog": "ie",
+"cat": "Tent & Furniture",
+"name": "Raisers for dais",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Sendhil Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_094-cp",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "steel glasses or paper glasses",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_095-cp",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "Adike Plates",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_096-cp",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "garbage bag ( 1 big +1small)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_097-cp",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "knife, peelers, chopping board, graters,",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_098-cp",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "coconut breaker",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_099-cp",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "tarpaulin",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_100-cp",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "water cans",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_101-cp",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "dish wash soap and scrubber",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_102-cp",
+"prog": "ie",
+"cat": "Kitchen",
+"name": "Dust bins",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Bini Akka",
+"ctr": "cp"
+},
+{
+"id": "ie7_103-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Frisbie",
+"qtyN": 4,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_104-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Cone",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_105-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "volleyball",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_106-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "air pump",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_107-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "milti color sticks",
+"qtyN": 6,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_108-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "water bottle",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_109-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Frist aid kit",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_110-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Medical kit - paracetomol, electrolyte,cyclopam, nausea,dairreha tb",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_111-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Crip Bandage",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_112-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Ice pack",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "Mandeep Anna",
+"ctr": "cp"
+},
+{
+"id": "ie7_113-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "Gas/Stove",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "ie7_114-cp",
+"prog": "ie",
+"cat": "Games & Medical",
+"name": "synthetic carpet",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_00-ec",
+"prog": "hy",
+"cat": "Venue Setup",
+"name": "Yoga mats",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_00-ss",
+"prog": "hy",
+"cat": "Venue Setup",
+"name": "Yoga mats",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_00-cp",
+"prog": "hy",
+"cat": "Venue Setup",
+"name": "Yoga mats",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_01-ec",
+"prog": "hy",
+"cat": "Venue Setup",
+"name": "Yoga blocks",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_01-ss",
+"prog": "hy",
+"cat": "Venue Setup",
+"name": "Yoga blocks",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_01-cp",
+"prog": "hy",
+"cat": "Venue Setup",
+"name": "Yoga blocks",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_02-ec",
+"prog": "hy",
+"cat": "Venue Setup",
+"name": "Yoga straps / belts",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_02-ss",
+"prog": "hy",
+"cat": "Venue Setup",
+"name": "Yoga straps / belts",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_02-cp",
+"prog": "hy",
+"cat": "Venue Setup",
+"name": "Yoga straps / belts",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_03-ec",
+"prog": "hy",
+"cat": "AV Equipment",
+"name": "Sound system",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_03-ss",
+"prog": "hy",
+"cat": "AV Equipment",
+"name": "Sound system",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_03-cp",
+"prog": "hy",
+"cat": "AV Equipment",
+"name": "Sound system",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_04-ec",
+"prog": "hy",
+"cat": "Documentation",
+"name": "Practice instruction sheets",
+"qtyN": 25,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_04-ss",
+"prog": "hy",
+"cat": "Documentation",
+"name": "Practice instruction sheets",
+"qtyN": 25,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_04-cp",
+"prog": "hy",
+"cat": "Documentation",
+"name": "Practice instruction sheets",
+"qtyN": 25,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_05-ec",
+"prog": "ms",
+"cat": "Sadhana Items",
+"name": "Chanting booklets",
+"qtyN": 30,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_05-ss",
+"prog": "ms",
+"cat": "Sadhana Items",
+"name": "Chanting booklets",
+"qtyN": 30,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_05-cp",
+"prog": "ms",
+"cat": "Sadhana Items",
+"name": "Chanting booklets",
+"qtyN": 30,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_06-ec",
+"prog": "ms",
+"cat": "AV Equipment",
+"name": "Sound system / Bluetooth",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_06-ss",
+"prog": "ms",
+"cat": "AV Equipment",
+"name": "Sound system / Bluetooth",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_06-cp",
+"prog": "ms",
+"cat": "AV Equipment",
+"name": "Sound system / Bluetooth",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_07-ec",
+"prog": "ms",
+"cat": "Sadhana Items",
+"name": "Incense / Dhoop sticks",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_07-ss",
+"prog": "ms",
+"cat": "Sadhana Items",
+"name": "Incense / Dhoop sticks",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_07-cp",
+"prog": "ms",
+"cat": "Sadhana Items",
+"name": "Incense / Dhoop sticks",
+"qtyN": 2,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_08-ec",
+"prog": "ms",
+"cat": "Sadhana Items",
+"name": "Flowers for pooja",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_08-ss",
+"prog": "ms",
+"cat": "Sadhana Items",
+"name": "Flowers for pooja",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_08-cp",
+"prog": "ms",
+"cat": "Sadhana Items",
+"name": "Flowers for pooja",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_09-ec",
+"prog": "pcs",
+"cat": "Venue Setup",
+"name": "Yoga mats (correction)",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_09-ss",
+"prog": "pcs",
+"cat": "Venue Setup",
+"name": "Yoga mats (correction)",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_09-cp",
+"prog": "pcs",
+"cat": "Venue Setup",
+"name": "Yoga mats (correction)",
+"qtyN": 20,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_10-ec",
+"prog": "pcs",
+"cat": "Documentation",
+"name": "Practice correction sheets",
+"qtyN": 25,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_10-ss",
+"prog": "pcs",
+"cat": "Documentation",
+"name": "Practice correction sheets",
+"qtyN": 25,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_10-cp",
+"prog": "pcs",
+"cat": "Documentation",
+"name": "Practice correction sheets",
+"qtyN": 25,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_11-ec",
+"prog": "pcs",
+"cat": "AV Equipment",
+"name": "Sound system",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_11-ss",
+"prog": "pcs",
+"cat": "AV Equipment",
+"name": "Sound system",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_11-cp",
+"prog": "pcs",
+"cat": "AV Equipment",
+"name": "Sound system",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_12-ec",
+"prog": "ap",
+"cat": "Sadhana Items",
+"name": "Full pooja kit",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_12-ss",
+"prog": "ap",
+"cat": "Sadhana Items",
+"name": "Full pooja kit",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_12-cp",
+"prog": "ap",
+"cat": "Sadhana Items",
+"name": "Full pooja kit",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_13-ec",
+"prog": "ap",
+"cat": "Venue Setup",
+"name": "Venue decoration items",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_13-ss",
+"prog": "ap",
+"cat": "Venue Setup",
+"name": "Venue decoration items",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_13-cp",
+"prog": "ap",
+"cat": "Venue Setup",
+"name": "Venue decoration items",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_14-ec",
+"prog": "ap",
+"cat": "AV Equipment",
+"name": "Sound system (high quality)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_14-ss",
+"prog": "ap",
+"cat": "AV Equipment",
+"name": "Sound system (high quality)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_14-cp",
+"prog": "ap",
+"cat": "AV Equipment",
+"name": "Sound system (high quality)",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+},
+{
+"id": "gen_15-ec",
+"prog": "ap",
+"cat": "Documentation",
+"name": "Eligibility check list",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ec"
+},
+{
+"id": "gen_15-ss",
+"prog": "ap",
+"cat": "Documentation",
+"name": "Eligibility check list",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "ss"
+},
+{
+"id": "gen_15-cp",
+"prog": "ap",
+"cat": "Documentation",
+"name": "Eligibility check list",
+"qtyN": 1,
+"qtyA": 0,
+"status": "needed",
+"owner": "",
+"ctr": "cp"
+}
+];
+
+function getMatData(){
+  const raw = localStorage.getItem(MAT_SK);
+  if(!raw) return JSON.parse(JSON.stringify(DEFAULT_MATERIALS.map(m=>({...m,ctr:m.ctr||'all'}))));
+  try{ return JSON.parse(raw); }catch(e){ return JSON.parse(JSON.stringify(DEFAULT_MATERIALS)); }
+}
+function saveMatData(d){ localStorage.setItem(MAT_SK, JSON.stringify(d)); }
+
+function seedMatData(){
+  if(!localStorage.getItem(MAT_SK)){
+    // Duplicate defaults for each centre
+    const seeded = [];
+    CTRS.forEach(ctr=>{
+      DEFAULT_MATERIALS.forEach(m=>{
+        seeded.push({...m, id: m.id+'-'+ctr.key, ctr: ctr.key});
+      });
+    });
+    saveMatData(seeded);
+  }
+}
+
+function renderMaterials(){
+  seedMatData();
+  const all  = getMatData();
+  const rows = all.filter(m => m.ctr===matActiveCtr && (matActiveProg==='all' || m.prog===matActiveProg || m.prog==='all'));
+
+  // Summary cards
+  const counts = { available:0, sourced:0, needed:0, missing:0, unlinked:0 };
+  rows.forEach(r=>{
+    if(counts[r.status]!==undefined) counts[r.status]++;
+    if(!r.owner) counts.unlinked++;
+  });
+  document.getElementById('mat-summary').innerHTML = `
+    <div class="mat-sum-card"><div class="mat-sum-num" style="color:#2E7D32">${counts.available}</div><div class="mat-sum-lbl">Available</div></div>
+    <div class="mat-sum-card"><div class="mat-sum-num" style="color:#1565C0">${counts.sourced}</div><div class="mat-sum-lbl">Sourced</div></div>
+    <div class="mat-sum-card"><div class="mat-sum-num" style="color:#E65100">${counts.needed}</div><div class="mat-sum-lbl">Needed</div></div>
+    <div class="mat-sum-card"><div class="mat-sum-num" style="color:#B71C1C">${counts.missing}</div><div class="mat-sum-lbl">Missing</div></div>
+    <div class="mat-sum-card"><div class="mat-sum-num" style="color:#F57F17">${counts.unlinked}</div><div class="mat-sum-lbl">Unlinked</div></div>
+  `;
+
+  // Table rows
+  const tbody = document.getElementById('mat-tbody');
+  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="8" class="mat-empty">No items. Click "+ Add Item" to get started.</td></tr>`; return; }
+
+  const progMap = Object.fromEntries(PROGS.map(p=>[p.key,p]));
+  tbody.innerHTML = rows.map(r=>{
+    const p = progMap[r.prog];
+    const progLabel = r.prog==='all' ? '<span style="color:#aaa">All</span>' : (p ? `${p.icon} ${p.name}` : r.prog);
+    const unlinked  = !r.owner ? '<span class="mat-unlinked-flag">Unlinked</span>' : '';
+    return `<tr>
+      <td><strong>${r.name}</strong>${unlinked}</td>
+      <td style="font-size:.72rem;color:var(--tlt)">${r.cat}</td>
+      <td style="font-size:.76rem">${progLabel}</td>
+      <td style="text-align:center;font-weight:700">${r.qtyN}</td>
+      <td style="text-align:center;font-weight:700;color:${r.qtyA>=r.qtyN?'#2E7D32':'#E65100'}">${r.qtyA}</td>
+      <td><span class="mat-status-badge ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span></td>
+      <td style="font-size:.78rem;color:${r.owner?'var(--text)':'#ccc'}">${r.owner||'— assign —'}</td>
+      <td style="white-space:nowrap;display:flex;gap:5px">
+        <button class="mat-action-btn" onclick="openMatModal('${r.id}')">Edit</button>
+        <button class="mat-del-btn" onclick="deleteMat('${r.id}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function setMatCtr(key, el){
+  matActiveCtr = key;
+  document.querySelectorAll('.mat-ctr-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderMaterials();
+}
+function setMatProg(key, el){
+  matActiveProg = key;
+  document.querySelectorAll('.mat-prog-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderMaterials();
+}
+
+let _matEditId = null;
+function openMatModal(id){
+  seedMatData();
+  const data = getMatData();
+  const r = id ? data.find(x=>x.id===id) : null;
+  _matEditId = id || null;
+
+  const mo = document.getElementById('modal-overlay');
+  mo.innerHTML = `
+    <div class="cev-modal" style="max-width:440px">
+      <button onclick="closeModal()" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999">✕</button>
+      <h3>${r ? '✏️ Edit Material Item' : '+ Add Material Item'}</h3>
+      <div style="height:8px"></div>
+
+      <label>Item Name</label>
+      <input id="mat-name" placeholder="e.g. Yoga mats, Projector..." value="${r?r.name:''}">
+
+      <label>Category</label>
+      <select id="mat-cat">
+        ${MAT_CATS.map(c=>`<option value="${c}" ${r&&r.cat===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+
+      <label>Programme</label>
+      <select id="mat-prog">
+        <option value="all" ${!r||r.prog==='all'?'selected':''}>All Programmes</option>
+        ${PROGS.map(p=>`<option value="${p.key}" ${r&&r.prog===p.key?'selected':''}>${p.icon} ${p.name}</option>`).join('')}
+      </select>
+
+      <label>Centre</label>
+      <select id="mat-ctr">
+        ${CTRS.map(c=>`<option value="${c.key}" ${(r?r.ctr:matActiveCtr)===c.key?'selected':''}>${c.icon} ${c.name}</option>`).join('')}
+      </select>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label>Qty Needed</label>
+          <input id="mat-qtyN" type="number" min="0" value="${r?r.qtyN:1}">
+        </div>
+        <div>
+          <label>Qty Available</label>
+          <input id="mat-qtyA" type="number" min="0" value="${r?r.qtyA:0}">
+        </div>
+      </div>
+
+      <label>Status</label>
+      <select id="mat-status">
+        <option value="needed"    ${(!r||r.status==='needed')   ?'selected':''}>🟠 Needed</option>
+        <option value="sourced"   ${r&&r.status==='sourced'     ?'selected':''}>🔵 Sourced</option>
+        <option value="available" ${r&&r.status==='available'   ?'selected':''}>🟢 Available</option>
+        <option value="missing"   ${r&&r.status==='missing'     ?'selected':''}>🔴 Missing</option>
+      </select>
+
+      <label>Responsible Person <span style="font-weight:400;color:#aaa">(leave blank = Unlinked)</span></label>
+      <input id="mat-owner" placeholder="Name of volunteer / coordinator" value="${r?r.owner:''}">
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+        <button class="btn-sec" onclick="closeModal()">Cancel</button>
+        <button class="btn-pri" onclick="saveMat()">Save</button>
+      </div>
+    </div>`;
+  mo.style.display='flex';
+}
+
+function saveMat(){
+  const data = getMatData();
+  const item = {
+    id:     _matEditId || ('m'+Date.now()),
+    name:   document.getElementById('mat-name').value.trim(),
+    cat:    document.getElementById('mat-cat').value,
+    prog:   document.getElementById('mat-prog').value,
+    ctr:    document.getElementById('mat-ctr').value,
+    qtyN:   parseInt(document.getElementById('mat-qtyN').value)||0,
+    qtyA:   parseInt(document.getElementById('mat-qtyA').value)||0,
+    status: document.getElementById('mat-status').value,
+    owner:  document.getElementById('mat-owner').value.trim(),
+  };
+  if(!item.name){ alert('Please enter an item name.'); return; }
+  if(_matEditId){
+    const idx = data.findIndex(x=>x.id===_matEditId);
+    if(idx>=0) data[idx]=item; else data.push(item);
+  } else { data.push(item); }
+  saveMatData(data);
+  closeModal();
+  renderMaterials();
+}
+
+function deleteMat(id){
+  if(!confirm('Remove this item?')) return;
+  saveMatData(getMatData().filter(x=>x.id!==id));
+  renderMaterials();
+}
+
+// ═══════════════════════════════════════════════════
+//  MESSAGE TEMPLATES
+// ═══════════════════════════════════════════════════
+let _tplType = 'participant';
+
+const TPL_BODIES = {
+  participant: {
+    ie: (f) =>
+`Namaskaram @all 🙏
+
+${f.centre} is hosting *Inner Engineering* — a 2-day transformational programme by Sadhguru.
+
+📅 Date: ${f.date||'[Date TBD]'}
+🕘 Time: ${f.time||'[Time TBD]'}
+📍 Venue: ${f.venue||'[Venue TBD]'}
+
+Inner Engineering offers powerful tools to manage your body, mind, emotions and energies — bringing lasting wellbeing and clarity to your life.
+
+Register here:
+🔗 ${f.reglink||'[Registration Link]'}
+
+Limited seats — pls register early.
+
+For details: ${f.coord||'[Coordinator]'} | ${f.phone||'[Phone]'}
+
+Pranam 🙏`,
+
+    hy: (f) =>
+`Namaskaram @all 🙏
+
+${f.centre} is offering *${f.subprog||'Angamardana'}* — a classical Hatha Yoga programme by Sadhguru.
+
+📅 Date: ${f.date||'[Date TBD]'}
+🕘 Time: ${f.time||'[Time TBD]'}
+📍 Venue: ${f.venue||'[Venue TBD]'}
+
+${f.subprog==='Surya Kriya'
+  ? 'Surya Kriya is a potent yogic practice of tremendous antiquity — activating the solar plexus, improving health, memory, and inner balance.'
+  : f.subprog==='Yogasanas'
+  ? 'Yogasanas are a set of powerful postures to channelise and enhance energy, improve flexibility and bring stability to the body and mind.'
+  : 'Angamardana is a full-body practice that uses the weight of the body to build strength, flexibility and balance — no equipment needed.'}
+
+Register here:
+🔗 ${f.reglink||'[Registration Link]'}
+
+For details: ${f.coord||'[Coordinator]'} | ${f.phone||'[Phone]'}
+
+Pranam 🙏`,
+
+    ms: (f) =>
+`Namaskaram @all 🙏
+
+*Monthly Satsang* at ${f.centre} — ${f.date||'[Date TBD]'}
+
+📅 ${f.date||'[Date]'} (1st Sunday of the month)
+🕘 Time: ${f.time||'[Time TBD]'}
+📍 Venue: ${f.venue||'[Venue TBD]'}
+
+Join us for chanting, meditation and collective sadhana. Open to all Isha meditators and their family.
+
+No registration needed — just come 🙏
+
+For details: ${f.coord||'[Coordinator]'} | ${f.phone||'[Phone]'}
+
+Pranam 🙏`,
+
+    pcs: (f) =>
+`Namaskaram @all 🙏
+
+*Practice Correction Session* at ${f.centre} — ${f.date||'[Date TBD]'}
+
+📅 Date: ${f.date||'[Date TBD]'}
+🕘 Time: ${f.time||'[Time TBD]'}
+📍 Venue: ${f.venue||'[Venue TBD]'}
+
+All participants of recent IE / Hatha Yoga programmes are encouraged to attend. This session helps you verify and strengthen your practice.
+
+Pls confirm your attendance:
+📞 ${f.coord||'[Coordinator]'} | ${f.phone||'[Phone]'}
+
+Pranam 🙏`,
+
+    ap: (f) =>
+`Namaskaram @all 🙏
+
+*Advanced Programme — Guru Puja* at ${f.centre}
+
+📅 Date: ${f.date||'[Date TBD]'}
+🕘 Time: ${f.time||'[Time TBD]'}
+📍 Venue: ${f.venue||'[Venue TBD]'}
+
+This programme is open to eligible Isha meditators. For eligibility criteria and registration:
+🔗 ${f.reglink||'[Registration Link]'}
+
+Pls do not share this message beyond eligible participants.
+
+For details: ${f.coord||'[Coordinator]'} | ${f.phone||'[Phone]'}
+
+Pranam 🙏`,
+  },
+
+  volunteer: {
+    ie:  (f) => volunteerTpl('Inner Engineering', f),
+    hy:  (f) => volunteerTpl(f.subprog||'Angamardana', f),
+    ms:  (f) => volunteerTpl('Monthly Satsang', f),
+    pcs: (f) => volunteerTpl('Practice Correction Session', f),
+    ap:  (f) => volunteerTpl('Advanced Programme (Guru Puja)', f),
+  }
+};
+
+function volunteerTpl(progName, f){
+  return `Namaskaram @all 🙏
+
+We are looking for *volunteers* to support the upcoming *${progName}* at ${f.centre} on ${f.date||'[Date TBD]'}.
+
+If you'd like to offer your time and energy for this programme, pls fill in the interest form:
+🔗 ${f.vollink||'[Volunteer Form Link]'}
+
+What we need support with:
+• Programme day coordination
+• Participant registration & check-in
+• Venue setup and windup
+• On-call support during sessions
+
+Pls share with others who may be interested 🙏
+
+For queries: ${f.coord||'[Coordinator]'} | ${f.phone||'[Phone]'}
+
+Pranam 🙏`;
+}
+
+function renderTemplates(){
+  updateTplPreview();
+}
+
+function setTplType(type, el){
+  _tplType = type;
+  document.querySelectorAll('.tpl-type-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  // Toggle link fields
+  document.getElementById('tpl-reglink-wrap').style.display  = type==='participant' ? 'block' : 'none';
+  document.getElementById('tpl-vollink-wrap').style.display  = type==='volunteer'   ? 'block' : 'none';
+  document.getElementById('tpl-form-guide').style.display    = type==='volunteer'   ? 'block' : 'none';
+  updateTplPreview();
+}
+
+function getF(){
+  const progKey  = document.getElementById('tpl-prog')?.value    || 'ie';
+  const subprog  = document.getElementById('tpl-subprog')?.value || 'Angamardana';
+  const centre   = document.getElementById('tpl-centre')?.value  || '';
+  // Show/hide subprog
+  document.getElementById('tpl-subprog-wrap').style.display = progKey==='hy' ? 'block' : 'none';
+  // Update WA header name
+  const ctrShort = centre.replace(' Isha Center','').replace(' Isha Centre','').trim();
+  const waName   = document.getElementById('tpl-wa-name');
+  if(waName) waName.textContent = ctrShort + ' Isha Volunteers';
+  return {
+    subprog,
+    centre,
+    date:     document.getElementById('tpl-date')?.value    || '',
+    time:     document.getElementById('tpl-time')?.value    || '',
+    venue:    document.getElementById('tpl-venue')?.value   || '',
+    reglink:  document.getElementById('tpl-reglink')?.value || '',
+    vollink:  document.getElementById('tpl-vollink')?.value || '',
+    coord:    document.getElementById('tpl-coord')?.value   || '',
+    phone:    document.getElementById('tpl-phone')?.value   || '',
+  };
+}
+
+function updateTplPreview(){
+  const progKey = document.getElementById('tpl-prog')?.value || 'ie';
+  const f = getF();
+  const tplFn = TPL_BODIES[_tplType]?.[progKey];
+  const msg = tplFn ? tplFn(f) : '';
+  const bubble = document.getElementById('tpl-wa-bubble');
+  if(bubble) bubble.textContent = msg;
+  // Show time
+  const now = new Date();
+  const t = document.getElementById('tpl-wa-time');
+  if(t) t.textContent = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+}
+
+function copyTplMessage(){
+  const bubble = document.getElementById('tpl-wa-bubble');
+  if(!bubble) return;
+  const text = bubble.textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById('tpl-copy-btn');
+    btn.classList.add('tpl-copied');
+    btn.innerHTML = '<span>✅</span> Copied!';
+    setTimeout(()=>{ btn.classList.remove('tpl-copied'); btn.innerHTML='<span>📋</span> Copy Message'; }, 2200);
+  }).catch(()=>{ alert('Please select and copy the message manually.'); });
+}
+
+// ═══════════════════════════════════════════════════
+//  IE ANALYTICS
+// ═══════════════════════════════════════════════════
+const IE_DATA = {
+  yearTotals: {"2015":161,"2016":287,"2017":365,"2018":511,"2019":518,"2020":24,"2021":304,"2022":245,"2023":445,"2024":641,"2025":892,"2026":839},
+  monthly2025: {"January":11,"February":46,"March":90,"April":50,"May":32,"June":62,"July":29,"August":23,"September":34,"October":23,"November":304,"December":188},
+  monthly2026: {"January":78,"February":80,"March":319,"April":296,"May":66,"June":0,"July":0,"August":0,"September":0,"October":0,"November":0,"December":0},
+  grandTotal: 63734
+};
+
+function renderAnalytics(){
+  const d = IE_DATA;
+  const ytd2026 = Object.values(d.monthly2026).reduce((a,b)=>a+b,0);
+  const ytd2025_same = ['January','February','March','April','May'].reduce((a,m)=>a+(d.monthly2025[m]||0),0);
+  const yoy_pct = ytd2025_same > 0 ? Math.round((ytd2026-ytd2025_same)/ytd2025_same*100) : 0;
+  const peak2026 = Object.entries(d.monthly2026).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a)[0];
+
+  // Stats
+  document.getElementById('an-stats').innerHTML = `
+    <div class="an-stat">
+      <div class="an-stat-num">${d.grandTotal.toLocaleString()}</div>
+      <div class="an-stat-lbl">Total IE Participants</div>
+      <div class="an-stat-sub">From EC Sector (all-time)</div>
+    </div>
+    <div class="an-stat" style="border-top-color:#2E7D32">
+      <div class="an-stat-num" style="color:#2E7D32">${d.yearTotals['2025']}</div>
+      <div class="an-stat-lbl">2025 Total</div>
+      <div class="an-stat-sub">Full year count</div>
+    </div>
+    <div class="an-stat" style="border-top-color:#1565C0">
+      <div class="an-stat-num" style="color:#1565C0">${ytd2026}</div>
+      <div class="an-stat-lbl">2026 YTD</div>
+      <div class="an-stat-sub">Jan–May 2026</div>
+    </div>
+    <div class="an-stat" style="border-top-color:${yoy_pct>=0?'#2E7D32':'#B71C1C'}">
+      <div class="an-stat-num" style="color:${yoy_pct>=0?'#2E7D32':'#B71C1C'}">${yoy_pct>=0?'+':''}${yoy_pct}%</div>
+      <div class="an-stat-lbl">YoY Growth</div>
+      <div class="an-stat-sub">Jan–May vs same period 2025</div>
+    </div>
+    <div class="an-stat" style="border-top-color:#6A1B9A">
+      <div class="an-stat-num" style="color:#6A1B9A">${peak2026?peak2026[1]:0}</div>
+      <div class="an-stat-lbl">Peak Month 2026</div>
+      <div class="an-stat-sub">${peak2026?peak2026[0]:'—'}</div>
+    </div>
+  `;
+
+  // Year-over-year bar chart
+  const years = Object.keys(d.yearTotals);
+  const vals  = Object.values(d.yearTotals);
+  const maxV  = Math.max(...vals);
+  const barColors = {
+    '2020':'#BDBDBD','2021':'#90A4AE','2022':'#78909C',
+    '2023':'#C8922A','2024':'#8D6E63','2025':'#2E7D32','2026':'#7B1A1A'
+  };
+  document.getElementById('an-yoy-chart').innerHTML = years.map((yr, i) => {
+    const pct = Math.round((vals[i]/maxV)*160);
+    const col = barColors[yr] || '#AAAAAA';
+    return `<div class="an-bar-col">
+      <div class="an-bar-val">${vals[i]}</div>
+      <div class="an-bar" style="height:${pct}px;background:${col}" title="${yr}: ${vals[i]}"></div>
+      <div class="an-bar-lbl">${yr.slice(2)}</div>
+    </div>`;
+  }).join('');
+
+  // Monthly grid
+  const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONTH_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('an-month-grid').innerHTML = MONTH_FULL.map((m, mi) => {
+    const v26 = d.monthly2026[m] || 0;
+    const v25 = d.monthly2025[m] || 0;
+    const hasData = v26 > 0;
+    const diff = v25 > 0 ? Math.round((v26-v25)/v25*100) : null;
+    const cmpCls = diff === null ? 'neu' : diff >= 0 ? 'up' : 'dn';
+    const cmpTxt = diff === null ? '—' : (diff>=0?'+':'')+diff+'%';
+    return `<div class="an-month-card ${hasData?'has-data':''}">
+      <div class="an-month-name">${MONTH_SHORT[mi]}</div>
+      <div class="an-month-val ${v26===0?'zero':''}">${v26||'—'}</div>
+      <div class="an-compare">
+        <span class="an-cmp neu" style="font-size:.58rem">25: ${v25||0}</span>
+        <span class="an-cmp ${cmpCls}">${cmpTxt}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+</script>
+</body>
+</html>
