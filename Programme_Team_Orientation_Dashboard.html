@@ -635,7 +635,6 @@ tr:hover td{background:#faf6ef;}
       <thead>
         <tr>
           <th>Item</th>
-          <th>Category</th>
           <th>Programme</th>
           <th>Qty Needed</th>
           <th>Qty Available</th>
@@ -6037,29 +6036,75 @@ function renderMaterials(){
     <div class="mat-sum-card"><div class="mat-sum-num" style="color:#F57F17">${counts.unlinked}</div><div class="mat-sum-lbl">Unlinked</div></div>
   `;
 
-  // Table rows
+  // Group by category
   const tbody = document.getElementById('mat-tbody');
-  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="8" class="mat-empty">No items. Click "+ Add Item" to get started.</td></tr>`; return; }
+  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="7" class="mat-empty">No items. Click "+ Add Item" to get started.</td></tr>`; return; }
 
   const progMap = Object.fromEntries(PROGS.map(p=>[p.key,p]));
-  tbody.innerHTML = rows.map(r=>{
-    const p = progMap[r.prog];
-    const progLabel = r.prog==='all' ? '<span style="color:#aaa">All</span>' : (p ? `${p.icon} ${p.name}` : r.prog);
-    const unlinked  = !r.owner ? '<span class="mat-unlinked-flag">Unlinked</span>' : '';
-    return `<tr>
-      <td><strong>${r.name}</strong>${unlinked}</td>
-      <td style="font-size:.72rem;color:var(--tlt)">${r.cat}</td>
-      <td style="font-size:.76rem">${progLabel}</td>
-      <td style="text-align:center;font-weight:700">${r.qtyN}</td>
-      <td style="text-align:center;font-weight:700;color:${r.qtyA>=r.qtyN?'#2E7D32':'#E65100'}">${r.qtyA}</td>
-      <td><span class="mat-status-badge ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span></td>
-      <td style="font-size:.78rem;color:${r.owner?'var(--text)':'#ccc'}">${r.owner||'— assign —'}</td>
-      <td style="white-space:nowrap;display:flex;gap:5px">
-        <button class="mat-action-btn" onclick="openMatModal('${r.id}')">Edit</button>
-        <button class="mat-del-btn" onclick="deleteMat('${r.id}')">✕</button>
+
+  const grouped = {};
+  MAT_CATS.forEach(c=>{ grouped[c]=[]; });
+  rows.forEach(r=>{ if(grouped[r.cat]!==undefined) grouped[r.cat].push(r); else { grouped['Other']=grouped['Other']||[]; grouped['Other'].push(r); }});
+
+  const catIcons = {
+    'Documentation':'📄','AV Equipment':'🎤','Dais & Backdrop':'🎪',
+    'Sadhana Items':'🪔','Cleaning & Toiletries':'🧹','Water & Refreshments':'💧',
+    'Tent & Furniture':'🪑','Kitchen':'🍳','Games & Medical':'🎮',
+    'Registration':'📋','Venue Setup':'🏛️','Consumables':'📦','Safety':'⛑️','Other':'📁'
+  };
+
+  let html = '';
+  Object.entries(grouped).forEach(([cat, items])=>{
+    if(!items.length) return;
+    const catId = 'matcat_' + cat.replace(/[^a-z0-9]/gi,'_');
+    const icon  = catIcons[cat] || '📁';
+    const unlinkedCount = items.filter(r=>!r.owner).length;
+    const cc = {available:0,sourced:0,needed:0,missing:0};
+    items.forEach(r=>{ if(cc[r.status]!==undefined) cc[r.status]++; });
+
+    html += `<tr class="mat-cat-header" onclick="toggleMatCat('${catId}')">
+      <td colspan="7" style="background:linear-gradient(90deg,#f5f0e8,#faf7f2);padding:9px 14px;font-weight:700;font-size:.85rem;color:#7B1A1A;border-bottom:2px solid #e8dcc8;cursor:pointer;user-select:none">
+        <span style="margin-right:6px">${icon}</span>${cat}
+        <span style="font-weight:400;color:#888;font-size:.78rem;margin-left:8px">(${items.length} items)</span>
+        ${unlinkedCount ? `<span class="mat-unlinked-flag" style="margin-left:6px">${unlinkedCount} unlinked</span>` : ''}
+        <span style="float:right;font-size:.76rem;color:#999;margin-right:8px">
+          <span style="color:#2E7D32">✓${cc.available}</span>
+          <span style="color:#1565C0;margin-left:6px">↑${cc.sourced}</span>
+          <span style="color:#E65100;margin-left:6px">○${cc.needed}</span>
+          <span style="color:#B71C1C;margin-left:6px">✗${cc.missing}</span>
+        </span>
+        <span id="${catId}-arrow" style="float:right;margin-right:4px;transition:transform .2s;display:inline-block">▾</span>
       </td>
     </tr>`;
-  }).join('');
+
+    items.forEach(r=>{
+      const p = progMap[r.prog];
+      const progLabel = r.prog==='all' ? '<span style="color:#aaa">All</span>' : (p ? `${p.icon} ${p.name}` : r.prog);
+      const unlinked  = !r.owner ? '<span class="mat-unlinked-flag">Unlinked</span>' : '';
+      html += `<tr class="${catId}-row">
+        <td><strong>${r.name}</strong>${unlinked}</td>
+        <td style="font-size:.76rem">${progLabel}</td>
+        <td style="text-align:center;font-weight:700">${r.qtyN}</td>
+        <td style="text-align:center;font-weight:700;color:${r.qtyA>=r.qtyN?'#2E7D32':'#E65100'}">${r.qtyA}</td>
+        <td><span class="mat-status-badge ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span></td>
+        <td style="font-size:.78rem;color:${r.owner?'var(--text)':'#ccc'}">${r.owner||'— assign —'}</td>
+        <td style="white-space:nowrap;display:flex;gap:5px">
+          <button class="mat-action-btn" onclick="openMatModal('${r.id}')">Edit</button>
+          <button class="mat-del-btn" onclick="deleteMat('${r.id}')">✕</button>
+        </td>
+      </tr>`;
+    });
+  });
+
+  tbody.innerHTML = html;
+}
+
+function toggleMatCat(catId){
+  const rows = document.querySelectorAll(`.${catId}-row`);
+  const arrow = document.getElementById(`${catId}-arrow`);
+  const hidden = rows[0] && rows[0].style.display === 'none';
+  rows.forEach(r=>{ r.style.display = hidden ? '' : 'none'; });
+  if(arrow) arrow.style.transform = hidden ? '' : 'rotate(-90deg)';
 }
 
 function setMatCtr(key, el){
