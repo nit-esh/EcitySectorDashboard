@@ -659,6 +659,9 @@ tr:hover td{background:#faf6ef;}
     </div>
     <button class="login-btn" onclick="doLogin()">Sign In →</button>
     <div class="login-error" id="login-err"></div>
+    <div style="text-align:center;margin-top:14px">
+      <button onclick="openRequestAccessForm()" style="background:none;border:none;color:rgba(255,255,255,.38);font-size:.74rem;cursor:pointer;text-decoration:underline;font-family:inherit;padding:0" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.38)'">Don't have access? Request here</button>
+    </div>
     <button class="access-mgr-btn" id="access-mgr-login-btn" onclick="openAccessMgrFromLogin()">⚙️ Manage Google Access (Admin only)</button>
   </div>
 </div>
@@ -1131,9 +1134,94 @@ let SESSION = null;
 // Add your domain (or http://localhost) to Authorized JavaScript Origins
 const GOOGLE_CLIENT_ID = '584027482225-20hd43r805vd3qt7src5ircsp14spttu.apps.googleusercontent.com';
 
-const ACCESS_SK = 'isha_access_v1'; // email → {role, ctrKey, name}
+const ACCESS_SK = 'isha_access_v1';
 function getAccessList(){ try{ return JSON.parse(localStorage.getItem(ACCESS_SK)||'[]'); }catch{ return []; } }
 function saveAccessList(d){ localStorage.setItem(ACCESS_SK, JSON.stringify(d)); }
+
+// ── GITHUB GIST SYNC ──────────────────────────────────────────────────────
+// Stores access list in a GitHub Gist so all users get the same list.
+const SYNC_SK = 'isha_gist_sync_v1';
+function getSyncCfg(){ try{ return JSON.parse(localStorage.getItem(SYNC_SK)||'{}'); }catch{ return {}; } }
+function saveSyncCfg(d){ localStorage.setItem(SYNC_SK, JSON.stringify(d)); }
+
+async function fetchGistAccessList(){
+  const {gistId} = getSyncCfg();
+  if(!gistId) return null;
+  try{
+    const r = await fetch(`https://api.github.com/gists/${gistId}`,{
+      headers:{'Accept':'application/vnd.github.v3+json'}
+    });
+    if(!r.ok) return null;
+    const data = await r.json();
+    const raw = data.files && data.files['access-list.json'] && data.files['access-list.json'].content;
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ console.warn('Gist fetch failed:',e); return null; }
+}
+
+async function pushGistAccessList(list){
+  const {gistId, pat} = getSyncCfg();
+  if(!gistId || !pat) return {ok:false, reason:'not configured'};
+  try{
+    const r = await fetch(`https://api.github.com/gists/${gistId}`,{
+      method:'PATCH',
+      headers:{'Authorization':'token '+pat,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body: JSON.stringify({files:{'access-list.json':{content:JSON.stringify(list,null,2)}}})
+    });
+    if(!r.ok){ const e=await r.json().catch(()=>{}); return {ok:false,reason:(e&&e.message)||r.status}; }
+    return {ok:true};
+  }catch(e){ return {ok:false,reason:e.message}; }
+}
+
+async function syncAndSaveAccessList(list){
+  saveAccessList(list);
+  const {gistId, pat} = getSyncCfg();
+  if(!gistId || !pat) return {ok:false,reason:'Sync not configured — saved locally only.'};
+  const result = await pushGistAccessList(list);
+  return result;
+}
+
+// ── ACCESS REQUESTS ───────────────────────────────────────────────────────
+const REQUESTS_SK = 'isha_access_requests_v1';
+function getRequests(){ try{ return JSON.parse(localStorage.getItem(REQUESTS_SK)||'[]'); }catch{ return []; } }
+function saveRequests(d){ localStorage.setItem(REQUESTS_SK, JSON.stringify(d)); }
+
+async function fetchGistRequests(){
+  const {gistId} = getSyncCfg();
+  if(!gistId) return null;
+  try{
+    const r = await fetch(`https://api.github.com/gists/${gistId}`,{headers:{'Accept':'application/vnd.github.v3+json'}});
+    if(!r.ok) return null;
+    const data = await r.json();
+    const raw = data.files && data.files['access-requests.json'] && data.files['access-requests.json'].content;
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return null; }
+}
+async function pushGistRequests(list){
+  const {gistId, pat} = getSyncCfg();
+  if(!gistId || !pat) return false;
+  try{
+    const r = await fetch(`https://api.github.com/gists/${gistId}`,{
+      method:'PATCH',
+      headers:{'Authorization':'token '+pat,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body: JSON.stringify({files:{'access-requests.json':{content:JSON.stringify(list,null,2)}}})
+    });
+    return r.ok;
+  }catch(e){ return false; }
+}
+async function syncRequests(){
+  const remote = await fetchGistRequests();
+  if(remote && Array.isArray(remote)){
+    // Merge: keep local entries not yet in remote, plus all remote entries
+    const local = getRequests();
+    const merged = [...remote];
+    local.forEach(lr=>{ if(!merged.find(rr=>rr.email===lr.email && rr.ts===lr.ts)) merged.push(lr); });
+    saveRequests(merged);
+    await pushGistRequests(merged);
+    return merged;
+  }
+  return getRequests();
+}
 
 // Decode Google JWT payload without verification (safe for client-side identification)
 function decodeJwt(token){
@@ -1170,6 +1258,9 @@ function initGoogleSignIn(){
   }
 }
 
+let _pendingGoogleEmail = '';
+let _pendingGoogleName  = '';
+
 function handleGoogleCredential(response){
   const payload = decodeJwt(response.credential);
   if(!payload){ document.getElementById('login-err').textContent = 'Google sign-in failed. Try again.'; return; }
@@ -1177,7 +1268,15 @@ function handleGoogleCredential(response){
   const list  = getAccessList();
   const entry = list.find(e => e.email.toLowerCase() === email);
   if(!entry){
-    document.getElementById('login-err').textContent = `Access not granted for ${email}. Contact admin.`;
+    _pendingGoogleEmail = email;
+    _pendingGoogleName  = payload.name || '';
+    const errEl = document.getElementById('login-err');
+    errEl.innerHTML = `
+      <div style="background:rgba(198,40,40,.12);border:1px solid rgba(198,40,40,.4);border-radius:10px;padding:12px 14px;margin-top:8px;text-align:left">
+        <div style="font-weight:700;font-size:.82rem;color:#FF8A80;margin-bottom:4px">⛔ Access not granted</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:10px">${email} is not registered. Request access below.</div>
+        <button onclick="openRequestAccessForm()" style="padding:7px 16px;border-radius:8px;background:rgba(200,146,42,.85);color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer;width:100%">✋ Request Access</button>
+      </div>`;
     return;
   }
   const c = entry.ctrKey ? CTRS.find(x=>x.key===entry.ctrKey) : null;
@@ -1189,8 +1288,108 @@ function handleGoogleCredential(response){
     googlePic  : payload.picture || '',
     email   : email,
   });
-  document.getElementById('login-err').textContent = '';
+  document.getElementById('login-err').innerHTML = '';
   applySession();
+}
+
+function openRequestAccessForm(){
+  const ctrs = getEffectiveCTRS ? getEffectiveCTRS() : CTRS;
+  // Remove any previous request overlay
+  const prev = document.getElementById('req-access-overlay');
+  if(prev) prev.remove();
+
+  const div = document.createElement('div');
+  div.id = 'req-access-overlay';
+  div.style.cssText='position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.6)';
+  div.innerHTML = `
+    <div style="background:#1a0505;border:1px solid rgba(200,146,42,.35);border-radius:18px;padding:28px 26px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.8)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:1rem;font-weight:800;color:#F0C96B">✋ Request Access</div>
+        <button onclick="document.getElementById('req-access-overlay').remove()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:1.3rem;cursor:pointer;line-height:1">✕</button>
+      </div>
+      <div style="font-size:.76rem;color:rgba(255,255,255,.45);margin-bottom:18px">Your request will be reviewed by an admin. You'll be notified once access is granted.</div>
+
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:.67rem;font-weight:800;color:rgba(240,201,107,.7);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Full Name</label>
+        <input id="req-name" type="text" value="${_pendingGoogleName}" placeholder="Your name"
+          style="width:100%;padding:10px 13px;border-radius:8px;border:1.5px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);color:#fff;font-size:.88rem;font-family:inherit;outline:none;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:.67rem;font-weight:800;color:rgba(240,201,107,.7);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Email Address</label>
+        <input id="req-email" type="email" value="${_pendingGoogleEmail}" placeholder="your@gmail.com"
+          style="width:100%;padding:10px 13px;border-radius:8px;border:1.5px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);color:#fff;font-size:.88rem;font-family:inherit;outline:none;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:.67rem;font-weight:800;color:rgba(240,201,107,.7);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Requesting Role</label>
+        <select id="req-role" onchange="document.getElementById('req-ctr-wrap').style.display=this.value==='coord'?'block':'none'"
+          style="width:100%;padding:10px 13px;border-radius:8px;border:1.5px solid rgba(255,255,255,.13);background:rgba(20,4,4,.9);color:#fff;font-size:.88rem;font-family:inherit;outline:none;box-sizing:border-box">
+          <option value="coord">Centre Coordinator</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div id="req-ctr-wrap" style="margin-bottom:12px">
+        <label style="display:block;font-size:.67rem;font-weight:800;color:rgba(240,201,107,.7);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Centre</label>
+        <select id="req-ctr"
+          style="width:100%;padding:10px 13px;border-radius:8px;border:1.5px solid rgba(255,255,255,.13);background:rgba(20,4,4,.9);color:#fff;font-size:.88rem;font-family:inherit;outline:none;box-sizing:border-box">
+          <option value="">— Select your centre —</option>
+          ${ctrs.map(c=>`<option value="${c.key}">${c.name}</option>`).join('')}
+        </select>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:.67rem;font-weight:800;color:rgba(240,201,107,.7);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Message (optional)</label>
+        <textarea id="req-msg" rows="2" placeholder="Any context for the admin..."
+          style="width:100%;padding:10px 13px;border-radius:8px;border:1.5px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);color:#fff;font-size:.88rem;font-family:inherit;outline:none;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <div id="req-err" style="color:#FF8A80;font-size:.75rem;margin-bottom:8px;min-height:16px"></div>
+      <button onclick="submitAccessRequest()" style="width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#C8922A,#7B5A10);color:#fff;border:none;font-size:.9rem;font-weight:800;cursor:pointer;font-family:inherit">Submit Request</button>
+    </div>`;
+  document.body.appendChild(div);
+}
+
+async function submitAccessRequest(){
+  const name  = (document.getElementById('req-name').value||'').trim();
+  const email = (document.getElementById('req-email').value||'').trim().toLowerCase();
+  const role  = document.getElementById('req-role').value;
+  const ctrKey= role==='coord' ? document.getElementById('req-ctr').value : null;
+  const msg   = (document.getElementById('req-msg').value||'').trim();
+  const errEl = document.getElementById('req-err');
+
+  if(!name){ errEl.textContent='Please enter your name.'; return; }
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ errEl.textContent='Enter a valid email address.'; return; }
+  if(role==='coord' && !ctrKey){ errEl.textContent='Please select your centre.'; return; }
+
+  const ctrName = ctrKey ? (CTRS.find(c=>c.key===ctrKey)||{}).name||ctrKey : '';
+  const req = { name, email, role, ctrKey:ctrKey||null, ctrName, msg, ts: Date.now(), status:'pending' };
+
+  // Save locally
+  const existing = getRequests().filter(r=>r.email!==email);
+  existing.push(req);
+  saveRequests(existing);
+
+  // Try to push to Gist
+  const btn = document.querySelector('#req-access-overlay button[onclick="submitAccessRequest()"]');
+  if(btn){ btn.textContent='Submitting…'; btn.disabled=true; }
+  await pushGistRequests(existing);
+
+  // Show success state
+  const overlay = document.getElementById('req-access-overlay');
+  if(overlay){
+    overlay.querySelector('div').innerHTML = `
+      <div style="text-align:center;padding:20px 10px">
+        <div style="font-size:2.5rem;margin-bottom:14px">🙏</div>
+        <div style="font-size:1rem;font-weight:800;color:#F0C96B;margin-bottom:8px">Request Submitted!</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:18px">
+          Your request has been sent to the admin.<br>
+          Please wait for approval — you will be able to sign in once access is granted.
+        </div>
+        <div style="background:rgba(200,146,42,.12);border:1px solid rgba(200,146,42,.3);border-radius:8px;padding:10px 14px;font-size:.76rem;color:rgba(255,255,255,.5);margin-bottom:18px;text-align:left">
+          <strong style="color:rgba(240,201,107,.7)">Request details</strong><br>
+          ${name} · ${email}<br>
+          ${role==='admin'?'🔑 Admin':'🏛️ Centre Coordinator'+(ctrName?' — '+ctrName:'')}
+        </div>
+        <button onclick="document.getElementById('req-access-overlay').remove()" style="padding:9px 28px;border-radius:9px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);font-size:.85rem;cursor:pointer">Close</button>
+      </div>`;
+  }
 }
 
 function openAccessMgrFromLogin(){
@@ -1233,12 +1432,41 @@ function openAccessMgrModal(){
   const ctrs = getEffectiveCTRS();
   const mo = document.getElementById('modal-overlay');
   mo.style.display = 'flex';
+  // Fetch latest requests from Gist in background, refresh if changed
+  refreshRequestsInBackground();
   mo.innerHTML = `<div class="modal-box" style="max-width:560px;width:100%;max-height:88vh;overflow-y:auto;padding:26px 24px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
       <div style="font-size:1.05rem;font-weight:800;color:var(--text)">🔐 Google Access Management</div>
       <button onclick="closeModal();if(SESSION&&SESSION._accessMgrOnly){SESSION=null;document.getElementById('app-shell').style.display='none';document.getElementById('login-overlay').style.display='flex';}" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--tlt)">✕</button>
     </div>
     <div style="font-size:.78rem;color:var(--tlt);margin-bottom:16px">Grant dashboard access by email. Each user signs in with their Google account — role and centre are matched automatically.</div>
+
+    <!-- GitHub Gist Sync -->
+    ${(()=>{
+      const cfg = getSyncCfg();
+      const synced = !!(cfg.gistId);
+      return `<details style="margin-bottom:18px" ${synced?'':'open'}>
+        <summary style="font-size:.72rem;font-weight:700;color:${synced?'#2E7D32':'#C62828'};text-transform:uppercase;letter-spacing:.05em;cursor:pointer;padding:10px 14px;background:${synced?'#E8F5E9':'#FFF3F3'};border-radius:8px;list-style:none">
+          ${synced ? '🔗 GitHub Sync — Active' : '⚠ GitHub Sync — Not configured (users added here won\'t be visible to others)'}
+        </summary>
+        <div style="background:var(--bg);border-radius:0 0 8px 8px;padding:14px;border:1px solid var(--brd);border-top:none">
+          <div style="font-size:.74rem;color:var(--tlt);margin-bottom:10px;line-height:1.5">
+            Sync the access list to a GitHub Gist so all users get it automatically on page load.
+            <a href="https://gist.github.com" target="_blank" style="color:var(--m)">Create a Gist</a> with a file named <code>access-list.json</code> containing <code>[]</code>, then paste the Gist ID below.
+          </div>
+          <input id="sync-gist-id" type="text" placeholder="Gist ID (e.g. abc123def456)" value="${cfg.gistId||''}"
+            style="width:100%;padding:7px 11px;border-radius:7px;border:1.5px solid var(--brd);font-size:.82rem;background:var(--card);color:var(--text);outline:none;margin-bottom:8px;box-sizing:border-box">
+          <input id="sync-pat" type="password" placeholder="GitHub Personal Access Token (gist scope)" value="${cfg.pat||''}"
+            style="width:100%;padding:7px 11px;border-radius:7px;border:1.5px solid var(--brd);font-size:.82rem;background:var(--card);color:var(--text);outline:none;margin-bottom:8px;box-sizing:border-box">
+          <div style="font-size:.7rem;color:#888;margin-bottom:10px">PAT stored locally on this device only (never shared). Create at github.com → Settings → Developer settings → Personal access tokens → with <strong>gist</strong> scope.</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button onclick="saveSyncSetup()" style="padding:6px 16px;border-radius:7px;background:var(--m);color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer">Save &amp; Test</button>
+            ${cfg.gistId?`<button onclick="pullFromGist()" style="padding:6px 14px;border-radius:7px;background:none;border:1.5px solid var(--m);color:var(--m);font-size:.8rem;font-weight:600;cursor:pointer">↓ Pull from Gist</button>`:''}
+            <span id="sync-test-status" style="font-size:.75rem"></span>
+          </div>
+        </div>
+      </details>`;
+    })()}
 
     <!-- Add new -->
     <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:18px">
@@ -1255,8 +1483,34 @@ function openAccessMgrModal(){
         </select>
       </div>
       <div id="acc-err" style="color:#C62828;font-size:.75rem;margin-bottom:6px;display:none"></div>
-      <button onclick="saveAccessEntry()" style="padding:7px 18px;border-radius:7px;background:var(--m);color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer">Grant Access</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button onclick="saveAccessEntry()" style="padding:7px 18px;border-radius:7px;background:var(--m);color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer">Grant Access</button>
+        <span id="acc-sync-status" style="font-size:.74rem"></span>
+      </div>
     </div>
+
+    <!-- Pending Requests -->
+    ${(()=>{
+      const reqs = getRequests().filter(r=>r.status==='pending');
+      if(!reqs.length) return '';
+      return `<div style="background:#FFF8E1;border:1.5px solid #FFB300;border-radius:10px;padding:14px;margin-bottom:18px">
+        <div style="font-size:.72rem;font-weight:800;color:#E65100;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">⏳ Pending Requests (${reqs.length})</div>
+        ${reqs.map(r=>`<div style="background:#fff;border:1px solid #FFE082;border-radius:8px;padding:10px 12px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div>
+              <div style="font-size:.82rem;font-weight:700;color:#2C1810">${r.name} <span style="font-weight:400;color:#888">&lt;${r.email}&gt;</span></div>
+              <div style="font-size:.72rem;color:#5D4037;margin-top:2px">${r.role==='admin'?'🔑 Admin':'🏛️ Centre Coordinator'+(r.ctrName?' — '+r.ctrName:'')}</div>
+              ${r.msg?`<div style="font-size:.7rem;color:#888;margin-top:3px;font-style:italic">"${r.msg}"</div>`:''}
+              <div style="font-size:.67rem;color:#bbb;margin-top:4px">${new Date(r.ts).toLocaleString()}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <button onclick="approveRequest('${r.email}')" style="padding:5px 12px;border-radius:6px;background:#2E7D32;color:#fff;border:none;font-size:.72rem;font-weight:700;cursor:pointer">✓ Approve</button>
+              <button onclick="rejectRequest('${r.email}')" style="padding:5px 10px;border-radius:6px;background:none;border:1px solid #C62828;color:#C62828;font-size:.72rem;font-weight:700;cursor:pointer">✕</button>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>`;
+    })()}
 
     <!-- Existing list -->
     <div style="font-size:.72rem;font-weight:700;color:var(--m);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Current Access (${list.length})</div>
@@ -1277,6 +1531,79 @@ function toggleAccCtr(){
   document.getElementById('acc-ctr').style.display = role==='coord' ? 'block' : 'none';
 }
 
+async function approveRequest(email){
+  const reqs = getRequests();
+  const req  = reqs.find(r=>r.email===email);
+  if(!req) return;
+  // Add to access list
+  const accessList = getAccessList().filter(e=>e.email!==email);
+  accessList.push({ email:req.email, role:req.role, ctrKey:req.ctrKey||null });
+  // Mark request as approved
+  const updatedReqs = reqs.map(r=>r.email===email ? {...r, status:'approved'} : r);
+  saveRequests(updatedReqs);
+  await pushGistRequests(updatedReqs);
+  await syncAndSaveAccessList(accessList);
+  openAccessMgrModal();
+}
+
+async function rejectRequest(email){
+  const updatedReqs = getRequests().map(r=>r.email===email ? {...r, status:'rejected'} : r);
+  saveRequests(updatedReqs);
+  await pushGistRequests(updatedReqs);
+  openAccessMgrModal();
+}
+
+// Fetch pending requests from Gist in background when Access Manager opens,
+// then silently refresh the modal if new requests arrived.
+function refreshRequestsInBackground(){
+  syncRequests().then(merged=>{
+    const pendingNow = merged.filter(r=>r.status==='pending').length;
+    const pendingShown = document.querySelectorAll('[onclick^="approveRequest"]').length;
+    if(pendingNow !== pendingShown) openAccessMgrModal();
+  }).catch(()=>{});
+}
+
+async function saveSyncSetup(){
+  const gistId = (document.getElementById('sync-gist-id').value||'').trim();
+  const pat    = (document.getElementById('sync-pat').value||'').trim();
+  const st = document.getElementById('sync-test-status');
+  if(!gistId){ st.innerHTML='<span style="color:#C62828">Enter a Gist ID.</span>'; return; }
+  saveSyncCfg({gistId, pat});
+  st.innerHTML='<span style="color:#888">Testing…</span>';
+  // Test fetch
+  const remote = await fetchGistAccessList();
+  if(remote === null){
+    st.innerHTML='<span style="color:#FF7043">Could not read Gist. Check the ID is correct and the Gist is public (or PAT is provided).</span>';
+    return;
+  }
+  // If Gist is empty array, push current local list up
+  const local = getAccessList();
+  if(pat && remote.length === 0 && local.length > 0){
+    const pushResult = await pushGistAccessList(local);
+    if(pushResult.ok){
+      st.innerHTML='<span style="color:#81C784">✓ Connected! Pushed existing '+local.length+' user(s) to Gist.</span>';
+    } else {
+      st.innerHTML='<span style="color:#FF7043">Read OK but push failed: '+pushResult.reason+'</span>';
+    }
+  } else if(remote.length > 0){
+    saveAccessList(remote);
+    st.innerHTML='<span style="color:#81C784">✓ Connected! Loaded '+remote.length+' user(s) from Gist.</span>';
+    setTimeout(()=>openAccessMgrModal(), 1200);
+  } else {
+    st.innerHTML='<span style="color:#81C784">✓ Connected! Gist is empty — add users above to populate it.</span>';
+  }
+}
+
+async function pullFromGist(){
+  const st = document.getElementById('sync-test-status');
+  st.innerHTML='<span style="color:#888">Pulling…</span>';
+  const remote = await fetchGistAccessList();
+  if(!remote){ st.innerHTML='<span style="color:#FF7043">Failed to pull from Gist.</span>'; return; }
+  saveAccessList(remote);
+  st.innerHTML='<span style="color:#81C784">✓ Pulled '+remote.length+' user(s).</span>';
+  setTimeout(()=>openAccessMgrModal(), 800);
+}
+
 function saveAccessEntry(){
   const email  = (document.getElementById('acc-email').value||'').trim().toLowerCase();
   const role   = document.getElementById('acc-role').value;
@@ -1291,13 +1618,25 @@ function saveAccessEntry(){
   errEl.style.display='none';
   const list = getAccessList().filter(e=>e.email!==email);
   list.push({ email, role, ctrKey: ctrKey||null });
-  saveAccessList(list);
+  syncAndSaveAccessList(list).then(result=>{
+    const statusEl = document.getElementById('acc-sync-status');
+    if(statusEl){
+      if(result.ok) statusEl.innerHTML='<span style="color:#81C784">✓ Synced to GitHub</span>';
+      else statusEl.innerHTML='<span style="color:#FFB74D">⚠ Saved locally — '+result.reason+'</span>';
+    }
+  });
   openAccessMgrModal();
 }
 
 function revokeAccess(email){
   const list = getAccessList().filter(e=>e.email!==email);
-  saveAccessList(list);
+  syncAndSaveAccessList(list).then(result=>{
+    const statusEl = document.getElementById('acc-sync-status');
+    if(statusEl){
+      if(result.ok) statusEl.innerHTML='<span style="color:#81C784">✓ Synced to GitHub</span>';
+      else statusEl.innerHTML='<span style="color:#FFB74D">⚠ Saved locally — '+result.reason+'</span>';
+    }
+  });
   openAccessMgrModal();
 }
 
@@ -1939,17 +2278,70 @@ function ftmDrop(k){
 // EXPORT / IMPORT
 // ═══════════════════════════════
 function exportData(){
+  let data, filename;
+  if(SESSION && SESSION.role === 'coord' && SESSION.ctrKey){
+    // Filter store to only this centre's keys
+    const prefix = SESSION.ctrKey + '-';
+    data = {};
+    Object.keys(store).forEach(k=>{ if(k.startsWith(prefix)) data[k]=store[k]; });
+    filename = 'isha_volunteers_' + SESSION.ctrKey + '.json';
+  } else {
+    // Admin — export everything
+    data = store;
+    filename = 'isha_ecity_volunteers_all.json';
+  }
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(store,null,2)],{type:'application/json'}));
-  a.download='isha_ecity_volunteers.json'; a.click();
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download = filename; a.click();
 }
-function openImport(){ document.getElementById('importTxt').value=''; document.getElementById('importModal').classList.add('open'); }
-function closeImport(){ const im=document.getElementById('importModal'); if(im) im.classList.remove('open'); const mo=document.getElementById('modal-overlay'); if(mo){ mo.style.display='none'; mo.innerHTML=''; } }
+function openImport(){
+  const isCoord = SESSION && SESSION.role === 'coord' && SESSION.ctrKey;
+  const note = isCoord
+    ? `<p style="font-size:.75rem;color:#aaa;margin-bottom:14px;">Only data for <strong style="color:#F0C96B">${SESSION.ctrName}</strong> will be imported. Other keys are ignored.</p>`
+    : `<p style="font-size:.75rem;color:#aaa;margin-bottom:14px;">Paste the full exported JSON. All data will be merged.</p>`;
+  const mo = document.getElementById('modal-overlay');
+  mo.style.display = 'flex';
+  mo.innerHTML = `
+    <div style="background:#1a0505;border:1px solid rgba(200,146,42,.3);border-radius:16px;padding:30px 28px;width:100%;max-width:500px;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,.7);">
+      <h3 style="color:#F0C96B;font-size:1rem;font-weight:800;margin-bottom:10px;">⬆ Import Data</h3>
+      ${note}
+      <textarea id="importTxt" rows="10" style="width:100%;background:rgba(0,0,0,.4);border:1.5px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;padding:12px;font-size:.8rem;font-family:monospace;resize:vertical;box-sizing:border-box;outline:none;" placeholder='Paste exported JSON here...'></textarea>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button onclick="importData()" style="flex:1;padding:11px;border-radius:9px;border:none;background:linear-gradient(135deg,#C62828,#7B1A1A);color:#fff;font-weight:800;cursor:pointer;font-size:.88rem;">Import</button>
+        <button onclick="closeImport()" style="padding:11px 18px;border-radius:9px;border:1px solid rgba(255,255,255,.2);background:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:.88rem;">Cancel</button>
+      </div>
+      <div id="import-err" style="color:#FF8A80;font-size:.75rem;margin-top:10px;min-height:16px;"></div>
+    </div>`;
+}
+function closeImport(){
+  const mo = document.getElementById('modal-overlay');
+  if(mo){ mo.style.display='none'; mo.innerHTML=''; }
+}
 function importData(){
   try{
-    store={...store,...JSON.parse(document.getElementById('importTxt').value)};
+    const parsed = JSON.parse(document.getElementById('importTxt').value||'{}');
+    if(SESSION && SESSION.role === 'coord' && SESSION.ctrKey){
+      // Only merge keys belonging to this centre
+      const prefix = SESSION.ctrKey + '-';
+      const allowed = {};
+      let count = 0;
+      Object.keys(parsed).forEach(k=>{
+        if(k.startsWith(prefix)){ allowed[k]=parsed[k]; count++; }
+      });
+      if(count === 0){
+        document.getElementById('import-err').textContent = 'No data found for your centre in this file.';
+        return;
+      }
+      store = {...store, ...allowed};
+    } else {
+      store = {...store, ...parsed};
+    }
     ss(store); closeImport(); init(); alert('Import successful!');
-  }catch{ alert('Invalid JSON.'); }
+  } catch(e){
+    const errEl = document.getElementById('import-err');
+    if(errEl) errEl.textContent = 'Invalid JSON. Please paste a valid export file.';
+    else alert('Invalid JSON.');
+  }
 }
 
 // ═══════════════════════════════
@@ -1975,7 +2367,7 @@ function tph(h) { const b=h.nextElementSibling,t=h.querySelector('.ph-tog');    
 // KEYBOARD & OVERLAY
 // ═══════════════════════════════
 const _vm=document.getElementById('volModal'); if(_vm) _vm.addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
-const _im=document.getElementById('importModal'); if(_im) _im.addEventListener('click',e=>{if(e.target===e.currentTarget)closeImport();});
+// import modal is built dynamically — no static _im listener needed
 document.addEventListener('keydown',e=>{
   const _vmk=document.getElementById('volModal');
   if(e.key==='Enter'&&_vmk&&_vmk.classList.contains('open')) saveVol();
@@ -2100,23 +2492,29 @@ function applySession(){
   try{ renderCalendar(); }catch(e){ console.error('renderCalendar',e); }
 }
 
-function init(){
-  // Seed default admin access if list is empty
-  if(!getAccessList().length){
-    saveAccessList([{ email:'niteshkumar.7659@gmail.com', role:'admin', ctrKey:null }]);
+async function init(){
+  // Try to load access list from GitHub Gist (remote sync)
+  try{
+    const remote = await fetchGistAccessList();
+    if(remote && Array.isArray(remote) && remote.length){
+      saveAccessList(remote); // update local cache
+    } else if(!getAccessList().length){
+      saveAccessList([{ email:'niteshkumar.7659@gmail.com', role:'admin', ctrKey:null }]);
+    }
+  } catch(e){
+    if(!getAccessList().length){
+      saveAccessList([{ email:'niteshkumar.7659@gmail.com', role:'admin', ctrKey:null }]);
+    }
   }
   loadSession();
   populateLoginCtrDropdown();
   initGoogleSignIn();
-  // Show Manage Access button if client ID is configured
   const mab = document.getElementById('access-mgr-login-btn');
   if(mab) mab.style.display = (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.startsWith('YOUR_')) ? 'none' : 'block';
-  // Render app shell content (hidden until login)
   renderSocBar();
   renderSectorProgCards();
   CTRS.forEach(c=>{ try{ renderCenter(c); }catch(e){} });
   seedMonthlySatsangs();
-  // Show correct screen
   if(SESSION){
     applySession();
   } else {
@@ -2124,7 +2522,7 @@ function init(){
     document.getElementById('login-overlay').style.display = 'flex';
   }
 }
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', ()=>init());
 
 // ═══════════════════════════════════════════════════
 //  CALENDAR
