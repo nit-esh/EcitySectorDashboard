@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Isha Karnataka — Multi-Centre Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#faf6ef;--surface:#fff;--border:#e8dfc8;--navy:#1e2a45;--gold:#f0c955;--saffron:#d4641a;--text:#2c2c2c;--muted:#7a7060;--green:#1a6b3a;--red:#b83232}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+
+header{background:linear-gradient(135deg,#1e2a45,#2e3f66);padding:0 20px}
+.hdr{max-width:1320px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 0;flex-wrap:wrap;gap:8px}
+.brand{display:flex;align-items:center;gap:11px}
+.logo-ring{width:56px;height:56px;flex-shrink:0}
+.logo-ring img{width:100%;height:100%;object-fit:contain}
+.brand h1{font-size:clamp(.8rem,1.8vw,1.15rem);font-weight:700;color:#fff;line-height:1.2}
+.brand p{font-size:.56rem;color:rgba(255,255,255,.4);letter-spacing:1.8px;text-transform:uppercase;margin-top:2px}
+.hdr-r{display:flex;align-items:center;gap:7px}
+.updated-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.09);padding:4px 11px;border-radius:20px}
+.updated-pill .up-label{font-size:.52rem;color:rgba(255,255,255,.4);letter-spacing:.6px;text-transform:uppercase}
+.updated-pill .up-val{font-size:.57rem;color:rgba(255,255,255,.75);font-weight:600}
+.exp-btn{background:var(--gold);color:var(--navy);border:none;padding:6px 13px;font-size:.65rem;font-weight:700;cursor:pointer;border-radius:5px}
+.exp-btn:hover{background:#fff}
+
+/* Centre switcher bar */
+.centre-bar{background:#0d1628;border-bottom:2px solid rgba(240,201,85,.25)}
+.centre-inner{max-width:1320px;margin:0 auto;display:flex;padding:8px 16px;align-items:center;gap:12px}
+.centre-label{font-size:.52rem;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
+.centre-select{background:#1a2540;border:1.5px solid rgba(240,201,85,.35);border-radius:8px;color:#f0c955;font-size:.82rem;font-weight:700;padding:7px 36px 7px 14px;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23f0c955' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;min-width:220px;transition:border-color .15s}
+.centre-select:hover,.centre-select:focus{border-color:var(--gold)}
+.centre-select option{background:#1a2540;color:#fff;font-weight:600}
+.centre-coord-label{font-size:.82rem;font-weight:700;color:var(--gold);padding:7px 0}
+
+.tabs-wrap{background:#162035;border-bottom:3px solid rgba(240,201,85,.18);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#2e4060 #162035}
+.tabs-inner{max-width:1320px;margin:0 auto;display:flex;padding:0 10px;gap:1px;min-width:max-content}
+.tab{padding:11px 18px;background:transparent;border:none;color:rgba(255,255,255,.42);font-size:.78rem;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-3px;white-space:nowrap;transition:color .12s,border-color .12s}
+.tab:hover{color:rgba(255,255,255,.8)}
+.tab.active{color:#fff;border-bottom-color:var(--gold)}
+.tab .tc{font-size:.54rem;opacity:.55;font-weight:400;margin-left:2px}
+
+main{max-width:1320px;margin:0 auto;padding:14px 12px 50px}
+
+.hero{border-radius:14px;overflow:hidden;margin-bottom:16px;position:relative;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end}
+.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center center;filter:brightness(.6)}
+.hero-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(5,8,20,.96) 0%,rgba(5,8,20,.7) 40%,rgba(5,8,20,.15) 80%,transparent 100%)}
+.hero-body{position:relative;z-index:1;padding:32px 36px 0;flex:1;display:flex;flex-direction:column;justify-content:flex-end}
+.hero-body h2{font-size:clamp(1.4rem,3vw,2.2rem);font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.5px;text-shadow:0 2px 12px rgba(0,0,0,.4)}
+.hero-body p{font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.6;max-width:560px;margin-bottom:20px}
+.hero-stats{position:relative;z-index:1;display:flex;gap:0;flex-shrink:0;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.1);padding:16px 36px;flex-wrap:wrap}
+.hstat{text-align:center;padding:0 28px 0 0}
+.hstat-v{font-size:1.5rem;font-weight:800;color:var(--gold);line-height:1}
+.hstat-l{font-size:.55rem;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+.hdiv{width:1px;background:rgba(255,255,255,.15);margin-right:28px;align-self:stretch}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 12px 10px;box-shadow:0 1px 5px rgba(0,0,0,.05)}
+.kpi-lb{font-size:.52rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.kpi-v{font-size:clamp(1.2rem,2vw,1.75rem);font-weight:700;color:var(--navy);line-height:1}
+.kpi-n{font-size:.6rem;color:var(--muted);margin-top:3px}
+.tag-up{display:inline-block;font-size:.56rem;font-weight:700;padding:2px 7px;border-radius:20px;background:#d1fae5;color:#065f46;margin-top:3px}
+.tag-ytd{display:inline-block;font-size:.56rem;font-weight:700;padding:2px 7px;border-radius:20px;background:#fef3c7;color:#92400e;margin-top:3px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:14px;box-shadow:0 1px 5px rgba(0,0,0,.05);margin-bottom:11px}
+.card-t{font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:10px}
+
+.two{display:grid;grid-template-columns:3fr 2fr;gap:11px;margin-bottom:11px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+
+.tbl-wrap{overflow-y:auto;max-height:320px}
+.ann-tbl{width:100%;border-collapse:collapse;font-size:.7rem}
+.ann-tbl th{font-size:.51rem;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);padding:5px 7px;border-bottom:2px solid var(--border);text-align:left;background:var(--bg);position:sticky;top:0}
+.ann-tbl tr{border-bottom:1px solid #f0ebe0}
+.ann-tbl tr:hover{background:#faf0e0}
+.ann-tbl tr.hi{background:#fff8e8;border-left:3px solid var(--gold)}
+.ann-tbl td{padding:5px 7px;vertical-align:middle}
+.td-y{font-weight:700;color:var(--navy)}
+.bar-cell{height:6px;background:#f0ebe0;border-radius:3px;width:70px}
+.bar-fill{height:100%;border-radius:3px}
+.chg-up{color:var(--green);font-size:.6rem;font-weight:700}
+.chg-dn{color:var(--red);font-size:.6rem;font-weight:700}
+.chg-na{color:var(--muted);font-size:.6rem}
+
+.ins-col{display:flex;flex-direction:column;gap:8px}
+.ins{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px}
+.ins-lb{font-size:.51rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.ins-v{font-size:1.2rem;font-weight:700;color:var(--navy)}
+.ins-n{font-size:.6rem;color:var(--muted);margin-top:2px}
+
+/* Centre overview (admin all-centres view) */
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:11px;margin-bottom:11px}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;box-shadow:0 1px 5px rgba(0,0,0,.05)}
+.ov-card h3{font-size:.82rem;font-weight:800;color:var(--navy);margin-bottom:10px;border-bottom:2px solid var(--border);padding-bottom:7px}
+.ov-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f0ebe0}
+.ov-row:last-child{border-bottom:none}
+.ov-prog{font-size:.65rem;color:var(--muted)}
+.ov-nums{display:flex;gap:12px;align-items:center}
+.ov-total{font-size:.82rem;font-weight:700;color:var(--navy)}
+.ov-ytd{font-size:.62rem;color:var(--saffron);font-weight:600}
+
+footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--border)}
+
+/* ── LOGIN ── */
+#loginScreen{position:fixed;inset:0;background:url('IMG_3217.JPG') center 20%/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:9999}
+#loginScreen::before{content:'';position:absolute;inset:0;background:rgba(5,10,25,.65);backdrop-filter:blur(2px)}
+#loginScreen.hidden{display:none}
+.login-box{position:relative;z-index:1;background:rgba(5,10,25,.55);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:44px 40px;width:100%;max-width:420px;backdrop-filter:blur(16px);box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.login-logo img{width:44px;height:44px;object-fit:contain}
+.login-logo span{font-size:1rem;font-weight:800;color:#fff;line-height:1.2;white-space:nowrap}
+.login-logo small{display:block;font-size:.52rem;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.login-box h2{font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:5px}
+.login-box p{font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:28px}
+.login-box label{display:block;font-size:.6rem;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:7px}
+.login-box input{width:100%;padding:12px 14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:.85rem;outline:none;transition:border-color .15s}
+.login-box input::placeholder{color:rgba(255,255,255,.25)}
+.login-box input:focus{border-color:var(--gold)}
+.login-err{font-size:.65rem;color:#f87171;margin-top:8px;min-height:18px}
+#authErrDialog{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(5,10,25,.7);backdrop-filter:blur(4px)}
+#authErrDialog.show{display:flex}
+.auth-err-box{background:#1a2235;border:1px solid rgba(248,113,113,.35);border-radius:14px;padding:32px 28px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.auth-err-icon{font-size:2.4rem;margin-bottom:14px}
+.auth-err-title{font-size:.95rem;font-weight:800;color:#fff;margin-bottom:8px}
+.auth-err-msg{font-size:.75rem;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:22px}
+.auth-err-btn{background:#f0c955;color:#1e2a45;border:none;padding:10px 28px;border-radius:8px;font-size:.78rem;font-weight:800;cursor:pointer;width:100%}
+.auth-err-btn:hover{background:#f5d060}
+.login-btn{width:100%;margin-top:20px;padding:13px;background:var(--gold);color:var(--navy);font-size:.82rem;font-weight:800;border:none;border-radius:8px;cursor:pointer;transition:background .15s}
+.login-btn:hover{background:#f5d060}
+#googleBtnWrap{width:100%;display:flex;justify-content:center;margin:20px 0 4px}
+.or-divider{display:flex;align-items:center;gap:10px;margin:14px 0}
+.or-divider span{font-size:.6rem;color:rgba(255,255,255,.25);white-space:nowrap}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+.google-loading{font-size:.65rem;color:rgba(255,255,255,.3);text-align:center;padding:12px 0}
+.req-back{background:none;border:none;color:rgba(255,255,255,.4);font-size:.65rem;cursor:pointer;padding:0;margin-bottom:16px}
+.req-back:hover{color:#fff}
+#reqPanel{display:none}
+#loginPanel{display:block}
+
+/* ── USER PILL ── */
+.user-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.09);padding:5px 12px;border-radius:20px}
+.user-pill .role-badge{font-size:.5rem;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.6px}
+.role-admin{background:#f0c955;color:#1e2a45}
+.role-coord{background:#d4641a;color:#fff}
+.user-pill .user-email{font-size:.6rem;color:rgba(255,255,255,.7);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);font-size:.6rem;font-weight:700;cursor:pointer;padding:5px 11px;border-radius:5px;transition:background .15s,color .15s;white-space:nowrap}
+.logout-btn:hover{background:#f87171;border-color:#f87171;color:#fff}
+.mgmt-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 12px;font-size:.62rem;font-weight:700;cursor:pointer;border-radius:5px;transition:background .15s}
+.mgmt-btn:hover{background:rgba(255,255,255,.2)}
+
+/* ── USER MANAGEMENT MODAL ── */
+#umOverlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:none;align-items:center;justify-content:center}
+#umOverlay.open{display:flex}
+#umModal{background:#1a2540;border:1px solid rgba(255,255,255,.12);border-radius:14px;width:100%;max-width:620px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.um-head{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between}
+.um-head h3{font-size:.95rem;font-weight:800;color:#fff}
+.um-close{background:none;border:none;color:rgba(255,255,255,.4);font-size:1.1rem;cursor:pointer;line-height:1;padding:4px}
+.um-close:hover{color:#f87171}
+.um-body{padding:20px 24px;overflow-y:auto;flex:1}
+.um-section{font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.35);margin:0 0 10px}
+.um-table{width:100%;border-collapse:collapse;margin-bottom:20px}
+.um-table th{font-size:.54rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}
+.um-table td{font-size:.68rem;color:rgba(255,255,255,.8);padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:middle}
+.um-badge{font-size:.5rem;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase}
+.um-del{background:none;border:1px solid rgba(248,113,113,.3);color:#f87171;font-size:.6rem;padding:3px 9px;border-radius:5px;cursor:pointer}
+.um-del:hover{background:rgba(248,113,113,.15)}
+.um-del:disabled{opacity:.3;cursor:not-allowed}
+.um-add{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:16px}
+.um-add h4{font-size:.7rem;font-weight:700;color:#fff;margin-bottom:14px}
+.um-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.um-field label{display:block;font-size:.55rem;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.um-field input,.um-field select{width:100%;padding:9px 11px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:7px;color:#fff;font-size:.75rem;outline:none}
+.um-field input:focus,.um-field select:focus{border-color:var(--gold)}
+.um-field select option{background:#1a2540;color:#fff}
+.um-save{width:100%;margin-top:12px;padding:10px;background:var(--gold);color:var(--navy);font-size:.75rem;font-weight:800;border:none;border-radius:7px;cursor:pointer}
+.um-save:hover{background:#f5d060}
+.um-msg{font-size:.65rem;margin-top:8px;min-height:18px;text-align:center}
+.um-msg.ok{color:#4ade80}
+.um-msg.err{color:#f87171}
+.pending-badge{display:inline-block;background:#f87171;color:#fff;font-size:.5rem;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.um-approve{background:none;border:1px solid rgba(74,222,128,.4);color:#4ade80;font-size:.6rem;padding:3px 9px;border-radius:5px;cursor:pointer;margin-right:4px}
+.um-deny{background:none;border:1px solid rgba(248,113,113,.3);color:#f87171;font-size:.6rem;padding:3px 9px;border-radius:5px;cursor:pointer}
+.approve-role{font-size:.65rem;padding:3px 6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:5px;color:#fff;margin-right:4px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+
+  <!-- Auth error dialog -->
+  <div id="authErrDialog">
+    <div class="auth-err-box">
+      <div class="auth-err-icon">⚠️</div>
+      <div class="auth-err-title" id="authErrTitle">Access Denied</div>
+      <div class="auth-err-msg" id="authErrMsg"></div>
+      <button class="auth-err-btn" onclick="document.getElementById('authErrDialog').classList.remove('show')">OK, Got it</button>
+    </div>
+  </div>
+
+  <!-- Full-screen signing-in overlay -->
+  <div id="signingInOverlay" style="display:none;position:absolute;inset:0;background:rgba(5,10,25,.92);z-index:10;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px">
+    <div style="width:56px;height:56px;border:4px solid rgba(255,255,255,.12);border-top-color:#f0c955;border-radius:50%;animation:spin .8s linear infinite"></div>
+    <div style="text-align:center">
+      <div id="signingInMsg" style="color:#fff;font-size:1rem;font-weight:700;margin-bottom:6px">Signing in…</div>
+      <div style="color:rgba(255,255,255,.45);font-size:.72rem">Please wait, verifying your account</div>
+    </div>
+  </div>
+
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="https://static.sadhguru.org/d/46272/1686731673-isha-logo-main-menu.svg" alt="Isha"/>
+      <div><span>Isha Karnataka — Centres Dashboard</span><small>Isha Foundation</small></div>
+    </div>
+    <div id="loginPanel">
+      <h2>Welcome</h2>
+      <p style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:20px">Sign in to access the dashboard</p>
+      <div id="googleBtnWrap"><div class="google-loading" id="gLoading">Loading Google Sign-In…</div></div>
+      <div class="or-divider"><span>or sign in with email</span></div>
+      <label for="emailInput">Email Address</label>
+      <input type="email" id="emailInput" placeholder="yourname@example.com" autocomplete="email"/>
+      <label for="pwInput" style="margin-top:14px">Password</label>
+      <div style="position:relative">
+        <input type="password" id="pwInput" placeholder="Enter your password" autocomplete="current-password"/>
+        <button id="pwToggle" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:.7rem;padding:4px">Show</button>
+      </div>
+      <div class="login-err" id="loginErr"></div>
+      <button class="login-btn" id="loginBtn">Sign In →</button>
+      <div style="text-align:center;margin-top:14px">
+        <button id="goReqBtn" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:.62rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px">Don't have access? Request it →</button>
+      </div>
+    </div>
+    <div id="reqPanel" style="display:none">
+      <button class="req-back" id="goBackBtn">← Back to Sign In</button>
+      <h2>Request Access</h2>
+      <p style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:24px">Submit your details and an admin will grant you access.</p>
+      <div id="reqForm">
+        <label for="reqName">Your Name</label>
+        <input type="text" id="reqName" placeholder="Full name" style="margin-bottom:14px"/>
+        <label for="reqEmail">Email Address</label>
+        <input type="email" id="reqEmail" placeholder="yourname@example.com" style="margin-bottom:14px"/>
+        <label for="reqCentre">Your Centre</label>
+        <select id="reqCentre" style="margin-bottom:4px;width:100%;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:.78rem;cursor:pointer">
+          <option value="">— Select your centre —</option>
+        </select>
+        <div class="login-err" id="reqErr"></div>
+        <button class="login-btn" id="reqSubmitBtn" style="margin-top:16px">Submit Request →</button>
+      </div>
+      <div id="reqSuccess" style="display:none;text-align:center;padding:10px 0">
+        <div style="font-size:2rem;margin-bottom:10px">✅</div>
+        <p style="font-size:.75rem;color:rgba(255,255,255,.6);line-height:1.7">Your request has been submitted.<br>An admin will review and grant you access.</p>
+        <button id="reqBackBtn2" style="margin-top:16px;background:none;border:1px solid rgba(255,255,255,.2);color:#fff;padding:8px 20px;border-radius:7px;cursor:pointer;font-size:.72rem">Back to Sign In</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="mainApp" style="display:none">
+<header>
+  <div class="hdr">
+    <div class="brand">
+      <div class="logo-ring"><img src="https://static.sadhguru.org/d/46272/1686731673-isha-logo-main-menu.svg" alt="Isha"/></div>
+      <div>
+        <h1 id="dashTitle">Isha Karnataka — Programme Dashboard</h1>
+        <p id="dashSubtitle">Isha Foundation · Karnataka Region</p>
+      </div>
+    </div>
+    <div class="hdr-r">
+      <div class="updated-pill"><span class="up-label">Last Updated</span><span class="up-val" id="lastUpdated">—</span></div>
+      <button class="mgmt-btn" id="manageUsersBtn" style="display:none" onclick="openUM()">⚙ Users</button>
+      <div class="user-pill" id="userPill" style="display:none">
+        <span class="role-badge" id="roleBadge"></span>
+        <span class="user-email" id="userEmail"></span>
+        <button class="logout-btn" id="logoutBtn">Sign Out</button>
+      </div>
+      <div id="exportBtns" style="display:none;gap:6px;display:none">
+        <button class="exp-btn" id="expCentreBtn" title="Export current centre data">↓ Export Centre</button>
+        <button class="exp-btn" id="expAllBtn" title="Export all centres data" style="display:none">↓ Export All</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Centre switcher (admin sees all; coordinator sees only their centre) -->
+<div class="centre-bar" id="centreBar">
+  <div class="centre-inner" id="centreInner"></div>
+</div>
+
+<!-- Programme tabs -->
+<div class="tabs-wrap"><div class="tabs-inner" id="tabBar"></div></div>
+
+<main id="mainContent">
+  <!-- Programme view -->
+  <div id="progView">
+    <div id="heroBox" class="hero">
+      <div class="hero-bg" id="heroBg"></div>
+      <div class="hero-ov"></div>
+      <div class="hero-body"><h2 id="hTitle">—</h2><p id="hDesc">—</p></div>
+      <div class="hero-stats">
+        <div class="hstat"><div class="hstat-v" id="hTotal">—</div><div class="hstat-l">All-Time Total</div></div>
+        <div class="hdiv"></div>
+        <div class="hstat"><div class="hstat-v" id="hPeak">—</div><div class="hstat-l">Peak Year</div></div>
+        <div class="hdiv"></div>
+        <div class="hstat"><div class="hstat-v" id="hYTD">—</div><div class="hstat-l">2026 YTD</div></div>
+      </div>
+    </div>
+
+    <div class="kpis" id="kpiRow"></div>
+
+    <div class="card">
+      <div class="card-t" id="annChartTitle">Annual Participants</div>
+      <div style="height:200px;position:relative"><canvas id="annChart"></canvas></div>
+    </div>
+
+    <div class="two">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-t">Year-by-Year Summary</div>
+        <div class="tbl-wrap">
+          <table class="ann-tbl">
+            <thead><tr><th>Year</th><th>Participants</th><th style="width:76px">Trend</th><th>YoY</th></tr></thead>
+            <tbody id="annTbl"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="ins-col" id="insCards"></div>
+    </div>
+  </div>
+
+  <!-- All-centres overview (admin only) -->
+  <div id="overviewView" style="display:none">
+    <div style="margin-bottom:14px">
+      <div style="font-size:1.1rem;font-weight:800;color:var(--navy);margin-bottom:4px">All Karnataka Centres — Overview</div>
+      <div style="font-size:.68rem;color:var(--muted)">Showing IE, BSP and Samyama totals across all 7 centres · 2026 YTD in brackets</div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+    <div class="card">
+      <div class="card-t">IE Participants — All Centres Comparison (Annual)</div>
+      <div style="height:220px;position:relative"><canvas id="compareChart"></canvas></div>
+    </div>
+  </div>
+</main>
+
+<footer>Isha Foundation · Karnataka Region Centres · IE · BSP · Samyama · Data from Santhosha CRM · Through 2026</footer>
+
+<!-- USER MANAGEMENT MODAL -->
+<div id="umOverlay" onclick="if(event.target===this)closeUM()">
+  <div id="umModal">
+    <div class="um-head">
+      <h3>⚙ User Management</h3>
+      <button class="um-close" onclick="closeUM()">✕</button>
+    </div>
+    <div class="um-body">
+      <div class="um-section" id="umPendingSection" style="display:none">Pending Requests <span class="pending-badge" id="umPendingCount"></span></div>
+      <table class="um-table" id="umPendingTable" style="display:none">
+        <thead><tr><th>Name</th><th>Email</th><th>Requested</th><th>Action</th></tr></thead>
+        <tbody id="umPendingList"></tbody>
+      </table>
+      <div class="um-section">Current Users</div>
+      <table class="um-table">
+        <thead><tr><th>Email</th><th>Role</th><th>Centre</th><th>Type</th><th></th></tr></thead>
+        <tbody id="umUserList"></tbody>
+      </table>
+      <div class="um-add">
+        <h4>Add New User</h4>
+        <div class="um-grid">
+          <div class="um-field"><label>Email Address</label><input type="email" id="umEmail" placeholder="user@example.com"/></div>
+          <div class="um-field"><label>Password</label><input type="text" id="umPassword" placeholder="SetAPassword"/></div>
+          <div class="um-field">
+            <label>Role</label>
+            <select id="umRole">
+              <option value="coordinator">Coordinator</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="um-field">
+            <label>Centre</label>
+            <select id="umCentre">
+              <option value="all">All Centres (Admin)</option>
+              <option value="Banaswadi">Banaswadi</option>
+              <option value="Hebbal">Hebbal</option>
+              <option value="IP - Jayanagar">IP - Jayanagar</option>
+              <option value="IP - Malleshwaram">IP - Malleshwaram</option>
+              <option value="IP - Marathahalli">IP - Marathahalli</option>
+              <option value="IP - Vijayanagar">IP - Vijayanagar</option>
+              <option value="Indiranagar">Indiranagar</option>
+            </select>
+          </div>
+        </div>
+        <button class="um-save" onclick="umAddUser()">+ Add User</button>
+        <div class="um-msg" id="umMsg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  FIREBASE INIT
+// ════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDZSc3Ej0NYBeYw9Ac-s7lelZ0VLafeENg",
+  authDomain: "ka-center-program-dashboard.firebaseapp.com",
+  projectId: "ka-center-program-dashboard",
+  storageBucket: "ka-center-program-dashboard.firebasestorage.app",
+  messagingSenderId: "870684635303",
+  appId: "1:870684635303:web:9343cbce34670181cc6b82"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// SHA-256 hash (for storing passwords securely)
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+//  CENTRE DATA — IE, BSP, Samyama by year for each centre
+// ════════════════════════════════════════════════════════════
+const CENTRE_DATA = {
+  'Electronic City':{
+    ie:{"1970": 35, "2000": 1, "2003": 4, "2004": 4, "2005": 5, "2006": 16, "2007": 36, "2008": 61, "2009": 81, "2010": 78, "2011": 163, "2012": 94, "2013": 125, "2014": 149, "2015": 161, "2016": 287, "2017": 365, "2018": 511, "2019": 518, "2020": 24, "2021": 304, "2022": 245, "2023": 445, "2024": 641, "2025": 892, "2026": 839},
+    bsp:{"2002": 1, "2003": 2, "2006": 2, "2007": 10, "2008": 13, "2009": 19, "2010": 22, "2011": 12, "2012": 18, "2013": 16, "2014": 12, "2015": 25, "2016": 26, "2017": 41, "2018": 19, "2019": 49, "2020": 5, "2021": 12, "2022": 57, "2023": 89, "2024": 64, "2025": 53, "2026": 45},
+    samyama:{"2007": 5, "2009": 3, "2010": 8, "2012": 8, "2013": 6, "2014": 5, "2015": 8, "2016": 2, "2018": 8, "2019": 27, "2020": 18, "2022": 21, "2023": 21, "2024": 22, "2025": 42, "2026": 11}
+  },
+  'Banaswadi':{
+    ie:{"2001": 1, "2002": 2, "2003": 1, "2004": 3, "2005": 3, "2006": 23, "2007": 90, "2008": 146, "2009": 143, "2010": 133, "2011": 318, "2012": 151, "2013": 161, "2014": 186, "2015": 254, "2016": 451, "2017": 539, "2018": 582, "2019": 598, "2020": 65, "2021": 224, "2022": 210, "2023": 327, "2024": 387, "2025": 464, "2026": 630},
+    bsp:{"2000": 1, "2001": 1, "2002": 2, "2005": 1, "2006": 4, "2007": 11, "2008": 27, "2009": 19, "2010": 19, "2011": 19, "2012": 18, "2013": 20, "2014": 17, "2015": 19, "2016": 41, "2017": 34, "2018": 36, "2019": 32, "2020": 13, "2021": 12, "2022": 41, "2023": 41, "2024": 49, "2025": 43, "2026": 33},
+    samyama:{"2007": 4, "2009": 10, "2010": 11, "2011": 3, "2012": 5, "2013": 9, "2014": 4, "2015": 9, "2016": 8, "2018": 6, "2019": 22, "2020": 13, "2022": 13, "2023": 16, "2024": 8, "2025": 33, "2026": 6}
+  },
+  'Hebbal':{
+    ie:{"2001": 2, "2003": 1, "2004": 3, "2005": 6, "2006": 28, "2007": 21, "2008": 53, "2009": 78, "2010": 103, "2011": 384, "2012": 120, "2013": 164, "2014": 180, "2015": 301, "2016": 597, "2017": 787, "2018": 1003, "2019": 936, "2020": 84, "2021": 453, "2022": 436, "2023": 654, "2024": 832, "2025": 1063, "2026": 1202},
+    bsp:{"2000": 1, "2002": 1, "2003": 1, "2004": 1, "2005": 3, "2006": 3, "2007": 3, "2008": 10, "2009": 15, "2010": 16, "2011": 14, "2012": 19, "2013": 26, "2014": 26, "2015": 29, "2016": 50, "2017": 53, "2018": 57, "2019": 71, "2020": 24, "2021": 26, "2022": 84, "2023": 100, "2024": 109, "2025": 81, "2026": 58},
+    samyama:{"2007": 2, "2009": 4, "2010": 8, "2011": 2, "2012": 4, "2013": 6, "2014": 5, "2015": 19, "2016": 16, "2018": 7, "2019": 29, "2020": 31, "2022": 32, "2023": 18, "2024": 17, "2025": 77, "2026": 17}
+  },
+  'IP - Jayanagar':{
+    ie:{"2003": 3, "2004": 3, "2005": 1, "2006": 11, "2007": 30, "2008": 40, "2009": 66, "2010": 36, "2011": 147, "2012": 62, "2013": 75, "2014": 106, "2015": 166, "2016": 234, "2017": 351, "2018": 374, "2019": 328, "2020": 18, "2021": 135, "2022": 114, "2023": 143, "2024": 166, "2025": 218, "2026": 288},
+    bsp:{"2005": 1, "2008": 6, "2009": 7, "2010": 6, "2011": 7, "2012": 4, "2013": 11, "2014": 14, "2015": 9, "2016": 21, "2017": 14, "2018": 20, "2019": 14, "2020": 8, "2021": 6, "2022": 28, "2023": 19, "2024": 21, "2025": 35, "2026": 11},
+    samyama:{"2000": 1, "2006": 1, "2007": 1, "2009": 2, "2010": 1, "2011": 1, "2012": 3, "2013": 2, "2014": 1, "2015": 3, "2018": 2, "2019": 17, "2020": 13, "2022": 10, "2023": 10, "2024": 3, "2025": 18, "2026": 5}
+  },
+  'IP - Malleshwaram':{
+    ie:{"2001": 1, "2002": 3, "2003": 1, "2004": 5, "2005": 5, "2006": 24, "2007": 41, "2008": 62, "2009": 77, "2010": 58, "2011": 338, "2012": 108, "2013": 109, "2014": 132, "2015": 169, "2016": 380, "2017": 560, "2018": 736, "2019": 659, "2020": 51, "2021": 315, "2022": 300, "2023": 363, "2024": 551, "2025": 602, "2026": 715},
+    bsp:{"2001": 1, "2002": 1, "2003": 2, "2005": 2, "2006": 1, "2007": 1, "2008": 7, "2009": 15, "2010": 2, "2011": 6, "2012": 21, "2013": 14, "2014": 11, "2015": 13, "2016": 23, "2017": 38, "2018": 48, "2019": 47, "2020": 26, "2021": 24, "2022": 52, "2023": 53, "2024": 67, "2025": 53, "2026": 26},
+    samyama:{"2007": 3, "2009": 1, "2010": 6, "2011": 3, "2012": 1, "2013": 8, "2014": 4, "2015": 6, "2016": 2, "2018": 1, "2019": 15, "2020": 34, "2022": 14, "2023": 17, "2024": 17, "2025": 41, "2026": 20}
+  },
+  'IP - Marathahalli':{
+    ie:{"2001": 1, "2002": 1, "2003": 1, "2004": 1, "2005": 5, "2006": 25, "2007": 35, "2008": 44, "2009": 64, "2010": 93, "2011": 242, "2012": 181, "2013": 157, "2014": 161, "2015": 229, "2016": 402, "2017": 552, "2018": 702, "2019": 695, "2020": 53, "2021": 352, "2022": 280, "2023": 412, "2024": 605, "2025": 644, "2026": 983},
+    bsp:{"2001": 1, "2003": 1, "2005": 2, "2006": 5, "2007": 7, "2008": 11, "2009": 14, "2010": 14, "2011": 16, "2012": 13, "2013": 29, "2014": 22, "2015": 27, "2016": 25, "2017": 43, "2018": 36, "2019": 49, "2020": 15, "2021": 18, "2022": 55, "2023": 78, "2024": 71, "2025": 72, "2026": 35},
+    samyama:{"2007": 4, "2008": 1, "2009": 2, "2010": 7, "2011": 1, "2012": 3, "2013": 7, "2014": 5, "2015": 10, "2016": 9, "2018": 3, "2019": 34, "2020": 19, "2022": 23, "2023": 25, "2024": 19, "2025": 39, "2026": 15}
+  },
+  'IP - Vijayanagar':{
+    ie:{"2000": 2, "2002": 1, "2004": 1, "2005": 5, "2006": 10, "2007": 32, "2008": 90, "2009": 49, "2010": 86, "2011": 270, "2012": 81, "2013": 108, "2014": 157, "2015": 237, "2016": 453, "2017": 650, "2018": 824, "2019": 797, "2020": 45, "2021": 382, "2022": 416, "2023": 475, "2024": 807, "2025": 871, "2026": 1086},
+    bsp:{"2001": 1, "2006": 2, "2007": 4, "2008": 14, "2009": 11, "2010": 12, "2011": 18, "2012": 13, "2013": 16, "2014": 15, "2015": 19, "2016": 43, "2017": 30, "2018": 46, "2019": 62, "2020": 19, "2021": 19, "2022": 52, "2023": 80, "2024": 80, "2025": 68, "2026": 32},
+    samyama:{"2007": 1, "2008": 1, "2009": 6, "2010": 9, "2011": 5, "2012": 3, "2013": 4, "2014": 4, "2015": 4, "2016": 1, "2018": 4, "2019": 28, "2020": 35, "2022": 28, "2023": 23, "2024": 22, "2025": 53, "2026": 15}
+  },
+  'Indiranagar':{
+    ie:{"2000": 1, "2002": 1, "2003": 1, "2004": 8, "2005": 13, "2006": 49, "2007": 106, "2008": 161, "2009": 133, "2010": 168, "2011": 484, "2012": 171, "2013": 153, "2014": 187, "2015": 236, "2016": 345, "2017": 472, "2018": 525, "2019": 580, "2020": 35, "2021": 213, "2022": 181, "2023": 255, "2024": 310, "2025": 345, "2026": 419},
+    bsp:{"2001": 1, "2003": 2, "2005": 5, "2006": 2, "2007": 10, "2008": 17, "2009": 38, "2010": 13, "2011": 28, "2012": 22, "2013": 22, "2014": 16, "2015": 17, "2016": 26, "2017": 30, "2018": 23, "2019": 40, "2020": 4, "2021": 15, "2022": 38, "2023": 48, "2024": 38, "2025": 38, "2026": 17},
+    samyama:{"2007": 4, "2008": 1, "2009": 8, "2010": 3, "2011": 6, "2012": 12, "2013": 12, "2014": 2, "2015": 5, "2016": 5, "2018": 4, "2019": 25, "2020": 15, "2022": 19, "2023": 12, "2024": 9, "2025": 27, "2026": 7}
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+//  PROGRAMME CONFIG
+// ════════════════════════════════════════════════════════════
+const PROG_CONFIG = {
+  ie:{
+    name:'Inner Engineering', color:'#1e4080',
+    bg:"url('https://static.sadhguru.org/d/46272/1700834565-sadhguru-xl-image.png')",
+    desc:'Inner Engineering 7-Day programme completers from CRM records.'
+  },
+  bsp:{
+    name:'Bhava Spandana', color:'#7a1a1a',
+    bg:"url('https://static.sadhguru.org/d/46272/1650519638-website-thumbnail-yogameditation-bsp.jpg')",
+    desc:'Bhava Spandana Programme completers from CRM records.'
+  },
+  samyama:{
+    name:'Samyama', color:'#2d1a5c',
+    bg:"url('https://static.sadhguru.org/d/46272/1650517087-website-thumbnail-yogameditation-samyama.jpg')",
+    desc:'Samyama Silence Programme completers from CRM records.'
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+//  ROLES — email → { role, password, centre }
+//  centre: 'all' for admins, or exact centre name for coordinators
+// ════════════════════════════════════════════════════════════
+const ROLES = {
+  'niteshkumar.7659@gmail.com':      { role:'admin',       password:'Isha@Admin2024',  centre:'all' },
+  'admin@ishafoundation.org':        { role:'admin',       password:'Isha@Admin2024',  centre:'all' },
+  'ecadmin@isha.ec':                 { role:'admin',       password:'IshaDash@2026',   centre:'all' },
+  // Centre coordinators — replace with real email addresses
+  'ec@isha.ec':                      { role:'coordinator', password:'Isha@EC2026',    centre:'Electronic City' },
+  'banaswadi@isha.ec':               { role:'coordinator', password:'Isha@Bana2026',   centre:'Banaswadi' },
+  'hebbal@isha.ec':                  { role:'coordinator', password:'Isha@Hebb2026',   centre:'Hebbal' },
+  'jayanagar@isha.ec':               { role:'coordinator', password:'Isha@Jaya2026',   centre:'IP - Jayanagar' },
+  'malleshwaram@isha.ec':            { role:'coordinator', password:'Isha@Mall2026',   centre:'IP - Malleshwaram' },
+  'marathahalli@isha.ec':            { role:'coordinator', password:'Isha@Mara2026',   centre:'IP - Marathahalli' },
+  'vijayanagar@isha.ec':             { role:'coordinator', password:'Isha@Vija2026',   centre:'IP - Vijayanagar' },
+  'indiranagar@isha.ec':             { role:'coordinator', password:'Isha@Indi2026',   centre:'Indiranagar' },
+};
+
+const CENTRES = Object.keys(CENTRE_DATA);
+const CY = '2026';
+
+// ════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════
+let currentCentre = CENTRES[0];
+let currentProg   = 'ie';
+let currentRole   = null;
+let annChart = null, compareChart = null;
+
+// ════════════════════════════════════════════════════════════
+//  USER MANAGEMENT — Firebase Firestore backend
+// ════════════════════════════════════════════════════════════
+// In-memory cache loaded from Firestore on init
+let _fsUsers       = {};     // { email: { role, passwordHash, centre, name, source:'firestore' } }
+let _fsPending     = [];     // [{ id, name, email, requestedAt }]
+let _fsUsersLoaded = false;  // skip re-fetch if already loaded
+let _fsPendingLoaded = false;
+
+async function loadFSUsers(force=false){
+  if(_fsUsersLoaded && !force) return; // use cache
+  const snap = await db.collection('users').get();
+  _fsUsers = {};
+  snap.forEach(doc => { _fsUsers[doc.id] = { ...doc.data(), source:'firestore' }; });
+  _fsUsersLoaded = true;
+}
+async function loadFSPending(force=false){
+  if(_fsPendingLoaded && !force) return; // use cache
+  const snap = await db.collection('pendingRequests').orderBy('requestedAt','asc').get();
+  _fsPending = [];
+  snap.forEach(doc => { _fsPending.push({ id: doc.id, ...doc.data() }); });
+  _fsPendingLoaded = true;
+}
+
+// Combined user lookup: ROLES (built-in) + Firestore (dynamic)
+function getAllUsers(){
+  const combined = {};
+  Object.entries(_fsUsers).forEach(([e,d]) => { combined[e] = d; });
+  Object.entries(ROLES).forEach(([e,d])   => { combined[e] = d; }); // built-in always wins
+  return combined;
+}
+
+function openUM(){ renderUMTable(); document.getElementById('umOverlay').classList.add('open'); }
+function closeUM(){ document.getElementById('umOverlay').classList.remove('open'); document.getElementById('umMsg').textContent=''; }
+
+function renderUMTable(){
+  // Pending
+  const ps=document.getElementById('umPendingSection');
+  const pt=document.getElementById('umPendingTable');
+  ps.style.display=_fsPending.length?'':'none';
+  pt.style.display=_fsPending.length?'':'none';
+  if(_fsPending.length){
+    document.getElementById('umPendingCount').textContent=_fsPending.length;
+    document.getElementById('umPendingList').innerHTML=_fsPending.map(r=>{
+      const cOpts = CENTRES.map(c=>`<option value="${c}" ${r.centre===c?'selected':''}>${c}</option>`).join('');
+      const eId = r.email.replace(/[@.]/g,'_');
+      return `<tr>
+        <td>${r.name}</td>
+        <td>${r.email}</td>
+        <td style="font-size:.6rem;color:rgba(255,255,255,.35)">${r.requestedAt}</td>
+        <td>
+          <select class="approve-role" id="role_${eId}">
+            <option value="coordinator">Coordinator</option>
+            <option value="admin">Admin</option>
+          </select>
+          <select class="approve-role" id="centre_${eId}" style="margin-left:4px">
+            ${cOpts}
+          </select>
+          <button class="um-approve" onclick="approveRequest('${r.email}','${r.name}','${r.id}')">Approve</button>
+          <button class="um-deny" onclick="denyRequest('${r.id}')">Deny</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  // Users table
+  const all=getAllUsers();
+  document.getElementById('umUserList').innerHTML=Object.entries(all).map(([email,entry])=>{
+    const isDynamic=entry.source==='firestore';
+    return `<tr><td>${email}</td>
+      <td><span class="um-badge ${entry.role==='admin'?'role-admin':'role-coord'}">${entry.role}</span></td>
+      <td style="font-size:.6rem;color:rgba(255,255,255,.6)">${entry.centre||'all'}</td>
+      <td style="font-size:.6rem;color:rgba(255,255,255,.35)">${isDynamic?'Added':'Built-in'}</td>
+      <td><button class="um-del" ${isDynamic?'':'disabled'} onclick="umDeleteUser('${email}')">Remove</button></td></tr>`;
+  }).join('');
+}
+
+async function approveRequest(email, name, docId){
+  const roleEl=document.getElementById('role_'+email.replace(/[@.]/g,'_'));
+  const role=roleEl?roleEl.value:'coordinator';
+  const pw='Isha@'+Math.random().toString(36).slice(2,7).toUpperCase();
+  const passwordHash=await sha256(pw);
+  const centreEl=document.getElementById('centre_'+email.replace(/[@.]/g,'_'));
+  const centre=centreEl?centreEl.value:(role==='admin'?'all':CENTRES[0]);
+  await db.collection('users').doc(email).set({ email, role, passwordHash, centre, name, addedAt: new Date().toISOString() });
+  await db.collection('pendingRequests').doc(docId).delete();
+  _fsUsersLoaded=false; _fsPendingLoaded=false;
+  await loadFSUsers(); await loadFSPending();
+  const msg=document.getElementById('umMsg');
+  msg.className='um-msg ok';
+  msg.textContent=`✓ ${email} approved. Share this password with them: ${pw}`;
+  updatePendingBadge();
+  renderUMTable();
+}
+
+async function denyRequest(docId){
+  await db.collection('pendingRequests').doc(docId).delete();
+  _fsPendingLoaded=false;
+  await loadFSPending();
+  updatePendingBadge();
+  renderUMTable();
+}
+
+async function umAddUser(){
+  const email=document.getElementById('umEmail').value.trim().toLowerCase();
+  const pw=document.getElementById('umPassword').value.trim();
+  const role=document.getElementById('umRole').value;
+  const centre=document.getElementById('umCentre').value;
+  const msg=document.getElementById('umMsg');
+  if(!email||!email.includes('@')){msg.className='um-msg err';msg.textContent='Enter a valid email.';return;}
+  if(!pw||pw.length<4){msg.className='um-msg err';msg.textContent='Password must be at least 4 chars.';return;}
+  const passwordHash=await sha256(pw);
+  await db.collection('users').doc(email).set({ email, role, passwordHash, centre, addedAt: new Date().toISOString() });
+  _fsUsersLoaded=false;
+  await loadFSUsers();
+  document.getElementById('umEmail').value='';
+  document.getElementById('umPassword').value='';
+  msg.className='um-msg ok'; msg.textContent=`✓ ${email} added as ${role} (${centre}).`;
+  renderUMTable();
+}
+
+async function umDeleteUser(email){
+  await db.collection('users').doc(email).delete();
+  _fsUsersLoaded=false;
+  await loadFSUsers();
+  renderUMTable();
+}
+
+function updatePendingBadge(){
+  const n=_fsPending.length;
+  const btn=document.getElementById('manageUsersBtn');
+  if(btn) btn.textContent=n>0?`⚙ Users (${n} pending)`:'⚙ Users';
+}
+
+// ════════════════════════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════════════════════════
+const GOOGLE_CLIENT_ID='350269138141-6ml3haltgcrv2saes9jtep7v6cfo3ub7.apps.googleusercontent.com';
+function getSession(){ try{return JSON.parse(sessionStorage.getItem('mcDash'));}catch(e){return null;} }
+function setSession(email,role,centre){ sessionStorage.setItem('mcDash',JSON.stringify({email,role,centre})); }
+function clearSession(){ sessionStorage.removeItem('mcDash'); }
+
+function applySession(email,role,centre){
+  currentRole=role;
+  document.getElementById('userPill').style.display='flex';
+  document.getElementById('userEmail').textContent=email;
+  const badge=document.getElementById('roleBadge');
+  badge.textContent=role==='admin'?'Admin':'Coordinator';
+  badge.className='role-badge '+(role==='admin'?'role-admin':'role-coord');
+  // Show export buttons for all roles; admin gets both, coordinator gets centre-only
+  document.getElementById('exportBtns').style.display='flex';
+  document.getElementById('expAllBtn').style.display= role==='admin' ? '' : 'none';
+  if(role==='admin'){
+    const btn=document.getElementById('manageUsersBtn');
+    btn.style.display='';
+    updatePendingBadge();
+  }
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('mainApp').style.display='';
+  buildCentreSwitcher(role, centre);
+}
+
+function decodeJWT(t){ try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));}catch(e){return null;} }
+
+function showAuthErr(title, msg){
+  document.getElementById('authErrTitle').textContent=title;
+  document.getElementById('authErrMsg').textContent=msg;
+  document.getElementById('authErrDialog').classList.add('show');
+}
+
+function showSigningIn(msg='Signing in…'){
+  document.getElementById('signingInMsg').textContent=msg;
+  document.getElementById('signingInOverlay').style.display='flex';
+}
+function hideSigningIn(){
+  document.getElementById('signingInOverlay').style.display='none';
+}
+
+async function onGoogleCredential(response){
+  const errEl=document.getElementById('loginErr');
+  showSigningIn('Verifying your Google account…');
+  const payload=decodeJWT(response.credential);
+  if(!payload||!payload.email){ hideSigningIn(); showAuthErr('Sign-In Failed','Could not read your Google account. Please try again.'); return; }
+  const email=payload.email.trim().toLowerCase();
+  await loadFSUsers();
+  const entry=getAllUsers()[email];
+  if(!entry){ hideSigningIn(); showAuthErr('No Access','The Google account "'+email+'" is not registered. Please request access or contact the admin.'); return; }
+  await loadFSPending();
+  setSession(email,entry.role,entry.centre||'all');
+  applySession(email,entry.role,entry.centre||'all');
+}
+
+let _googleReady = false;
+function setupGoogle(){
+  if(_googleReady) return; // already rendered, don't run twice
+  if(typeof google==='undefined'||!google.accounts){ setTimeout(setupGoogle,150); return; }
+  try{
+    const wrap=document.getElementById('googleBtnWrap');
+    wrap.style.display=''; // always make sure container is visible
+    wrap.innerHTML='';
+    google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:onGoogleCredential,auto_select:false});
+    google.accounts.id.renderButton(wrap,{theme:'outline',size:'large',width:340,text:'signin_with',logo_alignment:'center'});
+    _googleReady=true;
+    const gl=document.getElementById('gLoading'); if(gl) gl.style.display='none';
+  }catch(e){
+    // don't hide the wrap — just retry
+    _googleReady=false;
+    setTimeout(setupGoogle,500);
+  }
+}
+
+async function doLogin(){
+  const email=document.getElementById('emailInput').value.trim().toLowerCase();
+  const pw=document.getElementById('pwInput').value;
+  const errEl=document.getElementById('loginErr');
+  const btn=document.getElementById('loginBtn');
+  showSigningIn('Signing in…');
+  btn.disabled=true;
+  await loadFSUsers();
+  const all=getAllUsers();
+  const entry=all[email];
+  if(!entry){
+    hideSigningIn(); btn.disabled=false;
+    showAuthErr('No Access','This email is not registered. Please request access or contact the admin.');
+    return;
+  }
+  // Built-in ROLES use plain text; Firestore users use SHA-256 hash
+  let valid=false;
+  if(entry.source==='firestore'){
+    const hash=await sha256(pw);
+    valid=(hash===entry.passwordHash);
+  } else {
+    valid=(pw===entry.password);
+  }
+  if(!valid){
+    hideSigningIn(); btn.disabled=false;
+    showAuthErr('Incorrect Password','The password you entered is wrong. Please try again or contact the admin.');
+    return;
+  }
+  errEl.textContent='';
+  await loadFSPending();
+  const centre=entry.centre||'all';
+  setSession(email,entry.role,centre);
+  applySession(email,entry.role,centre);
+}
+
+document.getElementById('loginBtn').onclick=doLogin;
+document.getElementById('pwInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('emailInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('pwInput').focus();});
+document.getElementById('pwToggle').onclick=()=>{
+  const pw=document.getElementById('pwInput'); const h=pw.type==='password';
+  pw.type=h?'text':'password'; document.getElementById('pwToggle').textContent=h?'Hide':'Show';
+};
+document.getElementById('goReqBtn').onclick=()=>{
+  document.getElementById('loginPanel').style.display='none';
+  document.getElementById('reqPanel').style.display='block';
+  document.getElementById('reqSuccess').style.display='none';
+  document.getElementById('reqForm').style.display='block';
+};
+document.getElementById('goBackBtn').onclick=()=>{
+  document.getElementById('reqPanel').style.display='none';
+  document.getElementById('loginPanel').style.display='block';
+};
+document.getElementById('reqBackBtn2').onclick=()=>{
+  document.getElementById('reqPanel').style.display='none';
+  document.getElementById('loginPanel').style.display='block';
+};
+document.getElementById('reqSubmitBtn').onclick=async()=>{
+  const name=document.getElementById('reqName').value.trim();
+  const email=document.getElementById('reqEmail').value.trim().toLowerCase();
+  const centre=document.getElementById('reqCentre').value;
+  const err=document.getElementById('reqErr');
+  if(!name){err.textContent='Please enter your name.';return;}
+  if(!email||!email.includes('@')){err.textContent='Please enter a valid email.';return;}
+  if(!centre){err.textContent='Please select your centre.';return;}
+  err.textContent='Submitting...';
+  await loadFSUsers();
+  if(getAllUsers()[email]){err.textContent='This email already has access.';return;}
+  if(_fsPending.find(r=>r.email===email)){err.textContent='Request already pending.';return;}
+  await db.collection('pendingRequests').add({ name, email, centre, requestedAt: new Date().toLocaleString() });
+  await loadFSPending();
+  err.textContent='';
+  document.getElementById('reqForm').style.display='none';
+  document.getElementById('reqSuccess').style.display='block';
+};
+
+document.getElementById('logoutBtn').addEventListener('click',()=>{
+  clearSession();
+  _googleReady=false;
+  window.location.reload();
+});
+
+async function initAuth(){
+  await loadFSUsers();
+  await loadFSPending();
+  const sess=getSession();
+  if(sess&&getAllUsers()[sess.email]){
+    applySession(sess.email,sess.role,sess.centre||'all');
+    return;
+  }
+  document.getElementById('loginScreen').classList.remove('hidden');
+  // setupGoogle() already running from boot — no need to call again
+}
+
+// ════════════════════════════════════════════════════════════
+//  CENTRE SWITCHER
+// ════════════════════════════════════════════════════════════
+function buildCentreSwitcher(role, userCentre){
+  const inner=document.getElementById('centreInner');
+  inner.innerHTML='';
+
+  const label=document.createElement('span');
+  label.className='centre-label'; label.textContent='Centre:';
+  inner.appendChild(label);
+
+  if(role==='admin'){
+    // Admin: dropdown with All Centres + each centre
+    const sel=document.createElement('select');
+    sel.className='centre-select';
+    sel.id='centreSelect';
+
+    const allOpt=document.createElement('option');
+    allOpt.value='__all__'; allOpt.textContent='⬛ All Centres — Overview';
+    sel.appendChild(allOpt);
+
+    CENTRES.forEach(c=>{
+      const opt=document.createElement('option');
+      opt.value=c; opt.textContent=c;
+      sel.appendChild(opt);
+    });
+
+    sel.value=CENTRES[0];
+    sel.addEventListener('change',()=>switchCentre(sel.value, null));
+    inner.appendChild(sel);
+
+    switchCentre(CENTRES[0], null);
+  } else {
+    // Coordinator: just show their centre name, no switcher
+    const nameLbl=document.createElement('span');
+    nameLbl.className='centre-coord-label';
+    nameLbl.textContent=userCentre;
+    inner.appendChild(nameLbl);
+    switchCentre(userCentre, null);
+  }
+}
+
+function switchCentre(centre, btn){
+  // Sync dropdown if admin
+  const sel=document.getElementById('centreSelect');
+  if(sel) sel.value=centre;
+
+  if(centre==='__all__'){
+    // Show overview
+    document.getElementById('progView').style.display='none';
+    document.getElementById('overviewView').style.display='';
+    document.getElementById('tabBar').style.display='none';
+    document.getElementById('dashTitle').textContent='Isha Karnataka — All Centres Overview';
+    document.getElementById('dashSubtitle').textContent='Isha Foundation · '+CENTRES.length+' Karnataka Centres';
+    buildOverview();
+    return;
+  }
+
+  currentCentre=centre;
+  document.getElementById('progView').style.display='';
+  document.getElementById('overviewView').style.display='none';
+  document.getElementById('tabBar').style.display='';
+  document.getElementById('dashTitle').textContent=centre+' — Programme Dashboard';
+  document.getElementById('dashSubtitle').textContent='Isha Foundation · Karnataka Region';
+  buildTabs();
+  loadProg('ie');
+}
+
+// ════════════════════════════════════════════════════════════
+//  ENGINE
+// ════════════════════════════════════════════════════════════
+function buildTabs(){
+  const bar=document.getElementById('tabBar');
+  bar.innerHTML='';
+  Object.entries(PROG_CONFIG).forEach(([id,cfg],i)=>{
+    const data=CENTRE_DATA[currentCentre][id];
+    const total=Object.values(data).reduce((s,v)=>s+v,0);
+    const btn=document.createElement('button');
+    btn.className='tab'+(i===0?' active':'');
+    btn.id='tab-'+id;
+    btn.innerHTML=`${cfg.name}<span class="tc">(${total.toLocaleString()})</span>`;
+    btn.onclick=()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); loadProg(id); };
+    bar.appendChild(btn);
+  });
+}
+
+function loadProg(progId){
+  currentProg=progId;
+  const cfg=PROG_CONFIG[progId];
+  const rawData=CENTRE_DATA[currentCentre][progId];
+  const yrs=Object.keys(rawData).sort();
+  const total=Object.values(rawData).reduce((s,v)=>s+v,0);
+  const maxV=Math.max(...Object.values(rawData));
+  const pkYr=yrs.reduce((b,y)=>rawData[y]>rawData[b]?y:b,yrs[0]);
+
+  document.getElementById('heroBg').style.backgroundImage=cfg.bg;
+  document.getElementById('hTitle').textContent=cfg.name+' — '+currentCentre;
+  document.getElementById('hDesc').textContent=cfg.desc;
+  document.getElementById('hTotal').textContent=total.toLocaleString();
+  document.getElementById('hPeak').textContent=pkYr+' ('+rawData[pkYr]+')';
+  document.getElementById('hYTD').textContent=(rawData[CY]||0).toString();
+  document.getElementById('annChartTitle').textContent='Annual Participants — '+currentCentre;
+
+  // KPIs
+  const lastFull=yrs.filter(y=>y!==CY).at(-1)||yrs.at(-1);
+  const prevFull=yrs.filter(y=>y!==CY).at(-2);
+  const lastC=rawData[lastFull]||0, prevC=prevFull?(rawData[prevFull]||0):0;
+  const yoy=prevC?((lastC-prevC)/prevC*100).toFixed(1):null;
+  document.getElementById('kpiRow').innerHTML=`
+    <div class="kpi"><div class="kpi-lb">All-Time Total</div><div class="kpi-v">${total.toLocaleString()}</div><div class="kpi-n">${yrs[0]}–${yrs.at(-1)}</div></div>
+    <div class="kpi"><div class="kpi-lb">${lastFull} Total</div><div class="kpi-v">${lastC.toLocaleString()}</div>${yoy!==null?`<div class="tag-up">${Number(yoy)>0?'↑':'↓'} ${Math.abs(yoy)}% vs ${prevFull}</div>`:''}</div>
+    <div class="kpi"><div class="kpi-lb">2026 YTD</div><div class="kpi-v">${rawData[CY]||0}</div><div class="tag-ytd">Partial year</div></div>
+    <div class="kpi"><div class="kpi-lb">Best Year</div><div class="kpi-v">${pkYr}</div><div class="kpi-n">${rawData[pkYr].toLocaleString()} participants</div></div>
+    <div class="kpi"><div class="kpi-lb">Avg / Year</div><div class="kpi-v">${Math.round(total/yrs.length)}</div><div class="kpi-n">${yrs.length} active years</div></div>
+  `;
+
+  // Annual chart
+  if(!annChart){
+    annChart=new Chart(document.getElementById('annChart'),{
+      type:'bar',
+      data:{labels:[],datasets:[{data:[],borderRadius:4,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:280},
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'#e8dfc8',borderWidth:1,titleColor:'#1e2a45',bodyColor:'#2c2c2c',padding:10,callbacks:{label:c=>` ${c.raw.toLocaleString()} participants`}}},
+        scales:{x:{grid:{display:false},ticks:{color:'#7a7060',font:{size:10},maxRotation:45}},
+                y:{grid:{color:'#f0ebe0'},ticks:{color:'#7a7060',font:{size:9}},beginAtZero:true}}}
+    });
+  }
+  annChart.data.labels=yrs.map(y=>y===CY?y+'*':y);
+  annChart.data.datasets[0].data=yrs.map(y=>rawData[y]);
+  annChart.data.datasets[0].backgroundColor=yrs.map(y=>y===CY?'#d4641a':cfg.color+'99');
+  annChart.data.datasets[0].hoverBackgroundColor=cfg.color;
+  annChart.update();
+
+  // Table
+  document.getElementById('annTbl').innerHTML=[...yrs].reverse().map(y=>{
+    const c=rawData[y], w=((c/maxV)*100).toFixed(1);
+    const idx=yrs.indexOf(y), prev=idx>0?yrs[idx-1]:null;
+    let chg='<span class="chg-na">—</span>';
+    if(prev&&rawData[prev]){const pct=((c-rawData[prev])/rawData[prev]*100).toFixed(1);chg=`<span class="${Number(pct)>0?'chg-up':'chg-dn'}">${Number(pct)>0?'+':''}${pct}%</span>`;}
+    return `<tr><td class="td-y">${y}${y===CY?' ★':''}</td><td>${c.toLocaleString()}</td><td><div class="bar-cell"><div class="bar-fill" style="width:${w}%;background:${cfg.color}"></div></div></td><td>${chg}</td></tr>`;
+  }).join('');
+
+  // Insight cards
+  document.getElementById('insCards').innerHTML=`
+    <div class="ins"><div class="ins-lb">Centre</div><div class="ins-v" style="font-size:.95rem">${currentCentre}</div><div class="ins-n">Selected centre</div></div>
+    <div class="ins"><div class="ins-lb">All-Time Total</div><div class="ins-v">${total.toLocaleString()}</div><div class="ins-n">participants</div></div>
+    <div class="ins"><div class="ins-lb">Best Year</div><div class="ins-v">${pkYr}</div><div class="ins-n">${rawData[pkYr].toLocaleString()} participants</div></div>
+    <div class="ins"><div class="ins-lb">Years on Record</div><div class="ins-v">${yrs.length}</div><div class="ins-n">${yrs[0]} → ${yrs.at(-1)}</div></div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════════
+//  ALL-CENTRES OVERVIEW (admin)
+// ════════════════════════════════════════════════════════════
+function buildOverview(){
+  // Cards per centre
+  document.getElementById('overviewGrid').innerHTML=CENTRES.map(c=>{
+    const ie=CENTRE_DATA[c].ie, bsp=CENTRE_DATA[c].bsp, sam=CENTRE_DATA[c].samyama;
+    const ieT=Object.values(ie).reduce((s,v)=>s+v,0);
+    const bspT=Object.values(bsp).reduce((s,v)=>s+v,0);
+    const samT=Object.values(sam).reduce((s,v)=>s+v,0);
+    return `<div class="ov-card">
+      <h3>${c}</h3>
+      <div class="ov-row"><span class="ov-prog">Inner Engineering</span><div class="ov-nums"><span class="ov-total">${ieT.toLocaleString()}</span><span class="ov-ytd">2026: ${ie[CY]||0}</span></div></div>
+      <div class="ov-row"><span class="ov-prog">Bhava Spandana</span><div class="ov-nums"><span class="ov-total">${bspT.toLocaleString()}</span><span class="ov-ytd">2026: ${bsp[CY]||0}</span></div></div>
+      <div class="ov-row"><span class="ov-prog">Samyama</span><div class="ov-nums"><span class="ov-total">${samT.toLocaleString()}</span><span class="ov-ytd">2026: ${sam[CY]||0}</span></div></div>
+    </div>`;
+  }).join('');
+
+  // Compare chart — IE across all centres for recent years
+  const recentYears=['2021','2022','2023','2024','2025','2026'];
+  const colors=['#1e4080','#7a1a1a','#1a6b3a','#4a2800','#2d1a5c','#1a4a6b','#4a3800'];
+  if(!compareChart){
+    compareChart=new Chart(document.getElementById('compareChart'),{
+      type:'bar',
+      data:{labels:recentYears,datasets:[]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:280},
+        plugins:{legend:{display:true,labels:{color:'#2c2c2c',font:{size:10}}},
+          tooltip:{backgroundColor:'#fff',borderColor:'#e8dfc8',borderWidth:1,titleColor:'#1e2a45',bodyColor:'#2c2c2c',padding:10}},
+        scales:{x:{grid:{display:false},ticks:{color:'#7a7060',font:{size:10}}},
+                y:{grid:{color:'#f0ebe0'},ticks:{color:'#7a7060',font:{size:9}},beginAtZero:true}}}
+    });
+  }
+  compareChart.data.labels=recentYears;
+  compareChart.data.datasets=CENTRES.map((c,i)=>({
+    label:c,
+    data:recentYears.map(y=>CENTRE_DATA[c].ie[y]||0),
+    backgroundColor:colors[i]+'99',
+    hoverBackgroundColor:colors[i],
+    borderRadius:3,borderSkipped:false
+  }));
+  compareChart.update();
+}
+
+// ════════════════════════════════════════════════════════════
+//  EXPORT
+// ════════════════════════════════════════════════════════════
+function buildCSV(centres){
+  let csv='Centre,Programme,Year,Participants\n';
+  centres.forEach(c=>{
+    Object.entries(CENTRE_DATA[c]).forEach(([prog,data])=>{
+      Object.entries(data).sort().forEach(([y,v])=>{
+        csv+=`"${c}","${PROG_CONFIG[prog].name}",${y},${v}\n`;
+      });
+    });
+  });
+  return csv;
+}
+function downloadCSV(csv, filename){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=filename; a.click();
+}
+
+// Export current centre only
+document.getElementById('expCentreBtn').onclick=()=>{
+  const centre = currentCentre==='__all__' ? null : currentCentre;
+  if(!centre){
+    // If "All Centres" view is active, export all (same as expAllBtn)
+    downloadCSV(buildCSV(CENTRES),'isha_karnataka_all_centres.csv');
+    return;
+  }
+  const safeName = centre.toLowerCase().replace(/[^a-z0-9]/g,'_');
+  downloadCSV(buildCSV([centre]),`isha_${safeName}.csv`);
+};
+
+// Export all centres (admin only)
+document.getElementById('expAllBtn').onclick=()=>{
+  downloadCSV(buildCSV(CENTRES),'isha_karnataka_all_centres.csv');
+};
+
+// ════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════
+// Populate request-form centre dropdown
+(function(){
+  const sel = document.getElementById('reqCentre');
+  CENTRES.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+})();
+
+setupGoogle(); // start Google button render immediately, don't wait for Firebase
+initAuth();    // load Firebase users + check session in parallel
+
+(function(){
+  const d=new Date(document.lastModified);
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const day=String(d.getDate()).padStart(2,'0'), mon=months[d.getMonth()], yr=d.getFullYear();
+  const hr=d.getHours(), min=String(d.getMinutes()).padStart(2,'0'), ampm=hr>=12?'PM':'AM';
+  document.getElementById('lastUpdated').textContent=`${day} ${mon} ${yr}, ${String(hr%12||12).padStart(2,'0')}:${min} ${ampm}`;
+})();
+</script>
+</div><!-- end #mainApp -->
+</body>
+</html>
