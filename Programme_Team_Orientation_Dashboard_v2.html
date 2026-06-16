@@ -1202,8 +1202,16 @@ async function resolveFirebaseRequest(fbKey, status){
 }
 async function syncRequests(){
   const remote = await fetchFirebaseRequests();
-  saveRequests(remote);
-  return remote;
+  const local  = getRequests();
+  // Merge: if local has already resolved a request, keep that status
+  // even if Firebase hasn't propagated yet (avoid reappearing requests)
+  const merged = remote.map(r => {
+    const localR = local.find(l => l.fbKey === r.fbKey || l.email === r.email);
+    if(localR && localR.status !== 'pending') return {...r, status: localR.status};
+    return r;
+  });
+  saveRequests(merged);
+  return merged;
 }
 
 // Decode Google JWT payload without verification (safe for client-side identification)
