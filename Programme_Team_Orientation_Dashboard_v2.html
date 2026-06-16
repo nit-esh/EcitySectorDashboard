@@ -1194,7 +1194,11 @@ async function pushFirebaseRequest(req){
   return await fbPush('requests', req);
 }
 async function resolveFirebaseRequest(fbKey, status){
-  return await fbSet('requests/'+fbKey+'/status', status);
+  // Fetch the full request object first, then update with new status
+  // (needed because Firebase validation requires all fields to be present)
+  const data = await fbGet('requests/'+fbKey);
+  if(!data) return false;
+  return await fbSet('requests/'+fbKey, {...data, status});
 }
 async function syncRequests(){
   const remote = await fetchFirebaseRequests();
@@ -1337,13 +1341,29 @@ async function submitAccessRequest(){
   if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ errEl.textContent='Enter a valid email address.'; return; }
   if(role==='coord' && !ctrKey){ errEl.textContent='Please select your centre.'; return; }
 
+  // Check Firebase for existing request from this email
+  errEl.textContent = 'Checking…';
+  const allReqs = await fetchFirebaseRequests();
+  const existing = allReqs.find(r => r.email === email);
+  if(existing){
+    if(existing.status === 'pending'){
+      errEl.textContent = 'You already have a pending request. Please wait for admin approval.';
+      return;
+    }
+    if(existing.status === 'rejected'){
+      errEl.textContent = 'Your previous request was not approved. Please contact the admin directly.';
+      return;
+    }
+  }
+  errEl.textContent = '';
+
   const ctrName = ctrKey ? (CTRS.find(c=>c.key===ctrKey)||{}).name||ctrKey : '';
   const req = { name, email, role, ctrKey:ctrKey||null, ctrName, msg, ts: Date.now(), status:'pending' };
 
   // Save locally as fallback
-  const existing = getRequests().filter(r=>r.email!==email);
-  existing.push(req);
-  saveRequests(existing);
+  const localReqs = getRequests().filter(r=>r.email!==email);
+  localReqs.push(req);
+  saveRequests(localReqs);
 
   // Push to Firebase — no PAT needed, anyone can POST
   const btn = document.querySelector('#req-access-overlay button[onclick="submitAccessRequest()"]');
