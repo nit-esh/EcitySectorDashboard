@@ -1138,89 +1138,72 @@ const ACCESS_SK = 'isha_access_v1';
 function getAccessList(){ try{ return JSON.parse(localStorage.getItem(ACCESS_SK)||'[]'); }catch{ return []; } }
 function saveAccessList(d){ localStorage.setItem(ACCESS_SK, JSON.stringify(d)); }
 
-// ── GITHUB GIST SYNC ──────────────────────────────────────────────────────
-// Stores access list in a GitHub Gist so all users get the same list.
-const SYNC_SK = 'isha_gist_sync_v1';
-function getSyncCfg(){ try{ return JSON.parse(localStorage.getItem(SYNC_SK)||'{}'); }catch{ return {}; } }
-function saveSyncCfg(d){ localStorage.setItem(SYNC_SK, JSON.stringify(d)); }
+// ── FIREBASE REALTIME DATABASE SYNC ───────────────────────────────────────
+// Fully cloud-synced: access list + requests work from any machine.
+// Setup: Firebase console → Realtime Database → copy the database URL.
+// Rules: set .read and .write to true (open rules — fine for small team).
+const FB_SK = 'isha_firebase_v1';
+function getFbCfg(){ try{ return JSON.parse(localStorage.getItem(FB_SK)||'{}'); }catch{ return {}; } }
+function saveFbCfg(d){ localStorage.setItem(FB_SK, JSON.stringify(d)); }
+function fbUrl(path){ const {url}=getFbCfg(); return url ? url.replace(/\/$/,'')+'/'+path+'.json' : null; }
 
-async function fetchGistAccessList(){
-  const {gistId} = getSyncCfg();
-  if(!gistId) return null;
-  try{
-    const r = await fetch(`https://api.github.com/gists/${gistId}`,{
-      headers:{'Accept':'application/vnd.github.v3+json'}
-    });
-    if(!r.ok) return null;
-    const data = await r.json();
-    const raw = data.files && data.files['access-list.json'] && data.files['access-list.json'].content;
-    if(!raw) return null;
-    return JSON.parse(raw);
-  }catch(e){ console.warn('Gist fetch failed:',e); return null; }
+async function fbGet(path){
+  const u=fbUrl(path); if(!u) return null;
+  try{ const r=await fetch(u); return r.ok ? await r.json() : null; }catch(e){ return null; }
+}
+async function fbSet(path,data){
+  const u=fbUrl(path); if(!u) return false;
+  try{ const r=await fetch(u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); return r.ok; }catch(e){ return false; }
+}
+async function fbPush(path,data){
+  const u=fbUrl(path); if(!u) return false;
+  try{ const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); return r.ok; }catch(e){ return false; }
+}
+async function fbDelete(path){
+  const u=fbUrl(path); if(!u) return false;
+  try{ await fetch(u,{method:'DELETE'}); return true; }catch(e){ return false; }
 }
 
-async function pushGistAccessList(list){
-  const {gistId, pat} = getSyncCfg();
-  if(!gistId || !pat) return {ok:false, reason:'not configured'};
-  try{
-    const r = await fetch(`https://api.github.com/gists/${gistId}`,{
-      method:'PATCH',
-      headers:{'Authorization':'token '+pat,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body: JSON.stringify({files:{'access-list.json':{content:JSON.stringify(list,null,2)}}})
-    });
-    if(!r.ok){ const e=await r.json().catch(()=>{}); return {ok:false,reason:(e&&e.message)||r.status}; }
-    return {ok:true};
-  }catch(e){ return {ok:false,reason:e.message}; }
+// Access list sync
+async function fetchFirebaseAccessList(){
+  const data = await fbGet('access-list');
+  if(!data) return null;
+  // Firebase stores arrays as objects when using push(); normalize either way
+  return Array.isArray(data) ? data : Object.values(data);
 }
-
+async function pushFirebaseAccessList(list){
+  const ok = await fbSet('access-list', list);
+  return ok ? {ok:true} : {ok:false, reason:'Firebase write failed'};
+}
 async function syncAndSaveAccessList(list){
   saveAccessList(list);
-  const {gistId, pat} = getSyncCfg();
-  if(!gistId || !pat) return {ok:false,reason:'Sync not configured — saved locally only.'};
-  const result = await pushGistAccessList(list);
-  return result;
+  const {url} = getFbCfg();
+  if(!url) return {ok:false, reason:'Firebase not configured — saved locally only.'};
+  return await pushFirebaseAccessList(list);
 }
 
-// ── ACCESS REQUESTS ───────────────────────────────────────────────────────
+// Requests sync — anyone can write (no auth needed)
 const REQUESTS_SK = 'isha_access_requests_v1';
 function getRequests(){ try{ return JSON.parse(localStorage.getItem(REQUESTS_SK)||'[]'); }catch{ return []; } }
 function saveRequests(d){ localStorage.setItem(REQUESTS_SK, JSON.stringify(d)); }
 
-async function fetchGistRequests(){
-  const {gistId} = getSyncCfg();
-  if(!gistId) return null;
-  try{
-    const r = await fetch(`https://api.github.com/gists/${gistId}`,{headers:{'Accept':'application/vnd.github.v3+json'}});
-    if(!r.ok) return null;
-    const data = await r.json();
-    const raw = data.files && data.files['access-requests.json'] && data.files['access-requests.json'].content;
-    return raw ? JSON.parse(raw) : [];
-  }catch(e){ return null; }
+async function fetchFirebaseRequests(){
+  const data = await fbGet('requests');
+  if(!data) return [];
+  // Returns object keyed by Firebase push IDs — convert to array with key stored
+  return Object.entries(data).map(([fbKey,v])=>({...v, fbKey}));
 }
-async function pushGistRequests(list){
-  const {gistId, pat} = getSyncCfg();
-  if(!gistId || !pat) return false;
-  try{
-    const r = await fetch(`https://api.github.com/gists/${gistId}`,{
-      method:'PATCH',
-      headers:{'Authorization':'token '+pat,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body: JSON.stringify({files:{'access-requests.json':{content:JSON.stringify(list,null,2)}}})
-    });
-    return r.ok;
-  }catch(e){ return false; }
+async function pushFirebaseRequest(req){
+  // POST creates a new child with a unique Firebase key — no PAT needed
+  return await fbPush('requests', req);
+}
+async function resolveFirebaseRequest(fbKey, status){
+  return await fbSet('requests/'+fbKey+'/status', status);
 }
 async function syncRequests(){
-  const remote = await fetchGistRequests();
-  if(remote && Array.isArray(remote)){
-    // Merge: keep local entries not yet in remote, plus all remote entries
-    const local = getRequests();
-    const merged = [...remote];
-    local.forEach(lr=>{ if(!merged.find(rr=>rr.email===lr.email && rr.ts===lr.ts)) merged.push(lr); });
-    saveRequests(merged);
-    await pushGistRequests(merged);
-    return merged;
-  }
-  return getRequests();
+  const remote = await fetchFirebaseRequests();
+  saveRequests(remote);
+  return remote;
 }
 
 // Decode Google JWT payload without verification (safe for client-side identification)
@@ -1361,35 +1344,112 @@ async function submitAccessRequest(){
   const ctrName = ctrKey ? (CTRS.find(c=>c.key===ctrKey)||{}).name||ctrKey : '';
   const req = { name, email, role, ctrKey:ctrKey||null, ctrName, msg, ts: Date.now(), status:'pending' };
 
-  // Save locally
+  // Save locally as fallback
   const existing = getRequests().filter(r=>r.email!==email);
   existing.push(req);
   saveRequests(existing);
 
-  // Try to push to Gist
+  // Push to Firebase — no PAT needed, anyone can POST
   const btn = document.querySelector('#req-access-overlay button[onclick="submitAccessRequest()"]');
   if(btn){ btn.textContent='Submitting…'; btn.disabled=true; }
-  await pushGistRequests(existing);
+  const pushed = await pushFirebaseRequest(req);
 
-  // Show success state
+  // Build an approval link as a fallback if Firebase not configured
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(req))));
+  const approvalLink = window.location.href.split('#')[0] + '#approve=' + encoded;
+
+  // Show success state with copy link
   const overlay = document.getElementById('req-access-overlay');
   if(overlay){
     overlay.querySelector('div').innerHTML = `
-      <div style="text-align:center;padding:20px 10px">
-        <div style="font-size:2.5rem;margin-bottom:14px">🙏</div>
-        <div style="font-size:1rem;font-weight:800;color:#F0C96B;margin-bottom:8px">Request Submitted!</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:18px">
-          Your request has been sent to the admin.<br>
-          Please wait for approval — you will be able to sign in once access is granted.
+      <div style="text-align:center;padding:16px 6px">
+        <div style="font-size:2.2rem;margin-bottom:12px">🙏</div>
+        <div style="font-size:1rem;font-weight:800;color:#F0C96B;margin-bottom:6px">${pushed ? 'Request Submitted! 🙏' : 'Request Ready!'}</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:16px">
+          ${pushed
+            ? 'Your request is now live. The admin will see it as soon as they log in — from any device.'
+            : 'Firebase sync is not set up yet. Share the link below with the admin directly.'}
         </div>
-        <div style="background:rgba(200,146,42,.12);border:1px solid rgba(200,146,42,.3);border-radius:8px;padding:10px 14px;font-size:.76rem;color:rgba(255,255,255,.5);margin-bottom:18px;text-align:left">
-          <strong style="color:rgba(240,201,107,.7)">Request details</strong><br>
+        <div style="background:rgba(200,146,42,.12);border:1px solid rgba(200,146,42,.3);border-radius:8px;padding:10px 14px;font-size:.76rem;color:rgba(255,255,255,.5);margin-bottom:14px;text-align:left">
+          <strong style="color:rgba(240,201,107,.7)">Your request</strong><br>
           ${name} · ${email}<br>
           ${role==='admin'?'🔑 Admin':'🏛️ Centre Coordinator'+(ctrName?' — '+ctrName:'')}
         </div>
-        <button onclick="document.getElementById('req-access-overlay').remove()" style="padding:9px 28px;border-radius:9px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);font-size:.85rem;cursor:pointer">Close</button>
+        <button onclick="navigator.clipboard.writeText('${approvalLink.replace(/'/g,"\\'")}').then(()=>{this.textContent='✓ Copied!';setTimeout(()=>this.textContent='📋 Copy Approval Link',2000)})"
+          style="width:100%;padding:11px;border-radius:9px;background:linear-gradient(135deg,#C8922A,#7B5A10);color:#fff;border:none;font-size:.85rem;font-weight:800;cursor:pointer;margin-bottom:10px">
+          📋 Copy Approval Link
+        </button>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-bottom:14px">Share via WhatsApp, email, or any message</div>
+        <button onclick="document.getElementById('req-access-overlay').remove()" style="padding:8px 24px;border-radius:8px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);font-size:.82rem;cursor:pointer">Close</button>
       </div>`;
   }
+}
+
+// ── URL-BASED APPROVAL ────────────────────────────────────────────────────
+// When admin opens a link with #approve=..., show an approval prompt
+function checkApprovalLink(){
+  const hash = window.location.hash;
+  if(!hash.startsWith('#approve=')) return;
+  try{
+    const req = JSON.parse(decodeURIComponent(escape(atob(hash.slice(9)))));
+    // Remove hash from URL without reload
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    showApprovalPrompt(req);
+  } catch(e){ console.warn('Invalid approval link', e); }
+}
+
+function showApprovalPrompt(req){
+  // Show after a short delay to let the page load fully
+  setTimeout(()=>{
+    const div = document.createElement('div');
+    div.id = 'approval-prompt';
+    div.style.cssText = 'position:fixed;inset:0;z-index:10002;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.65)';
+    div.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:28px 26px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.5)">
+        <div style="font-size:1rem;font-weight:800;color:#2C1810;margin-bottom:4px">✋ Access Request</div>
+        <div style="font-size:.78rem;color:#888;margin-bottom:18px">Someone is requesting access to the dashboard</div>
+        <div style="background:#FFF8E1;border:1.5px solid #FFB300;border-radius:10px;padding:14px;margin-bottom:18px">
+          <div style="font-size:.9rem;font-weight:700;color:#2C1810">${req.name}</div>
+          <div style="font-size:.78rem;color:#555;margin:2px 0">${req.email}</div>
+          <div style="font-size:.76rem;color:#7B5A10;margin-top:6px;font-weight:600">${req.role==='admin'?'🔑 Requesting Admin access':'🏛️ Centre Coordinator — '+(req.ctrName||req.ctrKey||'')}</div>
+          ${req.msg?`<div style="font-size:.72rem;color:#888;margin-top:6px;font-style:italic">"${req.msg}"</div>`:''}
+        </div>
+        <div style="font-size:.74rem;color:#C62828;background:#FFF3F3;border-radius:7px;padding:8px 12px;margin-bottom:16px">
+          ⚠ Admin login required to approve. Sign in first if you haven't.
+        </div>
+        <div style="display:flex;gap:10px">
+          <button onclick="approveFromLink(${JSON.stringify(req).replace(/"/g,'&quot;')})" style="flex:1;padding:11px;border-radius:9px;background:#2E7D32;color:#fff;border:none;font-size:.88rem;font-weight:800;cursor:pointer">✓ Approve Access</button>
+          <button onclick="document.getElementById('approval-prompt').remove()" style="padding:11px 16px;border-radius:9px;background:none;border:1.5px solid #ddd;color:#888;font-size:.88rem;cursor:pointer">Dismiss</button>
+        </div>
+      </div>`;
+    document.body.appendChild(div);
+  }, 600);
+}
+
+async function approveFromLink(req){
+  // Must be logged in as admin
+  if(!SESSION || SESSION.role !== 'admin'){
+    alert('Please sign in as admin first, then the approval prompt will reappear.');
+    document.getElementById('approval-prompt').remove();
+    // Re-show after login
+    window._pendingApproval = req;
+    return;
+  }
+  const accessList = getAccessList().filter(e=>e.email!==req.email);
+  accessList.push({ email:req.email, role:req.role, ctrKey:req.ctrKey||null });
+  const result = await syncAndSaveAccessList(accessList);
+  // Mark request resolved in Firebase if it has a key
+  if(req.fbKey) await resolveFirebaseRequest(req.fbKey, 'approved');
+  const reqs = getRequests().map(r=>r.email===req.email ? {...r, status:'approved'} : r);
+  saveRequests(reqs);
+  document.getElementById('approval-prompt').remove();
+  // Show confirmation
+  const ok = document.createElement('div');
+  ok.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2E7D32;color:#fff;padding:12px 24px;border-radius:30px;font-size:.85rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+  ok.textContent = `✓ Access granted to ${req.email}` + (result.ok ? ' — synced to GitHub' : ' — saved locally');
+  document.body.appendChild(ok);
+  setTimeout(()=>ok.remove(), 4000);
+  openAccessMgrModal();
 }
 
 function openAccessMgrFromLogin(){
@@ -1432,7 +1492,7 @@ function openAccessMgrModal(){
   const ctrs = getEffectiveCTRS();
   const mo = document.getElementById('modal-overlay');
   mo.style.display = 'flex';
-  // Fetch latest requests from Gist in background, refresh if changed
+  // Fetch latest requests from Firebase in background, refresh if changed
   refreshRequestsInBackground();
   mo.innerHTML = `<div class="modal-box" style="max-width:560px;width:100%;max-height:88vh;overflow-y:auto;padding:26px 24px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
@@ -1441,27 +1501,24 @@ function openAccessMgrModal(){
     </div>
     <div style="font-size:.78rem;color:var(--tlt);margin-bottom:16px">Grant dashboard access by email. Each user signs in with their Google account — role and centre are matched automatically.</div>
 
-    <!-- GitHub Gist Sync -->
+    <!-- Firebase Sync -->
     ${(()=>{
-      const cfg = getSyncCfg();
-      const synced = !!(cfg.gistId);
+      const fbCfg = getFbCfg();
+      const synced = !!(fbCfg.url);
       return `<details style="margin-bottom:18px" ${synced?'':'open'}>
         <summary style="font-size:.72rem;font-weight:700;color:${synced?'#2E7D32':'#C62828'};text-transform:uppercase;letter-spacing:.05em;cursor:pointer;padding:10px 14px;background:${synced?'#E8F5E9':'#FFF3F3'};border-radius:8px;list-style:none">
-          ${synced ? '🔗 GitHub Sync — Active' : '⚠ GitHub Sync — Not configured (users added here won\'t be visible to others)'}
+          ${synced ? '🔥 Firebase Sync — Active' : '⚠ Firebase Sync — Not configured (users won\'t sync across devices)'}
         </summary>
         <div style="background:var(--bg);border-radius:0 0 8px 8px;padding:14px;border:1px solid var(--brd);border-top:none">
           <div style="font-size:.74rem;color:var(--tlt);margin-bottom:10px;line-height:1.5">
-            Sync the access list to a GitHub Gist so all users get it automatically on page load.
-            <a href="https://gist.github.com" target="_blank" style="color:var(--m)">Create a Gist</a> with a file named <code>access-list.json</code> containing <code>[]</code>, then paste the Gist ID below.
+            Connect to Firebase Realtime Database so access list and requests sync across all devices automatically.
+            In Firebase Console → Realtime Database → copy your Database URL (ends in <code>.firebaseio.com</code>).
           </div>
-          <input id="sync-gist-id" type="text" placeholder="Gist ID (e.g. abc123def456)" value="${cfg.gistId||''}"
+          <input id="sync-fb-url" type="text" placeholder="https://your-project-default-rtdb.firebaseio.com" value="${fbCfg.url||''}"
             style="width:100%;padding:7px 11px;border-radius:7px;border:1.5px solid var(--brd);font-size:.82rem;background:var(--card);color:var(--text);outline:none;margin-bottom:8px;box-sizing:border-box">
-          <input id="sync-pat" type="password" placeholder="GitHub Personal Access Token (gist scope)" value="${cfg.pat||''}"
-            style="width:100%;padding:7px 11px;border-radius:7px;border:1.5px solid var(--brd);font-size:.82rem;background:var(--card);color:var(--text);outline:none;margin-bottom:8px;box-sizing:border-box">
-          <div style="font-size:.7rem;color:#888;margin-bottom:10px">PAT stored locally on this device only (never shared). Create at github.com → Settings → Developer settings → Personal access tokens → with <strong>gist</strong> scope.</div>
+          <div style="font-size:.7rem;color:#888;margin-bottom:10px">URL stored locally on this device. Set Firebase rules to allow read/write so users can submit access requests without authentication.</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <button onclick="saveSyncSetup()" style="padding:6px 16px;border-radius:7px;background:var(--m);color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer">Save &amp; Test</button>
-            ${cfg.gistId?`<button onclick="pullFromGist()" style="padding:6px 14px;border-radius:7px;background:none;border:1.5px solid var(--m);color:var(--m);font-size:.8rem;font-weight:600;cursor:pointer">↓ Pull from Gist</button>`:''}
+            <button onclick="saveFirebaseSetup()" style="padding:6px 16px;border-radius:7px;background:var(--m);color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer">Save &amp; Test</button>
             <span id="sync-test-status" style="font-size:.75rem"></span>
           </div>
         </div>
@@ -1535,25 +1592,27 @@ async function approveRequest(email){
   const reqs = getRequests();
   const req  = reqs.find(r=>r.email===email);
   if(!req) return;
-  // Add to access list
+  // Add to access list and sync
   const accessList = getAccessList().filter(e=>e.email!==email);
   accessList.push({ email:req.email, role:req.role, ctrKey:req.ctrKey||null });
-  // Mark request as approved
+  await syncAndSaveAccessList(accessList);
+  // Mark request approved in Firebase
+  if(req.fbKey) await resolveFirebaseRequest(req.fbKey, 'approved');
   const updatedReqs = reqs.map(r=>r.email===email ? {...r, status:'approved'} : r);
   saveRequests(updatedReqs);
-  await pushGistRequests(updatedReqs);
-  await syncAndSaveAccessList(accessList);
   openAccessMgrModal();
 }
 
 async function rejectRequest(email){
-  const updatedReqs = getRequests().map(r=>r.email===email ? {...r, status:'rejected'} : r);
+  const reqs = getRequests();
+  const req  = reqs.find(r=>r.email===email);
+  if(req && req.fbKey) await resolveFirebaseRequest(req.fbKey, 'rejected');
+  const updatedReqs = reqs.map(r=>r.email===email ? {...r, status:'rejected'} : r);
   saveRequests(updatedReqs);
-  await pushGistRequests(updatedReqs);
   openAccessMgrModal();
 }
 
-// Fetch pending requests from Gist in background when Access Manager opens,
+// Fetch pending requests from Firebase in background when Access Manager opens,
 // then silently refresh the modal if new requests arrived.
 function refreshRequestsInBackground(){
   syncRequests().then(merged=>{
@@ -1563,45 +1622,34 @@ function refreshRequestsInBackground(){
   }).catch(()=>{});
 }
 
-async function saveSyncSetup(){
-  const gistId = (document.getElementById('sync-gist-id').value||'').trim();
-  const pat    = (document.getElementById('sync-pat').value||'').trim();
-  const st = document.getElementById('sync-test-status');
-  if(!gistId){ st.innerHTML='<span style="color:#C62828">Enter a Gist ID.</span>'; return; }
-  saveSyncCfg({gistId, pat});
+async function saveFirebaseSetup(){
+  const url = (document.getElementById('sync-fb-url').value||'').trim().replace(/\/$/,'');
+  const st  = document.getElementById('sync-test-status');
+  if(!url){ st.innerHTML='<span style="color:#C62828">Enter your Firebase Database URL.</span>'; return; }
+  saveFbCfg({url});
   st.innerHTML='<span style="color:#888">Testing…</span>';
-  // Test fetch
-  const remote = await fetchGistAccessList();
+  // Test read
+  const remote = await fetchFirebaseAccessList();
   if(remote === null){
-    st.innerHTML='<span style="color:#FF7043">Could not read Gist. Check the ID is correct and the Gist is public (or PAT is provided).</span>';
+    st.innerHTML='<span style="color:#FF7043">Could not reach Firebase. Check the URL and make sure database rules allow read/write.</span>';
     return;
   }
-  // If Gist is empty array, push current local list up
   const local = getAccessList();
-  if(pat && remote.length === 0 && local.length > 0){
-    const pushResult = await pushGistAccessList(local);
+  if(remote.length === 0 && local.length > 0){
+    // Push current local list to Firebase
+    const pushResult = await pushFirebaseAccessList(local);
     if(pushResult.ok){
-      st.innerHTML='<span style="color:#81C784">✓ Connected! Pushed existing '+local.length+' user(s) to Gist.</span>';
+      st.innerHTML='<span style="color:#81C784">✓ Connected! Pushed '+local.length+' user(s) to Firebase.</span>';
     } else {
-      st.innerHTML='<span style="color:#FF7043">Read OK but push failed: '+pushResult.reason+'</span>';
+      st.innerHTML='<span style="color:#FF7043">Read OK but write failed. Check Firebase rules allow write.</span>';
     }
   } else if(remote.length > 0){
     saveAccessList(remote);
-    st.innerHTML='<span style="color:#81C784">✓ Connected! Loaded '+remote.length+' user(s) from Gist.</span>';
+    st.innerHTML='<span style="color:#81C784">✓ Connected! Loaded '+remote.length+' user(s) from Firebase.</span>';
     setTimeout(()=>openAccessMgrModal(), 1200);
   } else {
-    st.innerHTML='<span style="color:#81C784">✓ Connected! Gist is empty — add users above to populate it.</span>';
+    st.innerHTML='<span style="color:#81C784">✓ Connected! Database is empty — add users above to populate it.</span>';
   }
-}
-
-async function pullFromGist(){
-  const st = document.getElementById('sync-test-status');
-  st.innerHTML='<span style="color:#888">Pulling…</span>';
-  const remote = await fetchGistAccessList();
-  if(!remote){ st.innerHTML='<span style="color:#FF7043">Failed to pull from Gist.</span>'; return; }
-  saveAccessList(remote);
-  st.innerHTML='<span style="color:#81C784">✓ Pulled '+remote.length+' user(s).</span>';
-  setTimeout(()=>openAccessMgrModal(), 800);
 }
 
 function saveAccessEntry(){
@@ -1621,7 +1669,7 @@ function saveAccessEntry(){
   syncAndSaveAccessList(list).then(result=>{
     const statusEl = document.getElementById('acc-sync-status');
     if(statusEl){
-      if(result.ok) statusEl.innerHTML='<span style="color:#81C784">✓ Synced to GitHub</span>';
+      if(result.ok) statusEl.innerHTML='<span style="color:#81C784">✓ Synced to Firebase</span>';
       else statusEl.innerHTML='<span style="color:#FFB74D">⚠ Saved locally — '+result.reason+'</span>';
     }
   });
@@ -1633,7 +1681,7 @@ function revokeAccess(email){
   syncAndSaveAccessList(list).then(result=>{
     const statusEl = document.getElementById('acc-sync-status');
     if(statusEl){
-      if(result.ok) statusEl.innerHTML='<span style="color:#81C784">✓ Synced to GitHub</span>';
+      if(result.ok) statusEl.innerHTML='<span style="color:#81C784">✓ Synced to Firebase</span>';
       else statusEl.innerHTML='<span style="color:#FFB74D">⚠ Saved locally — '+result.reason+'</span>';
     }
   });
@@ -2466,9 +2514,22 @@ function applySession(){
   }
   if(sbName) sbName.textContent = SESSION.googleName || (SESSION.role==='admin' ? 'Admin' : SESSION.ctrName);
   if(sbRole) sbRole.textContent = SESSION.role==='admin' ? 'Full Access' : SESSION.ctrName;
-  // Show "Manage Access" button for admin
+  // Show "Manage Access" button for admin + check pending requests
   const mab = document.getElementById('manage-access-btn');
   if(mab) mab.style.display = SESSION.role==='admin' ? 'inline-block' : 'none';
+  if(SESSION.role==='admin'){
+    fetchFirebaseRequests().then(reqs=>{
+      const pending = reqs.filter(r=>r.status==='pending');
+      saveRequests(reqs);
+      if(pending.length > 0 && mab){
+        mab.innerHTML = `⚙️ Access <span style="background:#C62828;color:#fff;border-radius:10px;padding:1px 7px;font-size:.68rem;margin-left:4px">${pending.length}</span>`;
+        // Auto-open access manager to show requests
+        setTimeout(()=>openAccessMgrModal(), 800);
+      }
+    }).catch(()=>{});
+    // Also check for pending approval stored in URL link flow
+    if(window._pendingApproval){ showApprovalPrompt(window._pendingApproval); window._pendingApproval=null; }
+  }
   // For coordinator: lock filters
   if(SESSION.role==='coord'){
     calActiveCtr = SESSION.ctrKey;
@@ -2493,11 +2554,11 @@ function applySession(){
 }
 
 async function init(){
-  // Try to load access list from GitHub Gist (remote sync)
+  // Fetch access list from Firebase (works from any machine)
   try{
-    const remote = await fetchGistAccessList();
-    if(remote && Array.isArray(remote) && remote.length){
-      saveAccessList(remote); // update local cache
+    const remote = await fetchFirebaseAccessList();
+    if(remote && remote.length){
+      saveAccessList(remote);
     } else if(!getAccessList().length){
       saveAccessList([{ email:'niteshkumar.7659@gmail.com', role:'admin', ctrKey:null }]);
     }
@@ -2506,6 +2567,7 @@ async function init(){
       saveAccessList([{ email:'niteshkumar.7659@gmail.com', role:'admin', ctrKey:null }]);
     }
   }
+  checkApprovalLink();
   loadSession();
   populateLoginCtrDropdown();
   initGoogleSignIn();
