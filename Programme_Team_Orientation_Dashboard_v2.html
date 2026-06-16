@@ -1142,10 +1142,8 @@ function saveAccessList(d){ localStorage.setItem(ACCESS_SK, JSON.stringify(d)); 
 // Fully cloud-synced: access list + requests work from any machine.
 // Setup: Firebase console → Realtime Database → copy the database URL.
 // Rules: set .read and .write to true (open rules — fine for small team).
-const FB_SK = 'isha_firebase_v1';
-function getFbCfg(){ try{ return JSON.parse(localStorage.getItem(FB_SK)||'{}'); }catch{ return {}; } }
-function saveFbCfg(d){ localStorage.setItem(FB_SK, JSON.stringify(d)); }
-function fbUrl(path){ const {url}=getFbCfg(); return url ? url.replace(/\/$/,'')+'/'+path+'.json' : null; }
+const FB_URL = 'https://ka-program-team-dashboard-default-rtdb.firebaseio.com';
+function fbUrl(path){ return FB_URL + '/' + path + '.json'; }
 
 async function fbGet(path){
   const u=fbUrl(path); if(!u) return null;
@@ -1177,8 +1175,6 @@ async function pushFirebaseAccessList(list){
 }
 async function syncAndSaveAccessList(list){
   saveAccessList(list);
-  const {url} = getFbCfg();
-  if(!url) return {ok:false, reason:'Firebase not configured — saved locally only.'};
   return await pushFirebaseAccessList(list);
 }
 
@@ -1500,30 +1496,6 @@ function openAccessMgrModal(){
       <button onclick="closeModal();if(SESSION&&SESSION._accessMgrOnly){SESSION=null;document.getElementById('app-shell').style.display='none';document.getElementById('login-overlay').style.display='flex';}" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--tlt)">✕</button>
     </div>
     <div style="font-size:.78rem;color:var(--tlt);margin-bottom:16px">Grant dashboard access by email. Each user signs in with their Google account — role and centre are matched automatically.</div>
-
-    <!-- Firebase Sync -->
-    ${(()=>{
-      const fbCfg = getFbCfg();
-      const synced = !!(fbCfg.url);
-      return `<details style="margin-bottom:18px" ${synced?'':'open'}>
-        <summary style="font-size:.72rem;font-weight:700;color:${synced?'#2E7D32':'#C62828'};text-transform:uppercase;letter-spacing:.05em;cursor:pointer;padding:10px 14px;background:${synced?'#E8F5E9':'#FFF3F3'};border-radius:8px;list-style:none">
-          ${synced ? '🔥 Firebase Sync — Active' : '⚠ Firebase Sync — Not configured (users won\'t sync across devices)'}
-        </summary>
-        <div style="background:var(--bg);border-radius:0 0 8px 8px;padding:14px;border:1px solid var(--brd);border-top:none">
-          <div style="font-size:.74rem;color:var(--tlt);margin-bottom:10px;line-height:1.5">
-            Connect to Firebase Realtime Database so access list and requests sync across all devices automatically.
-            In Firebase Console → Realtime Database → copy your Database URL (ends in <code>.firebaseio.com</code>).
-          </div>
-          <input id="sync-fb-url" type="text" placeholder="https://your-project-default-rtdb.firebaseio.com" value="${fbCfg.url||''}"
-            style="width:100%;padding:7px 11px;border-radius:7px;border:1.5px solid var(--brd);font-size:.82rem;background:var(--card);color:var(--text);outline:none;margin-bottom:8px;box-sizing:border-box">
-          <div style="font-size:.7rem;color:#888;margin-bottom:10px">URL stored locally on this device. Set Firebase rules to allow read/write so users can submit access requests without authentication.</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <button onclick="saveFirebaseSetup()" style="padding:6px 16px;border-radius:7px;background:var(--m);color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer">Save &amp; Test</button>
-            <span id="sync-test-status" style="font-size:.75rem"></span>
-          </div>
-        </div>
-      </details>`;
-    })()}
 
     <!-- Add new -->
     <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:18px">
