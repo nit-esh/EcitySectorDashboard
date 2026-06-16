@@ -1600,6 +1600,7 @@ async function approveRequest(email){
   if(req.fbKey) await resolveFirebaseRequest(req.fbKey, 'approved');
   const updatedReqs = reqs.map(r=>r.email===email ? {...r, status:'approved'} : r);
   saveRequests(updatedReqs);
+  updateAccessBadge(updatedReqs);
   openAccessMgrModal();
 }
 
@@ -1609,7 +1610,19 @@ async function rejectRequest(email){
   if(req && req.fbKey) await resolveFirebaseRequest(req.fbKey, 'rejected');
   const updatedReqs = reqs.map(r=>r.email===email ? {...r, status:'rejected'} : r);
   saveRequests(updatedReqs);
+  updateAccessBadge(updatedReqs);
   openAccessMgrModal();
+}
+
+function updateAccessBadge(reqs){
+  const mab = document.getElementById('manage-access-btn');
+  if(!mab) return;
+  const pending = (reqs || getRequests()).filter(r=>r.status==='pending').length;
+  if(pending > 0){
+    mab.innerHTML = `⚙️ Access <span style="background:#C62828;color:#fff;border-radius:10px;padding:1px 7px;font-size:.68rem;margin-left:4px">${pending}</span>`;
+  } else {
+    mab.innerHTML = '⚙️ Access';
+  }
 }
 
 // Fetch pending requests from Firebase in background when Access Manager opens,
@@ -2521,8 +2534,8 @@ function applySession(){
     fetchFirebaseRequests().then(reqs=>{
       const pending = reqs.filter(r=>r.status==='pending');
       saveRequests(reqs);
-      if(pending.length > 0 && mab){
-        mab.innerHTML = `⚙️ Access <span style="background:#C62828;color:#fff;border-radius:10px;padding:1px 7px;font-size:.68rem;margin-left:4px">${pending.length}</span>`;
+      updateAccessBadge(reqs);
+      if(pending.length > 0){
         // Auto-open access manager to show requests
         setTimeout(()=>openAccessMgrModal(), 800);
       }
