@@ -1634,6 +1634,7 @@ let _skipNextBgRefresh = false;
 function refreshRequestsInBackground(){
   if(_skipNextBgRefresh){ _skipNextBgRefresh = false; return; }
   syncRequests().then(merged=>{
+    updateAccessBadge(merged);
     const pendingNow = merged.filter(r=>r.status==='pending').length;
     const pendingShown = document.querySelectorAll('[onclick^="approveRequest"]').length;
     if(pendingNow !== pendingShown) openAccessMgrModal();

@@ -1,0 +1,11 @@
+# Ignore everything
+*
+
+# Allow only the dashboard files
+!.gitignore
+!Programme_Team_Orientation_Dashboard_v2.html
+!Programme_Team_Orientation_Dashboard.html
+!Guru Paduka _color.png
+!IMG_3217.JPG
+!isha.jpg
+!1686731673-isha-logo-main-menu.svg
