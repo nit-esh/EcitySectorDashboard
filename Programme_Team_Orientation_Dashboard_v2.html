@@ -1183,35 +1183,28 @@ const REQUESTS_SK = 'isha_access_requests_v1';
 function getRequests(){ try{ return JSON.parse(localStorage.getItem(REQUESTS_SK)||'[]'); }catch{ return []; } }
 function saveRequests(d){ localStorage.setItem(REQUESTS_SK, JSON.stringify(d)); }
 
+// Email-keyed requests: encode email for Firebase key (replace . with _dot_)
+function emailToKey(email){ return email.replace(/\./g,'_dot_').replace(/@/g,'_at_'); }
+
 async function fetchFirebaseRequests(){
   const data = await fbGet('requests');
   if(!data) return [];
-  // Returns object keyed by Firebase push IDs — convert to array with key stored
-  return Object.entries(data).map(([fbKey,v])=>({...v, fbKey}));
+  return Object.values(data);
 }
 async function pushFirebaseRequest(req){
-  // POST creates a new child with a unique Firebase key — no PAT needed
-  return await fbPush('requests', req);
+  // Use email as key so any device can update it directly — no fbKey tracking needed
+  return await fbSet('requests/' + emailToKey(req.email), req);
 }
-async function resolveFirebaseRequest(fbKey, status){
-  // Fetch the full request object first, then update with new status
-  // (needed because Firebase validation requires all fields to be present)
-  const data = await fbGet('requests/'+fbKey);
+async function resolveFirebaseRequest(email, status){
+  const key = emailToKey(email);
+  const data = await fbGet('requests/' + key);
   if(!data) return false;
-  return await fbSet('requests/'+fbKey, {...data, status});
+  return await fbSet('requests/' + key, {...data, status});
 }
 async function syncRequests(){
   const remote = await fetchFirebaseRequests();
-  const local  = getRequests();
-  // Merge: if local has already resolved a request, keep that status
-  // even if Firebase hasn't propagated yet (avoid reappearing requests)
-  const merged = remote.map(r => {
-    const localR = local.find(l => l.fbKey === r.fbKey || l.email === r.email);
-    if(localR && localR.status !== 'pending') return {...r, status: localR.status};
-    return r;
-  });
-  saveRequests(merged);
-  return merged;
+  saveRequests(remote);
+  return remote;
 }
 
 // Decode Google JWT payload without verification (safe for client-side identification)
@@ -1262,12 +1255,31 @@ function handleGoogleCredential(response){
     _pendingGoogleEmail = email;
     _pendingGoogleName  = payload.name || '';
     const errEl = document.getElementById('login-err');
-    errEl.innerHTML = `
-      <div style="background:rgba(198,40,40,.12);border:1px solid rgba(198,40,40,.4);border-radius:10px;padding:12px 14px;margin-top:8px;text-align:left">
-        <div style="font-weight:700;font-size:.82rem;color:#FF8A80;margin-bottom:4px">⛔ Access not granted</div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:10px">${email} is not registered. Request access below.</div>
-        <button onclick="openRequestAccessForm()" style="padding:7px 16px;border-radius:8px;background:rgba(200,146,42,.85);color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer;width:100%">✋ Request Access</button>
-      </div>`;
+    // Check Firebase if this email has a pending request
+    fetchFirebaseRequests().then(reqs => {
+      const req = reqs.find(r => r.email === email);
+      if(req && req.status === 'pending'){
+        errEl.innerHTML = `
+          <div style="background:rgba(200,146,42,.12);border:1px solid rgba(200,146,42,.4);border-radius:10px;padding:12px 14px;margin-top:8px;text-align:left">
+            <div style="font-weight:700;font-size:.82rem;color:#F0C96B;margin-bottom:4px">⏳ Request Pending</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.7)">Your access request is waiting for admin approval. Please check back later.</div>
+          </div>`;
+      } else {
+        errEl.innerHTML = `
+          <div style="background:rgba(198,40,40,.12);border:1px solid rgba(198,40,40,.4);border-radius:10px;padding:12px 14px;margin-top:8px;text-align:left">
+            <div style="font-weight:700;font-size:.82rem;color:#FF8A80;margin-bottom:4px">⛔ Access not granted</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:10px">${email} is not registered. Request access below.</div>
+            <button onclick="openRequestAccessForm()" style="padding:7px 16px;border-radius:8px;background:rgba(200,146,42,.85);color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer;width:100%">✋ Request Access</button>
+          </div>`;
+      }
+    }).catch(()=>{
+      errEl.innerHTML = `
+        <div style="background:rgba(198,40,40,.12);border:1px solid rgba(198,40,40,.4);border-radius:10px;padding:12px 14px;margin-top:8px;text-align:left">
+          <div style="font-weight:700;font-size:.82rem;color:#FF8A80;margin-bottom:4px">⛔ Access not granted</div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:10px">${email} is not registered. Request access below.</div>
+          <button onclick="openRequestAccessForm()" style="padding:7px 16px;border-radius:8px;background:rgba(200,146,42,.85);color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer;width:100%">✋ Request Access</button>
+        </div>`;
+    });
     return;
   }
   const c = entry.ctrKey ? CTRS.find(x=>x.key===entry.ctrKey) : null;
@@ -1353,15 +1365,9 @@ async function submitAccessRequest(){
   errEl.textContent = 'Checking…';
   const allReqs = await fetchFirebaseRequests();
   const existing = allReqs.find(r => r.email === email);
-  if(existing){
-    if(existing.status === 'pending'){
-      errEl.textContent = 'You already have a pending request. Please wait for admin approval.';
-      return;
-    }
-    if(existing.status === 'rejected'){
-      errEl.textContent = 'Your previous request was not approved. Please contact the admin directly.';
-      return;
-    }
+  if(existing && existing.status === 'pending'){
+    errEl.textContent = 'You already have a pending request. Please wait for admin approval.';
+    return;
   }
   errEl.textContent = '';
 
@@ -1463,7 +1469,7 @@ async function approveFromLink(req){
   accessList.push({ email:req.email, role:req.role, ctrKey:req.ctrKey||null });
   const result = await syncAndSaveAccessList(accessList);
   // Mark request resolved in Firebase if it has a key
-  if(req.fbKey) await resolveFirebaseRequest(req.fbKey, 'approved');
+  await resolveFirebaseRequest(req.email, 'approved');
   const reqs = getRequests().map(r=>r.email===req.email ? {...r, status:'approved'} : r);
   saveRequests(reqs);
   document.getElementById('approval-prompt').remove();
@@ -1597,7 +1603,7 @@ async function approveRequest(email){
   accessList.push({ email:req.email, role:req.role, ctrKey:req.ctrKey||null });
   await syncAndSaveAccessList(accessList);
   // Mark request approved in Firebase
-  if(req.fbKey) await resolveFirebaseRequest(req.fbKey, 'approved');
+  await resolveFirebaseRequest(email, 'approved');
   const updatedReqs = reqs.map(r=>r.email===email ? {...r, status:'approved'} : r);
   saveRequests(updatedReqs);
   updateAccessBadge(updatedReqs);
@@ -1608,7 +1614,7 @@ async function approveRequest(email){
 async function rejectRequest(email){
   const reqs = getRequests();
   const req  = reqs.find(r=>r.email===email);
-  if(req && req.fbKey) await resolveFirebaseRequest(req.fbKey, 'rejected');
+  await resolveFirebaseRequest(email, 'rejected');
   const updatedReqs = reqs.map(r=>r.email===email ? {...r, status:'rejected'} : r);
   saveRequests(updatedReqs);
   updateAccessBadge(updatedReqs);
