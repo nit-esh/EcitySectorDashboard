@@ -1381,7 +1381,8 @@ const PROG_META = {
   'Guru Pooja':    { url:'https://isha.sadhguru.org/in/en/sadhguru/events#upcomingprograms' },
   'Nada Aradhana': { url:'https://isha.sadhguru.org/in/en/sadhguru/events#upcomingprograms' },
   'Sathsang':      { url:'https://isha.sadhguru.org/in/en/sadhguru/events#upcomingprograms' },
-  'Satsang':       { url:'https://isha.sadhguru.org/in/en/events/monthly/satsang#upcoming-program-section' },
+  'Monthly Satsang':{ url:'https://isha.sadhguru.org/in/en/events/monthly/satsang#upcoming-program-section' },
+  'Satsang':        { url:'https://isha.sadhguru.org/in/en/events/monthly/satsang#upcoming-program-section' },
   'Isha Kriya':    { url:'https://isha.sadhguru.org/in/en/yoga-meditation/free-resources/isha-kriya' },
   'Vairagya':      { url:'https://isha.sadhguru.org/in/en/yoga-meditation/yoga-program-advanced#upcomingprograms' },
   'Devi Process':  { url:'https://isha.sadhguru.org/in/en/yoga-meditation/yoga-program-advanced#upcomingprograms' },
@@ -1792,7 +1793,6 @@ function buildPubByProgram(cat){
         <div class="hatha-card-name">${p.name}</div>
         <div class="hatha-card-loc">${p.loc||p.centre}</div>
         <div class="hatha-card-date">${p.date}</div>
-        ${_regBadgeHtml(p.name, p.centre, p.fr)}
         <span class="hatha-card-btn">Register →</span>
       </div></a>`;
   };
@@ -1836,7 +1836,6 @@ function onPubSearch(q){
         <div class="hatha-card-name">${p.name}</div>
         <div class="hatha-card-loc">${p.loc||p.centre}</div>
         <div class="hatha-card-date">${p.date}</div>
-        ${_regBadgeHtml(p.name, p.centre, p.fr)}
         <span class="hatha-card-btn">Register →</span>
       </div></a>`;
   };
@@ -1943,7 +1942,6 @@ function buildPubUpcoming(centre){
         <div class="hatha-card-name">${p.name}</div>
         ${p.loc?`<div class="hatha-card-loc">${p.loc}</div>`:''}
         <div class="hatha-card-date">${p.date}</div>
-        ${_regBadgeHtml(p.name, centre, p.fr)}
         <span class="hatha-card-btn">Register →</span>
       </div></a>`;
   };
@@ -2845,8 +2843,8 @@ function buildAllUpcoming(centre){
     if(!catMap[cat]){ catMap[cat]=[]; catOrder.push(cat); }
     catMap[cat].push(p);
   }
-  // Sort: IE first, Hatha second, rest alphabetically
-  const priority = n=>{ if(n==='Inner Engineering') return 0; if(n==='Hatha Yoga') return 1; return 2; };
+  // Sort: IE first, Hatha second, Satsang third, rest alphabetically
+  const priority = n=>{ if(n==='Inner Engineering') return 0; if(n==='Hatha Yoga') return 1; if(n==='Satsang') return 2; return 3; };
   catOrder.sort((a,b)=>{ const pd=priority(a)-priority(b); return pd!==0?pd:a.localeCompare(b); });
 
   const fallback = 'https://isha.sadhguru.org/in/en/yoga-meditation#upcomingprograms';
