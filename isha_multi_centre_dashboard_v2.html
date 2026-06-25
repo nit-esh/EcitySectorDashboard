@@ -3950,7 +3950,7 @@ function buildCSV(centres){
 
   // ── Section 2: Upcoming Programmes (grouped by programme category) ──
   csv+=`\nUPCOMING PROGRAMMES (grouped by programme)\n`;
-  csv+=`Programme,Centre,Start Date,End Date,Registration Link\n`;
+  csv+=`Programme,Centre,Start Date,End Date,Confirmed Registrations,Registration Link\n`;
 
   const fmtDt = raw => {
     if(!raw) return 'TBD';
@@ -3971,7 +3971,9 @@ function buildCSV(centres){
   Object.keys(grouped).sort().forEach(progName=>{
     const rows = grouped[progName].sort((a,b)=>new Date(a.fr||0)-new Date(b.fr||0));
     rows.forEach(p=>{
-      csv+=`${q(progName)},${q(p._centre)},${q(fmtDt(p.fr))},${q(fmtDt(p.to))},${q(p.url||'')}\n`;
+      const reg = _getRegInfo(p.name, p._centre, p.fr);
+      const confirmed = reg !== null ? reg.confirmed : 0;
+      csv+=`${q(progName)},${q(p._centre)},${q(fmtDt(p.fr))},${q(fmtDt(p.to))},${q(confirmed)},${q(p.url||'')}\n`;
     });
   });
 
