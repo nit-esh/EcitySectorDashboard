@@ -519,7 +519,9 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
           <div class="user-avatar" id="userAvatar" onclick="toggleUserDropdown()">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
           </div>
-          <div class="user-avatar-lbl"><span id="lastUpdated">—</span></div>
+          <div class="user-avatar-lbl">
+            <span id="dataUpdatedLbl" style="font-size:.58rem;color:rgba(255,255,255,.5)"></span>
+          </div>
           <div class="user-dropdown" id="userDropdown">
             <div class="udrop-header">
               <div class="udrop-avatar-lg role-admin" id="udropAvatarLg"></div>
@@ -695,6 +697,11 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
     <div id="centreInsightsView" style="display:none">
       <div id="centreInsightsContent"></div>
     </div>
+
+    <!-- Registration Counts tab view -->
+    <div id="regCountsView" style="display:none">
+      <div id="regCountsContent"></div>
+    </div>
   </div>
 
   <!-- All-centres overview (admin only) -->
@@ -703,6 +710,7 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
     <div id="ovNav" style="display:none;gap:4px;margin-bottom:16px;border-bottom:2px solid var(--border);padding-bottom:0">
       <button id="ovNavOverview" class="ov-nav-btn active" onclick="showOvPage('overview')">Overview</button>
       <button id="ovNavInsights" class="ov-nav-btn" onclick="showOvPage('insights')">Karnataka Insights</button>
+      <button id="ovNavRegCounts" class="ov-nav-btn" onclick="showOvPage('regcounts')">Reg Counts</button>
     </div>
     <div id="ovOverviewPage">
     <div style="margin-bottom:14px">
@@ -722,6 +730,11 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
       <div style="height:220px;position:relative"><canvas id="compareChart"></canvas></div>
     </div>
     </div><!-- /ovOverviewPage -->
+
+    <!-- Admin Reg Counts page -->
+    <div id="ovRegCountsPage" style="display:none">
+      <div id="ovRegCountsContent"></div>
+    </div>
 
     <!-- Karnataka Insights page -->
     <div id="ovInsightsPage" style="display:none">
@@ -1071,6 +1084,10 @@ function _normProgKey(s){
   if(l.includes('trataka')) return 'trataka';
   if(l.includes('hatha yoga for children')||l.includes('hatha children')) return 'hatha children';
   if(l.includes('hatha')) return 'hatha yoga';
+  if(l.includes('satsang')||l.includes('sathsang')) return 'satsang';
+  if(l.includes('isha janani')) return 'isha janani';
+  if(l.includes('nada aradhana')) return 'nada aradhana';
+  if(l.includes('chit shakti')) return 'chit shakti';
   return l.split(/[\n,]/)[0].trim();
 }
 
@@ -1238,6 +1255,7 @@ const LIVE_REGS = {
     "surya kriya": 3
   }
 };
+const LIVE_REGS_UPDATED = "26 Jun 2026, 01:55 AM";
 /* __LIVE_REGS_END__ */
 
 // ── Static Hatha Yoga registration counts (from programme coordinator sheet) ──
@@ -1363,7 +1381,7 @@ const PROG_META = {
   'Guru Pooja':    { url:'https://isha.sadhguru.org/in/en/sadhguru/events#upcomingprograms' },
   'Nada Aradhana': { url:'https://isha.sadhguru.org/in/en/sadhguru/events#upcomingprograms' },
   'Sathsang':      { url:'https://isha.sadhguru.org/in/en/sadhguru/events#upcomingprograms' },
-  'Satsang':       { url:'https://isha.sadhguru.org/in/en/sadhguru/events#upcomingprograms' },
+  'Satsang':       { url:'https://isha.sadhguru.org/in/en/events/monthly/satsang#upcoming-program-section' },
   'Isha Kriya':    { url:'https://isha.sadhguru.org/in/en/yoga-meditation/free-resources/isha-kriya' },
   'Vairagya':      { url:'https://isha.sadhguru.org/in/en/yoga-meditation/yoga-program-advanced#upcomingprograms' },
   'Devi Process':  { url:'https://isha.sadhguru.org/in/en/yoga-meditation/yoga-program-advanced#upcomingprograms' },
@@ -2637,7 +2655,7 @@ function buildTabs(){
     bar.appendChild(btn);
   });
 
-  // All Upcoming — LAST tab
+  // All Upcoming tab
   const totalUpcoming=(ALL_UPCOMING[currentCentre]||[]).length;
   const auBtn=document.createElement('button');
   auBtn.className='tab';
@@ -2645,6 +2663,14 @@ function buildTabs(){
   auBtn.innerHTML=`All Upcoming${_upBadge(totalUpcoming)}`;
   auBtn.onclick=()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); auBtn.classList.add('active'); loadAllUpcoming(currentCentre); };
   bar.appendChild(auBtn);
+
+  // Registration Counts — LAST tab
+  const rcBtn=document.createElement('button');
+  rcBtn.className='tab';
+  rcBtn.id='tab-reg-counts';
+  rcBtn.innerHTML='Reg Counts';
+  rcBtn.onclick=()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); rcBtn.classList.add('active'); loadRegCounts(currentCentre); };
+  bar.appendChild(rcBtn);
 }
 
 function refreshTabCounts(){
@@ -2659,6 +2685,7 @@ function _hideAllProgViews(){
   document.getElementById('hathaCard').style.display='none';
   document.getElementById('allUpcomingView').style.display='none';
   document.getElementById('centreInsightsView').style.display='none';
+  document.getElementById('regCountsView').style.display='none';
 }
 
 function showProgStats(){
@@ -2690,6 +2717,100 @@ function loadAllUpcoming(centre, scrollToCat){
       if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
     }, 80);
   }
+}
+
+function loadRegCounts(centre){
+  _hideAllProgViews();
+  document.getElementById('regCountsView').style.display='';
+  buildRegCounts(centre);
+}
+
+function buildRegCounts(centre){
+  const el = document.getElementById('regCountsContent');
+  const isAll = !centre || centre === '__all__';
+  const centres = isAll ? Object.keys(ALL_UPCOMING) : [centre];
+
+  // Collect all upcoming programmes across relevant centres
+  const rows = [];
+  for(const c of centres){
+    for(const p of (ALL_UPCOMING[c]||[])){
+      const reg = _getRegInfo(p.name, c, p.fr);
+      rows.push({
+        programme: p.name,
+        centre: c,
+        startDate: p.fr||'',
+        endDate: p.to||'',
+        confirmed: reg !== null ? reg.confirmed : null,
+        url: p.url||''
+      });
+    }
+  }
+
+  // Sort by date then programme name
+  rows.sort((a,b)=> new Date(a.startDate||0) - new Date(b.startDate||0) || a.programme.localeCompare(b.programme));
+
+  if(!rows.length){
+    el.innerHTML=`<div style="padding:24px;color:var(--muted);font-size:.8rem">No upcoming programmes found.</div>`;
+    return;
+  }
+
+  const fmtDt = raw => {
+    if(!raw) return '—';
+    const d = new Date(raw.replace(' ','T'));
+    return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  };
+
+  const showCentreCol = isAll || currentRole==='admin';
+
+  // Summary total
+  const totalConfirmed = rows.reduce((s,r)=> s + (r.confirmed||0), 0);
+  const withCount = rows.filter(r=>r.confirmed!==null).length;
+
+  let html = `
+    <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:1rem;font-weight:800;color:var(--navy)">${isAll?'All Centres':centre} — Registration Counts</div>
+        <div style="font-size:.68rem;color:var(--muted);margin-top:2px">${rows.length} upcoming programmes · ${withCount} with count data${LIVE_REGS_UPDATED?` · <span style="color:#b07a10;font-weight:700">Last updated: ${LIVE_REGS_UPDATED}</span>`:''}</div>
+      </div>
+      <div style="background:#eef7ee;border:1px solid #b8ddb8;border-radius:20px;padding:5px 14px;font-size:.75rem;font-weight:800;color:#1a7a30">
+        Total confirmed: ${totalConfirmed.toLocaleString()}
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:.72rem">
+      <thead>
+        <tr style="background:#f5f2eb">
+          <th style="text-align:left;padding:8px 10px;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)">Programme</th>
+          ${showCentreCol?`<th style="text-align:left;padding:8px 10px;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)">Centre</th>`:''}
+          <th style="text-align:left;padding:8px 10px;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)">Date</th>
+          <th style="text-align:center;padding:8px 10px;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)">Confirmed</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  rows.forEach((r,i)=>{
+    const conf = r.confirmed !== null ? r.confirmed : '—';
+    const confStyle = r.confirmed === 0
+      ? 'color:#999'
+      : r.confirmed > 0
+        ? 'color:#1a7a30;font-weight:800'
+        : 'color:#bbb';
+    const badge = r.confirmed !== null
+      ? `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:.68rem;font-weight:700;${r.confirmed===0?'background:#f5f5f5;color:#999':'background:#eef7ee;color:#1a7a30'}">${r.confirmed}</span>`
+      : `<span style="color:#ccc;font-size:.68rem">—</span>`;
+    const bg = i%2===0 ? '#fff' : '#faf8f5';
+    html += `<tr style="background:${bg};border-bottom:1px solid #f0ebe0">
+      <td style="padding:8px 10px;color:var(--navy);font-weight:600;max-width:220px">
+        <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none">${r.programme}</a>
+      </td>
+      ${showCentreCol?`<td style="padding:8px 10px;color:var(--muted)">${r.centre}</td>`:''}
+      <td style="padding:8px 10px;color:var(--muted);white-space:nowrap">${fmtDt(r.startDate)}${r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''}</td>
+      <td style="padding:8px 10px;text-align:center">${badge}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  el.innerHTML = html;
 }
 
 function buildAllUpcoming(centre){
@@ -3374,17 +3495,105 @@ function loadProg(progId){
 //  OVERVIEW / INSIGHTS PAGE SWITCHER
 // ════════════════════════════════════════════════════════════
 function showOvPage(page){
-  const isInsights = page==='insights';
-  document.getElementById('ovOverviewPage').style.display  = isInsights ? 'none' : '';
-  document.getElementById('ovInsightsPage').style.display  = isInsights ? ''     : 'none';
-  document.getElementById('ovNavOverview').classList.toggle('active', !isInsights);
-  document.getElementById('ovNavInsights').classList.toggle('active',  isInsights);
-  if(isInsights) buildInsights();
+  const isInsights  = page==='insights';
+  const isRegCounts = page==='regcounts';
+  const isOverview  = !isInsights && !isRegCounts;
+  document.getElementById('ovOverviewPage').style.display   = isOverview  ? '' : 'none';
+  document.getElementById('ovInsightsPage').style.display   = isInsights  ? '' : 'none';
+  document.getElementById('ovRegCountsPage').style.display  = isRegCounts ? '' : 'none';
+  document.getElementById('ovNavOverview').classList.toggle('active',   isOverview);
+  document.getElementById('ovNavInsights').classList.toggle('active',   isInsights);
+  document.getElementById('ovNavRegCounts').classList.toggle('active',  isRegCounts);
+  if(isInsights)  buildInsights();
+  if(isRegCounts) buildAdminRegCounts();
 }
 
 // ════════════════════════════════════════════════════════════
 //  KARNATAKA INSIGHTS PAGE
 // ════════════════════════════════════════════════════════════
+function buildAdminRegCounts(){
+  const el = document.getElementById('ovRegCountsContent');
+  const fmtDt = raw => {
+    if(!raw) return '—';
+    const d = new Date((raw||'').replace(' ','T'));
+    return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  };
+
+  // Build per-centre grouped data
+  const centreData = {};
+  for(const [centre, progs] of Object.entries(ALL_UPCOMING)){
+    if(!(progs||[]).length) continue;
+    const rows = progs.map(p=>({
+      programme: p.name,
+      startDate: p.fr||'',
+      endDate:   p.to||'',
+      confirmed: (()=>{ const r=_getRegInfo(p.name,centre,p.fr); return r!==null?r.confirmed:null; })(),
+      url: p.url||''
+    })).sort((a,b)=>new Date(a.startDate||0)-new Date(b.startDate||0));
+    centreData[centre] = rows;
+  }
+
+  const allCentres = Object.keys(centreData).sort();
+  const grandTotal = allCentres.reduce((s,c)=>s+centreData[c].reduce((cs,r)=>cs+(r.confirmed||0),0),0);
+  const totalProgs = allCentres.reduce((s,c)=>s+centreData[c].length,0);
+
+  let html=`
+    <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:1.05rem;font-weight:800;color:var(--navy)">Registration Counts — All Centres</div>
+        <div style="font-size:.68rem;color:var(--muted);margin-top:2px">${allCentres.length} centres · ${totalProgs} upcoming programmes${LIVE_REGS_UPDATED?` · <span style="color:#b07a10;font-weight:700">Last updated: ${LIVE_REGS_UPDATED}</span>`:''}</div>
+      </div>
+      <div style="background:#eef7ee;border:1px solid #b8ddb8;border-radius:20px;padding:6px 16px;font-size:.78rem;font-weight:800;color:#1a7a30">
+        Grand total confirmed: ${grandTotal.toLocaleString()}
+      </div>
+    </div>
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
+    <table style="width:100%;border-collapse:collapse;font-size:.72rem;table-layout:fixed">
+      <colgroup>
+        <col style="width:38%">
+        <col style="width:30%">
+        <col style="width:20%">
+        <col style="width:12%">
+      </colgroup>
+      <thead>
+        <tr style="background:#f5f2eb;border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:9px 12px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)">Programme</th>
+          <th style="text-align:left;padding:9px 12px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)">Centre</th>
+          <th style="text-align:left;padding:9px 12px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)">Dates</th>
+          <th style="text-align:center;padding:9px 12px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)">Confirmed</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  allCentres.forEach(centre=>{
+    const rows = centreData[centre];
+    const centreTotal = rows.reduce((s,r)=>s+(r.confirmed||0),0);
+    // Centre group header row
+    html+=`<tr style="background:#1e2a45">
+      <td colspan="3" style="padding:7px 12px;color:#fff;font-size:.72rem;font-weight:800">${centre}</td>
+      <td style="padding:7px 12px;text-align:center;color:#fff;font-size:.7rem;font-weight:700;white-space:nowrap">${centreTotal} confirmed</td>
+    </tr>`;
+    rows.forEach((r,i)=>{
+      const bg = i%2===0?'#fff':'#faf8f5';
+      const badge = r.confirmed!==null
+        ? `<span style="display:inline-block;min-width:32px;text-align:center;padding:2px 9px;border-radius:12px;font-weight:800;${r.confirmed===0?'background:#f5f5f5;color:#999':'background:#eef7ee;color:#1a7a30'}">${r.confirmed}</span>`
+        : `<span style="color:#ccc">—</span>`;
+      const dateStr = r.startDate ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'') : '—';
+      html+=`<tr style="background:${bg};border-top:1px solid #f0ebe0">
+        <td style="padding:7px 12px;color:var(--navy);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none" title="${r.programme}">${r.programme}</a>
+        </td>
+        <td style="padding:7px 12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${centre}</td>
+        <td style="padding:7px 12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
+        <td style="padding:7px 12px;text-align:center">${badge}</td>
+      </tr>`;
+    });
+  });
+
+  html+=`</tbody></table></div>`;
+  el.innerHTML = html;
+}
+
 function buildInsights(){
   const el = document.getElementById('insightsContent');
   const PY = String(parseInt(CY)-1);         // 2025
@@ -4037,11 +4246,8 @@ setupGoogle(); // start Google button render immediately, don't wait for Firebas
 initAuth();    // load Firebase users + check session in parallel
 
 (function(){
-  const d=new Date(document.lastModified);
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const day=String(d.getDate()).padStart(2,'0'), mon=months[d.getMonth()], yr=d.getFullYear();
-  const hr=d.getHours(), min=String(d.getMinutes()).padStart(2,'0'), ampm=hr>=12?'PM':'AM';
-  document.getElementById('lastUpdated').textContent=`${day} ${mon} ${yr}, ${String(hr%12||12).padStart(2,'0')}:${min} ${ampm}`;
+  const lbl=document.getElementById('dataUpdatedLbl');
+  if(lbl) lbl.textContent=LIVE_REGS_UPDATED?'Updated: '+LIVE_REGS_UPDATED:'';
 })();
 // ── Scroll-to-top button ──────────────────────────────────────
 (function(){
