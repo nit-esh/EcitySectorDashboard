@@ -1907,8 +1907,8 @@ const LIVE_REGS = {
     "bhuta shuddhi|2026-07-19": 5,
     "eye care|2026-07-05": 3,
     "jala neti|2026-07-19": 2,
-    "samyama": 14,
-    "shanmukhi|2026-07-05": 1,
+    "samyama": 15,
+    "shanmukhi|2026-07-05": 2,
     "shoonya intensive|2026-08-06": 52,
     "shoonya intensive|2026-07-16": 45,
     "shoonya intensive|2026-07-23": 52,
@@ -1916,27 +1916,50 @@ const LIVE_REGS = {
     "surya kriya|2026-07-10": 0,
     "surya kriya surya shakti|2026-07-04": 17,
     "thoppukarnam|2026-07-12": 1,
-    "upa yoga": 1317,
+    "upa yoga": 1330,
     "yogasanas|2026-07-26": 2,
-    "yogasanas|2026-07-18": 18,
+    "yogasanas|2026-07-18": 20,
     "yogasanas|2026-07-17": 0
   },
+  "girinagar": {
+    "satsang": 19
+  },
   "banaswadi": {
-    "satsang": 8
+    "satsang": 9
+  },
+  "bg road": {
+    "inner engineering": 0,
+    "satsang": 15
   },
   "electronic": {
     "guru pooja": 8,
     "inner engineering": 0,
-    "satsang": 28
+    "satsang": 29
+  },
+  "begur": {
+    "satsang": 0
+  },
+  "chandapura": {
+    "satsang": 7
+  },
+  "singasandra": {
+    "satsang": 0
   },
   "hebbal": {
-    "satsang": 12
+    "satsang": 13
+  },
+  "yelahanka": {
+    "satsang": 17
   },
   "hubballi": {
     "satsang": 4
   },
+  "budigere": {
+    "satsang": 22,
+    "inner engineering": 0
+  },
   "indiranagar": {
-    "satsang": 25
+    "satsang": 27
   },
   "jayanagar": {
     "angamardana": 5,
@@ -1954,18 +1977,24 @@ const LIVE_REGS = {
   },
   "sarjapur": {
     "inner engineering": 12,
-    "satsang": 13
+    "satsang": 14
   },
   "koramangala": {
-    "satsang": 15
+    "satsang": 17
   },
   "malleswaram": {
     "angamardana": 0,
     "bhuta shuddhi": 2,
     "guru pooja": 1,
-    "inner engineering": 6,
-    "satsang": 14,
+    "inner engineering": 7,
+    "satsang": 16,
     "surya kriya": 2
+  },
+  "peenya": {
+    "satsang": 2
+  },
+  "mangalore": {
+    "satsang": 10
   },
   "marathahalli": {
     "angamardana|2026-03-17": 0,
@@ -1973,10 +2002,10 @@ const LIVE_REGS = {
     "bhuta shuddhi|2026-03-19": 2,
     "bhuta shuddhi|2026-03-30": 0,
     "inner engineering": 1,
-    "satsang": 37,
+    "satsang": 38,
     "shanmukhi|2026-03-05": 17,
     "surya kriya": 10,
-    "yogasanas": 3
+    "yogasanas": 4
   },
   "mysuru": {
     "angamardana": 0,
@@ -1985,7 +2014,16 @@ const LIVE_REGS = {
   "vijayanagar": {
     "hatha children": 0,
     "inner engineering": 3,
-    "satsang": 23
+    "satsang": 27
+  },
+  "kengeri": {
+    "satsang": 4
+  },
+  "whitefield": {
+    "satsang": 0
+  },
+  "tumkur": {
+    "satsang": 3
   },
   "chikkaballapur": {
     "satsang": 5
@@ -1998,7 +2036,7 @@ const LIVE_REGS = {
     "yogasanas": 0
   }
 };
-const LIVE_REGS_UPDATED = "02 Jul 2026, 01:38 PM";
+const LIVE_REGS_UPDATED = "02 Jul 2026, 03:59 PM";
 /* __LIVE_REGS_END__ */
 
 // ── Static Hatha Yoga registration counts (from programme coordinator sheet) ──
@@ -2124,8 +2162,8 @@ const PROG_META = {
   'Guru Pooja':    { url:'https://isha.sadhguru.org/in/en/sadhguru/events#upcomingprograms' },
   'Nada Aradhana': { url:'https://isha.sadhguru.org/in/en/sadhguru/events#upcomingprograms' },
   'Sathsang':      { url:'https://isha.sadhguru.org/in/en/sadhguru/events#upcomingprograms' },
-  'Monthly Satsang':{ url:'https://isha.sadhguru.org/in/en/events/monthly/satsang#upcoming-program-section' },
-  'Satsang':        { url:'https://isha.sadhguru.org/in/en/events/monthly/satsang#upcoming-program-section' },
+  'Monthly Satsang':{ img:'https://static.sadhguru.org/d/46272/1720293007-satsang_desk.jpg', url:'https://isha.sadhguru.org/in/en/events/monthly/satsang#upcoming-program-section' },
+  'Satsang':        { img:'https://static.sadhguru.org/d/46272/1720293007-satsang_desk.jpg', url:'https://isha.sadhguru.org/in/en/events/monthly/satsang#upcoming-program-section' },
   'Isha Kriya':    { url:'https://isha.sadhguru.org/in/en/yoga-meditation/free-resources/isha-kriya' },
   'Vairagya':      { url:'https://isha.sadhguru.org/in/en/yoga-meditation/yoga-program-advanced#upcomingprograms' },
   'Devi Process':  { url:'https://isha.sadhguru.org/in/en/yoga-meditation/yoga-program-advanced#upcomingprograms' },
@@ -2211,6 +2249,8 @@ let currentProg    = 'ie';
 let currentRole    = null;
 let overviewCentre = null;   // null = admin (all centres); set to centre name for coordinator
 let _pendingTab    = null;   // set before switchCentre() to land on a specific tab
+let currentUserName  = '';
+let currentUserEmail = '';
 let _pendingScrollUpcoming = false; // if true, scroll to upcoming section after tab loads
 let annChart = null, compareChart = null, monthChart = null, coordChart = null;
 
@@ -2436,8 +2476,10 @@ function clearSession(){ sessionStorage.removeItem('mcDash'); }
 
 function applySession(email,role,centre,name,picture){
   currentRole=role;
+  currentUserEmail = email||'';
+  currentUserName  = name || (role==='admin' ? 'Admin' : (email||'').split('@')[0]);
   document.getElementById('userPill').style.display='';
-  const displayName = name || (role==='admin' ? 'Admin' : email.split('@')[0]);
+  const displayName = currentUserName;
   const initials = displayName.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   const isAdmin = role==='admin';
 
@@ -3186,6 +3228,25 @@ async function fetchLivePrograms(){
     'mysore':          'Mysuru',             // Mysore → Mysuru
     'sadhguru sannidhi': 'Sadhguru Sannidhi', // Sadhguru Sannidhi, Bengaluru
     'sannidhi':          'Sadhguru Sannidhi',  // short form
+    // Additional centres — matched for Monthly Satsang (not main dashboard tabs)
+    'koramangala':     'Koramangala',
+    'bg road':         'BG Road',
+    'yelahanka':       'Yelahanka',
+    'girinagar':       'Girinagar',
+    'kengeri':         'Kengeri',
+    'peenya':          'Peenya',
+    'chandapura':      'Chandapura',
+    'begur':           'Begur',
+    'budigere':        'Budigere',
+    'mangalore':       'Mangalore',
+    'mangaluru':       'Mangalore',
+    'hubballi':        'Hubballi',
+    'hubli':           'Hubballi',
+    'dharwad':         'Dharwad',
+    'tumkur':          'Tumkur',
+    'tumakuru':        'Tumkur',
+    'whitefield':      'Whitefield',
+    'singasandra':     'Singasandra',
   };
   function hathaName(n){
     const l=n.toLowerCase();
@@ -3411,6 +3472,73 @@ async function fetchLivePrograms(){
     console.warn('[Dashboard] Live fetch unavailable, using static data:', e.message);
     _filterStaticByDate();
   }
+
+  // ── SATSANG fetch (separate endpoint: api.php?category=173) ─────────────
+  // The main data.php API does not return Karnataka satsang events.
+  // api.php with category=173 + near_user=true returns them directly.
+  // "5 Jul 2026" → "2026-07-05 00:00:00"
+  const _parseSatsangDate=dateStr=>{
+    const ms={jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',
+              jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
+    const m=/(\d+)\s+([A-Za-z]+)\s+(\d{4})/.exec(dateStr||'');
+    if(!m) return null;
+    const mon=ms[m[2].toLowerCase().slice(0,3)];
+    return mon ? `${m[3]}-${mon}-${m[1].padStart(2,'0')} 00:00:00` : null;
+  };
+  try {
+    // No near_user=true — fetch all global satsang events and filter by address client-side.
+    // near_user=true would rely on the proxy server's IP (not user's), giving wrong results.
+    const SAT_URL='https://api.ishafoundation.org/scheduleApi/api.php?option=com_program&v=2&format=json&task=filter&count=200&startrec=0&category=173';
+    const SAT_SOURCES=[
+      {label:'direct',       url: SAT_URL},
+      {label:'corsproxy.io', url:`https://corsproxy.io/?url=${encodeURIComponent(SAT_URL)}`},
+      {label:'allorigins',   url:`https://api.allorigins.win/raw?url=${encodeURIComponent(SAT_URL)}`},
+    ];
+    let satData=null;
+    for(const {label,url} of SAT_SOURCES){
+      try{
+        const res=await fetch(url,{cache:'no-store'});
+        if(!res.ok) continue;
+        const d=await res.json();
+        if(d&&d.results){ satData=d; console.log(`[Dashboard] Satsang API loaded via ${label} ✓`); break; }
+      }catch(e){ console.warn(`[Dashboard] Satsang via ${label} failed:`,e.message); }
+    }
+    if(satData){
+      const today=new Date(); today.setHours(0,0,0,0);
+      const allSat=satData.results.flatMap(obj=>Object.values(obj));
+      for(const s of allSat){
+        const fr=_parseSatsangDate(s.date);
+        if(fr && new Date(fr.replace(' ','T'))<today) continue; // skip past events
+        // Only include Karnataka/Bengaluru events
+        const addrL=(s.address||'').toLowerCase();
+        if(!addrL.includes('bengaluru')&&!addrL.includes('bangalore')&&!addrL.includes('karnataka')) continue;
+        // Match to PLACE_CENTRE using title + address
+        const combined=((s.title||'')+' '+addrL).toLowerCase();
+        const centreKey=Object.entries(PLACE_CENTRE).find(([k])=>combined.includes(k))?.[1];
+        if(!centreKey) continue;
+        if(!ALL_UPCOMING[centreKey]) ALL_UPCOMING[centreKey]=[];
+        // Avoid duplicate satsang entries (in case main API ever starts returning them)
+        const already=ALL_UPCOMING[centreKey].some(e=>(e.name||'').toLowerCase().includes('satsang'));
+        if(!already){
+          ALL_UPCOMING[centreKey].push({
+            name:  s.title||'Monthly Satsang',
+            date:  s.date||'',
+            loc:   s.address||'',
+            url:   s.register_url||`https://isha.sadhguru.org/in/en/program-details?id=${s.program_id}`,
+            fr:    fr,
+            to:    fr,
+            img:   '',
+            place: s.address_title||'',
+            city:  'Bengaluru',
+            state: 'Karnataka',
+            pin:   '',
+          });
+        }
+      }
+    }
+  }catch(e){ console.warn('[Dashboard] Satsang fetch failed:',e.message); }
+  // ────────────────────────────────────────────────────────────────────────
+
   _reRenderActiveUpcoming();
 }
 
@@ -3522,18 +3650,103 @@ function loadRegCounts(centre){
   buildRegCounts(centre);
 }
 
+let _regGroupBy  = 'date'; // 'date' | 'centre' | 'programme'
+let _regCountRows = [];   // last rendered rows — used by export
+
+function _exportRegCountsCSV(filename){
+  const fmtDt = raw => {
+    if(!raw) return '';
+    if(/^\d+\s+[A-Za-z]+\s+\d{4}$/.test((raw||'').trim())) return raw.trim();
+    const d = new Date((raw||'').replace(' ','T'));
+    return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  };
+  const esc = v => `"${String(v==null?'':v).replace(/"/g,'""')}"`;
+
+  // Metadata header
+  const now = new Date();
+  const exportedOn = now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})
+    + ', ' + now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+  const exportedBy = [currentUserName, currentUserEmail].filter(Boolean).join(' — ') || 'Unknown';
+  const context = _regCountRows.length
+    ? [...new Set(_regCountRows.map(r=>r.centre))].length === 1
+      ? _regCountRows[0].centre
+      : 'All Centres'
+    : '';
+
+  const lines = [
+    `"Isha Karnataka — Registration Counts Export"`,
+    `"Exported on:","${exportedOn}"`,
+    `"Exported by:","${exportedBy}"`,
+    `"Context:","${context}"`,
+    `"Data as of:","${LIVE_REGS_UPDATED||'—'}"`,
+    '',   // blank row before data
+    'Programme,Centre,Date,Confirmed',
+  ];
+
+  // Group by programme label, sorted alphabetically
+  const grouped = {};
+  for(const r of _regCountRows){
+    const k = r.progLabel||r.programme;
+    if(!grouped[k]) grouped[k]=[];
+    grouped[k].push(r);
+  }
+
+  let grandTotal = 0;
+  for(const prog of Object.keys(grouped).sort()){
+    const grp = grouped[prog];
+    for(const r of grp){
+      const date = r.startDate
+        ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')
+        : '';
+      lines.push([esc(prog), esc(r.centre), esc(date),
+                  r.confirmed!==null?r.confirmed:''].join(','));
+    }
+    const sub = grp.reduce((s,r)=>s+(r.confirmed||0),0);
+    grandTotal += sub;
+    lines.push([esc(`SUBTOTAL: ${prog}`),'','',sub].join(','));
+    lines.push('');   // blank separator
+  }
+  lines.push([esc('GRAND TOTAL'),'','',grandTotal].join(','));
+
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename || 'reg_counts.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 function buildRegCounts(centre){
   const el = document.getElementById('regCountsContent');
   const isAll = !centre || centre === '__all__';
   const centres = isAll ? Object.keys(ALL_UPCOMING) : [centre];
+  const showCentreCol = isAll || currentRole==='admin';
 
-  // Collect all upcoming programmes across relevant centres
+  // Collect rows
   const rows = [];
   for(const c of centres){
     for(const p of (ALL_UPCOMING[c]||[])){
       const reg = _getRegInfo(p.name, c, p.fr);
+      // Normalise programme name to a short category label
+      const nl = (p.name||'').toLowerCase();
+      let progLabel = p.name;
+      if(nl.includes('inner engineering')||nl.includes('isha yoga')||nl.includes('ie total')) progLabel='Inner Engineering';
+      else if(nl.includes('bhava spandana')) progLabel='Bhava Spandana';
+      else if(nl.includes('shoonya'))        progLabel='Shoonya Intensive';
+      else if(nl.includes('samyama'))        progLabel='Samyama';
+      else if(nl.includes('satsang')||nl.includes('sathsang')) progLabel='Monthly Satsang';
+      else if(nl.includes('angamardana'))    progLabel='Angamardana';
+      else if(nl.includes('surya kriya'))    progLabel='Surya Kriya';
+      else if(nl.includes('yogasanas')||nl.includes('yoga asana')) progLabel='Yogasanas';
+      else if(nl.includes('bhuta shuddhi'))  progLabel='Bhuta Shuddhi';
+      else if(nl.includes('shanmukhi'))      progLabel='Shanmukhi Mudra';
+      else if(nl.includes('eye care'))       progLabel='Eye Care';
+      else if(nl.includes('surya shakti'))   progLabel='Surya Shakti';
+      else if(nl.includes('guru pooja')||nl.includes('guru puja')) progLabel='Guru Pooja';
+      else if(nl.includes('nada aradhana'))  progLabel='Nada Aradhana';
       rows.push({
         programme: p.name,
+        progLabel,
         centre: c,
         startDate: p.fr||'',
         endDate: p.to||'',
@@ -3543,8 +3756,8 @@ function buildRegCounts(centre){
     }
   }
 
-  // Sort by date then programme name
-  rows.sort((a,b)=> new Date(a.startDate||0) - new Date(b.startDate||0) || a.programme.localeCompare(b.programme));
+  rows.sort((a,b)=> new Date(a.startDate||0)-new Date(b.startDate||0) || a.programme.localeCompare(b.programme));
+  _regCountRows = rows; // store for export
 
   if(!rows.length){
     el.innerHTML=`<div style="padding:24px;color:var(--muted);font-size:.8rem">No upcoming programmes found.</div>`;
@@ -3553,61 +3766,139 @@ function buildRegCounts(centre){
 
   const fmtDt = raw => {
     if(!raw) return '—';
+    // Handle "5 Jul 2026" (satsang format) directly
+    if(/^\d+\s+[A-Za-z]+\s+\d{4}$/.test((raw||'').trim())) return raw.trim();
     const d = new Date(raw.replace(' ','T'));
     return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
   };
 
-  const showCentreCol = isAll || currentRole==='admin';
-
-  // Summary total
-  const totalConfirmed = rows.reduce((s,r)=> s + (r.confirmed||0), 0);
+  const totalConfirmed = rows.reduce((s,r)=>s+(r.confirmed||0),0);
   const withCount = rows.filter(r=>r.confirmed!==null).length;
 
-  let html = `
+  const badge = (n,url) => {
+    if(n===null) return `<span style="color:#ccc;font-size:.68rem">—</span>`;
+    const bg = n===0?'background:#f5f5f5;color:#999':'background:#eef7ee;color:#1a7a30';
+    const inner = `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:.68rem;font-weight:700;${bg}">${n}</span>`;
+    return url ? `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none">${inner}</a>` : inner;
+  };
+
+  // ── Segmented toggle ────────────────────────────────────────────────────────
+  const seg = (val, label) => {
+    const active = _regGroupBy===val;
+    return `<button onclick="_regGroupBy='${val}';buildRegCounts('${centre||''}');"
+      style="padding:6px 14px;border:none;border-radius:6px;cursor:pointer;transition:all .18s;white-space:nowrap;
+             background:${active?'#fff':'transparent'};
+             color:${active?'var(--navy)':'#888'};
+             font-size:.72rem;font-weight:${active?'800':'600'};
+             box-shadow:${active?'0 1px 4px rgba(0,0,0,.18)':''}">${label}</button>`;
+  };
+  const togBtns = showCentreCol
+    ? [seg('date','By Date'), seg('centre','By Centre'), seg('programme','By Programme')]
+    : [seg('date','By Date'), seg('programme','By Programme')];
+  const togBtn = () => `
+    <div style="display:inline-flex;align-items:center;background:#e8e4db;border-radius:8px;padding:3px;gap:2px">
+      ${togBtns.join('')}
+    </div>`;
+
+  const thStyle = `text-align:left;padding:8px 10px;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)`;
+  const groupHdr = (label, total, icon='') => `
+    <tr><td colspan="10" style="padding:10px 10px 5px;background:#f5f2eb;font-size:.7rem;font-weight:800;color:var(--navy);border-top:2px solid var(--border)">
+      ${icon} ${label}
+      ${total>0?`<span style="margin-left:8px;background:#eef7ee;color:#1a7a30;border-radius:10px;padding:1px 8px;font-size:.65rem;font-weight:700">${total} confirmed</span>`:''}
+    </td></tr>`;
+
+  let tableRows = '';
+
+  if(_regGroupBy==='centre'){
+    // Group by centre
+    const grouped = {};
+    for(const r of rows){
+      if(!grouped[r.centre]) grouped[r.centre]=[];
+      grouped[r.centre].push(r);
+    }
+    Object.keys(grouped).sort().forEach(ctr=>{
+      const cRows = grouped[ctr];
+      const cTotal = cRows.reduce((s,r)=>s+(r.confirmed||0),0);
+      tableRows += groupHdr(ctr, cTotal, '🏛');
+      cRows.forEach((r,i)=>{
+        const bg = i%2===0?'#fff':'#faf8f5';
+        tableRows += `<tr style="background:${bg};border-bottom:1px solid #f0ebe0">
+          <td style="padding:8px 10px;color:var(--navy);font-weight:600;max-width:200px">
+            <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none">${r.progLabel}</a>
+          </td>
+          <td style="padding:8px 10px;color:var(--muted);white-space:nowrap">${fmtDt(r.startDate)}${r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''}</td>
+          <td style="padding:8px 10px;text-align:center">${badge(r.confirmed,r.url)}</td>
+        </tr>`;
+      });
+    });
+
+  } else if(_regGroupBy==='programme'){
+    // Group by programme label
+    const grouped = {};
+    for(const r of rows){
+      if(!grouped[r.progLabel]) grouped[r.progLabel]=[];
+      grouped[r.progLabel].push(r);
+    }
+    Object.keys(grouped).sort().forEach(prog=>{
+      const pRows = grouped[prog];
+      const pTotal = pRows.reduce((s,r)=>s+(r.confirmed||0),0);
+      tableRows += groupHdr(prog, pTotal, '📋');
+      pRows.forEach((r,i)=>{
+        const bg = i%2===0?'#fff':'#faf8f5';
+        const centreCell = showCentreCol ? `<td style="padding:8px 10px;color:var(--navy);font-weight:600">${r.centre}</td>` : '';
+        tableRows += `<tr style="background:${bg};border-bottom:1px solid #f0ebe0">
+          ${centreCell}
+          <td style="padding:8px 10px;color:var(--muted);white-space:nowrap">${fmtDt(r.startDate)}${r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''}</td>
+          <td style="padding:8px 10px;text-align:center">${badge(r.confirmed,r.url)}</td>
+        </tr>`;
+      });
+    });
+
+  } else {
+    // Default: flat table sorted by date
+    rows.forEach((r,i)=>{
+      const bg = i%2===0?'#fff':'#faf8f5';
+      tableRows += `<tr style="background:${bg};border-bottom:1px solid #f0ebe0">
+        <td style="padding:8px 10px;color:var(--navy);font-weight:600;max-width:220px">
+          <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none">${r.programme}</a>
+        </td>
+        ${showCentreCol?`<td style="padding:8px 10px;color:var(--muted)">${r.centre}</td>`:''}
+        <td style="padding:8px 10px;color:var(--muted);white-space:nowrap">${fmtDt(r.startDate)}${r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''}</td>
+        <td style="padding:8px 10px;text-align:center">${badge(r.confirmed,r.url)}</td>
+      </tr>`;
+    });
+  }
+
+  // Column headers vary by grouping
+  const colHdrs = _regGroupBy==='centre'
+    ? `<th style="${thStyle}">Programme</th><th style="${thStyle}">Date</th><th style="text-align:center;${thStyle}">Confirmed</th>`
+    : _regGroupBy==='programme'
+      ? `${showCentreCol?`<th style="${thStyle}">Centre</th>`:''}<th style="${thStyle}">Date</th><th style="text-align:center;${thStyle}">Confirmed</th>`
+      : `<th style="${thStyle}">Programme</th>${showCentreCol?`<th style="${thStyle}">Centre</th>`:''}<th style="${thStyle}">Date</th><th style="text-align:center;${thStyle}">Confirmed</th>`;
+
+  el.innerHTML = `
     <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <div>
         <div style="font-size:1rem;font-weight:800;color:var(--navy)">${isAll?'All Centres':centre} — Registration Counts</div>
         <div style="font-size:.68rem;color:var(--muted);margin-top:2px">${rows.length} upcoming programmes · ${withCount} with count data${LIVE_REGS_UPDATED?` · <span style="color:#b07a10;font-weight:700">Last updated: ${LIVE_REGS_UPDATED}</span>`:''}</div>
       </div>
-      <div style="background:#eef7ee;border:1px solid #b8ddb8;border-radius:20px;padding:5px 14px;font-size:.75rem;font-weight:800;color:#1a7a30">
-        Total confirmed: ${totalConfirmed.toLocaleString()}
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        ${togBtn()}
+        <div style="background:#eef7ee;border:1px solid #b8ddb8;border-radius:20px;padding:5px 14px;font-size:.75rem;font-weight:800;color:#1a7a30">
+          Total: ${totalConfirmed.toLocaleString()}
+        </div>
+        <button onclick="_exportRegCountsCSV('reg_counts_${(centre||'all').replace(/\s+/g,'_').toLowerCase()}.csv')"
+          title="Export as CSV grouped by programme"
+          style="display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border:1px solid var(--border);border-radius:20px;background:#fff;color:var(--navy);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap">
+          ↓ Export CSV
+        </button>
       </div>
     </div>
     <div style="overflow-x:auto">
     <table style="width:100%;border-collapse:collapse;font-size:.72rem">
-      <thead>
-        <tr style="background:#f5f2eb">
-          <th style="text-align:left;padding:8px 10px;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)">Programme</th>
-          ${showCentreCol?`<th style="text-align:left;padding:8px 10px;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)">Centre</th>`:''}
-          <th style="text-align:left;padding:8px 10px;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)">Date</th>
-          <th style="text-align:center;padding:8px 10px;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)">Confirmed</th>
-        </tr>
-      </thead>
-      <tbody>`;
-
-  rows.forEach((r,i)=>{
-    const conf = r.confirmed !== null ? r.confirmed : '—';
-    const confStyle = r.confirmed === 0
-      ? 'color:#999'
-      : r.confirmed > 0
-        ? 'color:#1a7a30;font-weight:800'
-        : 'color:#bbb';
-    const badge = r.confirmed !== null
-      ? `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:.68rem;font-weight:700;${r.confirmed===0?'background:#f5f5f5;color:#999':'background:#eef7ee;color:#1a7a30'}">${r.confirmed}</span>`
-      : `<span style="color:#ccc;font-size:.68rem">—</span>`;
-    const bg = i%2===0 ? '#fff' : '#faf8f5';
-    html += `<tr style="background:${bg};border-bottom:1px solid #f0ebe0">
-      <td style="padding:8px 10px;color:var(--navy);font-weight:600;max-width:220px">
-        <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none">${r.programme}</a>
-      </td>
-      ${showCentreCol?`<td style="padding:8px 10px;color:var(--muted)">${r.centre}</td>`:''}
-      <td style="padding:8px 10px;color:var(--muted);white-space:nowrap">${fmtDt(r.startDate)}${r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''}</td>
-      <td style="padding:8px 10px;text-align:center">${badge}</td>
-    </tr>`;
-  });
-
-  html += `</tbody></table></div>`;
-  el.innerHTML = html;
+      <thead><tr style="background:#f5f2eb">${colHdrs}</tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table></div>`;
 }
 
 function buildAllUpcoming(centre){
@@ -4312,83 +4603,151 @@ function buildAdminRegCounts(){
   const el = document.getElementById('ovRegCountsContent');
   const fmtDt = raw => {
     if(!raw) return '—';
+    if(/^\d+\s+[A-Za-z]+\s+\d{4}$/.test((raw||'').trim())) return raw.trim();
     const d = new Date((raw||'').replace(' ','T'));
     return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
   };
 
-  // Build per-centre grouped data
-  const centreData = {};
+  // Flatten all upcoming programmes into rows with centre label
+  const rows = [];
   for(const [centre, progs] of Object.entries(ALL_UPCOMING)){
     if(!(progs||[]).length) continue;
-    const rows = progs.map(p=>({
-      programme: p.name,
-      startDate: p.fr||'',
-      endDate:   p.to||'',
-      confirmed: (()=>{ const r=_getRegInfo(p.name,centre,p.fr); return r!==null?r.confirmed:null; })(),
-      url: p.url||''
-    })).sort((a,b)=>new Date(a.startDate||0)-new Date(b.startDate||0));
-    centreData[centre] = rows;
+    for(const p of progs){
+      const reg = _getRegInfo(p.name, centre, p.fr);
+      const nl = (p.name||'').toLowerCase();
+      let progLabel = p.name;
+      if(nl.includes('inner engineering')||nl.includes('isha yoga')||nl.includes('ie total')) progLabel='Inner Engineering';
+      else if(nl.includes('bhava spandana')) progLabel='Bhava Spandana';
+      else if(nl.includes('shoonya'))        progLabel='Shoonya Intensive';
+      else if(nl.includes('samyama'))        progLabel='Samyama';
+      else if(nl.includes('satsang')||nl.includes('sathsang')) progLabel='Monthly Satsang';
+      else if(nl.includes('angamardana'))    progLabel='Angamardana';
+      else if(nl.includes('surya kriya'))    progLabel='Surya Kriya';
+      else if(nl.includes('yogasanas')||nl.includes('yoga asana')) progLabel='Yogasanas';
+      else if(nl.includes('bhuta shuddhi'))  progLabel='Bhuta Shuddhi';
+      else if(nl.includes('shanmukhi'))      progLabel='Shanmukhi Mudra';
+      else if(nl.includes('eye care'))       progLabel='Eye Care';
+      else if(nl.includes('surya shakti'))   progLabel='Surya Shakti';
+      else if(nl.includes('guru pooja')||nl.includes('guru puja')) progLabel='Guru Pooja';
+      rows.push({ programme:p.name, progLabel, centre, startDate:p.fr||'', endDate:p.to||'',
+                  confirmed: reg!==null ? reg.confirmed : null, url:p.url||'' });
+    }
+  }
+  rows.sort((a,b)=>new Date(a.startDate||0)-new Date(b.startDate||0)||a.programme.localeCompare(b.programme));
+  _regCountRows = rows; // store for export
+
+  const grandTotal  = rows.reduce((s,r)=>s+(r.confirmed||0),0);
+  const totalProgs  = rows.length;
+  const allCentres  = [...new Set(rows.map(r=>r.centre))].sort();
+
+  const badge = (n,url) => {
+    if(n===null) return `<span style="color:#ccc">—</span>`;
+    const bg = n===0?'background:#f5f5f5;color:#999':'background:#eef7ee;color:#1a7a30';
+    const inner = `<span style="display:inline-block;min-width:32px;text-align:center;padding:2px 9px;border-radius:12px;font-weight:800;${bg}">${n}</span>`;
+    return url?`<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none">${inner}</a>`:inner;
+  };
+
+  const seg = (val,label) => {
+    const active = _regGroupBy===val;
+    return `<button onclick="_regGroupBy='${val}';buildAdminRegCounts();"
+      style="padding:6px 14px;border:none;border-radius:6px;cursor:pointer;transition:all .18s;white-space:nowrap;
+             background:${active?'#fff':'transparent'};
+             color:${active?'var(--navy)':'#888'};
+             font-size:.72rem;font-weight:${active?'800':'600'};
+             box-shadow:${active?'0 1px 4px rgba(0,0,0,.18)':''}">${label}</button>`;
+  };
+  const toggle = `
+    <div style="display:inline-flex;align-items:center;background:#e8e4db;border-radius:8px;padding:3px;gap:2px">
+      ${seg('centre','By Centre')}${seg('programme','By Programme')}${seg('date','By Date')}
+    </div>`;
+
+  const thS = `text-align:left;padding:9px 12px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)`;
+  const groupHdr = (label,total,icon='')=>`
+    <tr><td colspan="10" style="padding:8px 12px 4px;background:#f5f2eb;font-size:.7rem;font-weight:800;color:var(--navy);border-top:2px solid var(--border)">
+      ${icon} ${label}
+      ${total>0?`<span style="margin-left:8px;background:#eef7ee;color:#1a7a30;border-radius:10px;padding:1px 8px;font-size:.65rem;font-weight:700">${total} confirmed</span>`:''}
+    </td></tr>`;
+
+  let tableRows='', colHdrs='';
+
+  if(_regGroupBy==='programme'){
+    const grouped={};
+    for(const r of rows){ if(!grouped[r.progLabel]) grouped[r.progLabel]=[]; grouped[r.progLabel].push(r); }
+    colHdrs=`<th style="${thS}">Centre</th><th style="${thS}">Date</th><th style="text-align:center;${thS}">Confirmed</th>`;
+    Object.keys(grouped).sort().forEach(prog=>{
+      const pRows=grouped[prog];
+      const pTotal=pRows.reduce((s,r)=>s+(r.confirmed||0),0);
+      tableRows+=groupHdr(prog,pTotal,'📋');
+      pRows.forEach((r,i)=>{
+        const bg=i%2===0?'#fff':'#faf8f5';
+        const dateStr=r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''):'—';
+        tableRows+=`<tr style="background:${bg};border-top:1px solid #f0ebe0">
+          <td style="padding:7px 12px;color:var(--navy);font-weight:600">${r.centre}</td>
+          <td style="padding:7px 12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
+          <td style="padding:7px 12px;text-align:center">${badge(r.confirmed,r.url)}</td>
+        </tr>`;
+      });
+    });
+
+  } else if(_regGroupBy==='date'){
+    colHdrs=`<th style="${thS}">Programme</th><th style="${thS}">Centre</th><th style="${thS}">Date</th><th style="text-align:center;${thS}">Confirmed</th>`;
+    rows.forEach((r,i)=>{
+      const bg=i%2===0?'#fff':'#faf8f5';
+      const dateStr=r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''):'—';
+      tableRows+=`<tr style="background:${bg};border-top:1px solid #f0ebe0">
+        <td style="padding:7px 12px;color:var(--navy);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none" title="${r.programme}">${r.programme}</a>
+        </td>
+        <td style="padding:7px 12px;color:var(--muted)">${r.centre}</td>
+        <td style="padding:7px 12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
+        <td style="padding:7px 12px;text-align:center">${badge(r.confirmed,r.url)}</td>
+      </tr>`;
+    });
+
+  } else {
+    // Default: By Centre
+    colHdrs=`<th style="${thS}">Programme</th><th style="${thS}">Date</th><th style="text-align:center;${thS}">Confirmed</th>`;
+    allCentres.forEach(centre=>{
+      const cRows=rows.filter(r=>r.centre===centre);
+      const cTotal=cRows.reduce((s,r)=>s+(r.confirmed||0),0);
+      tableRows+=groupHdr(centre,cTotal,'🏛');
+      cRows.forEach((r,i)=>{
+        const bg=i%2===0?'#fff':'#faf8f5';
+        const dateStr=r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''):'—';
+        tableRows+=`<tr style="background:${bg};border-top:1px solid #f0ebe0">
+          <td style="padding:7px 12px;color:var(--navy);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none" title="${r.programme}">${r.progLabel}</a>
+          </td>
+          <td style="padding:7px 12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
+          <td style="padding:7px 12px;text-align:center">${badge(r.confirmed,r.url)}</td>
+        </tr>`;
+      });
+    });
   }
 
-  const allCentres = Object.keys(centreData).sort();
-  const grandTotal = allCentres.reduce((s,c)=>s+centreData[c].reduce((cs,r)=>cs+(r.confirmed||0),0),0);
-  const totalProgs = allCentres.reduce((s,c)=>s+centreData[c].length,0);
-
-  let html=`
+  el.innerHTML=`
     <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <div>
         <div style="font-size:1.05rem;font-weight:800;color:var(--navy)">Registration Counts — All Centres</div>
         <div style="font-size:.68rem;color:var(--muted);margin-top:2px">${allCentres.length} centres · ${totalProgs} upcoming programmes${LIVE_REGS_UPDATED?` · <span style="color:#b07a10;font-weight:700">Last updated: ${LIVE_REGS_UPDATED}</span>`:''}</div>
       </div>
-      <div style="background:#eef7ee;border:1px solid #b8ddb8;border-radius:20px;padding:6px 16px;font-size:.78rem;font-weight:800;color:#1a7a30">
-        Grand total confirmed: ${grandTotal.toLocaleString()}
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        ${toggle}
+        <div style="background:#eef7ee;border:1px solid #b8ddb8;border-radius:20px;padding:6px 16px;font-size:.78rem;font-weight:800;color:#1a7a30">
+          Total: ${grandTotal.toLocaleString()}
+        </div>
+        <button onclick="_exportRegCountsCSV('reg_counts_all_centres.csv')"
+          title="Export as CSV grouped by programme"
+          style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:#fff;color:var(--navy);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap">
+          ↓ Export CSV
+        </button>
       </div>
     </div>
     <div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
-    <table style="width:100%;border-collapse:collapse;font-size:.72rem;table-layout:fixed">
-      <colgroup>
-        <col style="width:38%">
-        <col style="width:30%">
-        <col style="width:20%">
-        <col style="width:12%">
-      </colgroup>
-      <thead>
-        <tr style="background:#f5f2eb;border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:9px 12px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)">Programme</th>
-          <th style="text-align:left;padding:9px 12px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)">Centre</th>
-          <th style="text-align:left;padding:9px 12px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)">Dates</th>
-          <th style="text-align:center;padding:9px 12px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)">Confirmed</th>
-        </tr>
-      </thead>
-      <tbody>`;
-
-  allCentres.forEach(centre=>{
-    const rows = centreData[centre];
-    const centreTotal = rows.reduce((s,r)=>s+(r.confirmed||0),0);
-    // Centre group header row
-    html+=`<tr style="background:#1e2a45">
-      <td colspan="3" style="padding:7px 12px;color:#fff;font-size:.72rem;font-weight:800">${centre}</td>
-      <td style="padding:7px 12px;text-align:center;color:#fff;font-size:.7rem;font-weight:700;white-space:nowrap">${centreTotal} confirmed</td>
-    </tr>`;
-    rows.forEach((r,i)=>{
-      const bg = i%2===0?'#fff':'#faf8f5';
-      const badge = r.confirmed!==null
-        ? `<span style="display:inline-block;min-width:32px;text-align:center;padding:2px 9px;border-radius:12px;font-weight:800;${r.confirmed===0?'background:#f5f5f5;color:#999':'background:#eef7ee;color:#1a7a30'}">${r.confirmed}</span>`
-        : `<span style="color:#ccc">—</span>`;
-      const dateStr = r.startDate ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'') : '—';
-      html+=`<tr style="background:${bg};border-top:1px solid #f0ebe0">
-        <td style="padding:7px 12px;color:var(--navy);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-          <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none" title="${r.programme}">${r.programme}</a>
-        </td>
-        <td style="padding:7px 12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${centre}</td>
-        <td style="padding:7px 12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
-        <td style="padding:7px 12px;text-align:center">${badge}</td>
-      </tr>`;
-    });
-  });
-
-  html+=`</tbody></table></div>`;
-  el.innerHTML = html;
+    <table style="width:100%;border-collapse:collapse;font-size:.72rem">
+      <thead><tr style="background:#f5f2eb;border-bottom:2px solid var(--border)">${colHdrs}</tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table></div>`;
 }
 
 function buildInsights(){

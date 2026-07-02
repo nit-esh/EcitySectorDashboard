@@ -2,13 +2,15 @@
 """
 update_regs.py — Reads ALL Numbers/Excel files in the Santhosha Data folder,
 extracts registration counts, and updates the dashboard HTML with:
-  1. LIVE_REGS  — upcoming batch-level counts (reg badges on programme cards)
-  2. CENTRE_DATA — annual IE/BSP/Shoonya/Samyama totals (Centre Insights page)
+  1. LIVE_REGS    — upcoming batch-level counts (reg badges on programme cards)
+  2. CENTRE_DATA  — annual IE/BSP/Shoonya/Samyama totals (Centre Insights page)
+  3. MONTHLY_DATA — month-by-month breakdown for trend charts (where available)
 
 Run this script from Terminal whenever any file in Santhosha Data is updated:
     python3 update_regs.py
 
 Requires: macOS (uses osascript to export Numbers → CSV)
+          pip install openpyxl  (for reading .xlsx directly)
 """
 
 import subprocess, csv, os, re, json, sys, tempfile, glob, datetime
@@ -45,6 +47,19 @@ CENTRE_PATTERNS = [
     (r'hubballi|hubli',                                       'hubballi'),
     (r'koramangala',                                          'koramangala'),
     (r'chikkaballapur',                                       'chikkaballapur'),
+    # Sub-centres (primarily Monthly Satsang, parsed from Pivot Event xlsx)
+    (r'girinagar',                                            'girinagar'),
+    (r'yelahanka',                                            'yelahanka'),
+    (r'chandapura',                                           'chandapura'),
+    (r'begur',                                                'begur'),
+    (r'budigere',                                             'budigere'),
+    (r'mangalore|mangaluru',                                  'mangalore'),
+    (r'kengeri',                                              'kengeri'),
+    (r'peenya',                                               'peenya'),
+    (r'bg road|bannerghatta road',                            'bg road'),
+    (r'tumkur',                                               'tumkur'),
+    (r'whitefield',                                           'whitefield'),
+    (r'singasandra',                                          'singasandra'),
 ]
 
 PROG_PATTERNS = [
@@ -81,7 +96,7 @@ PROG_PATTERNS = [
     (r'isha janani',                                                 'isha janani'),
 ]
 
-# Maps python centre key → CENTRE_DATA key in HTML
+# Maps python centre key → CENTRE_DATA / MONTHLY_DATA key in HTML
 CENTRE_KEY_MAP = {
     'electronic':   'Electronic City',
     'banaswadi':    'Banaswadi',
@@ -93,7 +108,7 @@ CENTRE_KEY_MAP = {
     'vijayanagar':  'IP - Vijayanagar',
 }
 
-# Maps normalised prog key → CENTRE_DATA sub-key
+# Maps normalised prog key → CENTRE_DATA / MONTHLY_DATA sub-key
 PROG_TO_CD_KEY = {
     'inner engineering': 'ie',
     'bhava spandana':    'bsp',
@@ -165,8 +180,8 @@ end tell
 
 # ── Detect and parse CRM "Total row" xlsx format ─────────────────────────────
 # Format: Row1=labels, Row2=years, Row3="Count" headers, Row4="Total" with annual counts
-# Used in files like "IE Data Ecity.xlsx" exported from Isha CRM
-def try_parse_crm_xlsx(xlsx_path, regs, cd_updates, source_label):
+# Row5+: detail rows — either "Month Year" (EC-style) or "Year" (other centres)
+def try_parse_crm_xlsx(xlsx_path, regs, cd_updates, monthly_updates, source_label):
     """Returns True if file matches CRM format and was parsed; False to fall back."""
     if not HAS_OPENPYXL:
         return False
@@ -201,28 +216,81 @@ def try_parse_crm_xlsx(xlsx_path, regs, cd_updates, source_label):
 
     if not html_centre or not cd_key:
         print(f"  ⚠ CRM format detected but couldn't infer centre ({parent_folder!r}) "
-              f"or programme ({fname!r}) — skipping CENTRE_DATA update")
+              f"or programme ({fname!r}) — skipping")
         return True  # still CRM format, just not updatable
 
-    matched = 0
-    for col_i, year in year_cols:
-        val = total_row[col_i]
-        if val is None:
-            continue
-        try:
-            count = int(float(str(val)))
-        except:
-            continue
-        if count <= 0:
-            continue
-        if html_centre not in cd_updates:
-            cd_updates[html_centre] = {}
-        if cd_key not in cd_updates[html_centre]:
-            cd_updates[html_centre][cd_key] = {}
-        cd_updates[html_centre][cd_key][year] = count
-        matched += 1
+    # Build col_index → year map for quick lookup
+    col_to_year = {i: yr for i, yr in year_cols}
 
-    print(f"  ✓ {source_label} [CRM format]: {matched} year entries → "
+    # ── Annual totals → CENTRE_DATA (IE only) ────────────────────────────────
+    # NOTE: CRM exports for BSP/Shoonya/Samyama contain ALL-CENTRE participant
+    # counts (not programme-specific), so we only trust IE files for annual totals.
+    matched_annual = 0
+    if cd_key == 'ie':
+        for col_i, year in year_cols:
+            val = total_row[col_i]
+            if val is None:
+                continue
+            try:
+                count = int(float(str(val)))
+            except:
+                continue
+            if count <= 0:
+                continue
+            cd_updates.setdefault(html_centre, {}).setdefault(cd_key, {})[year] = count
+            matched_annual += 1
+
+    # ── Monthly breakdown → MONTHLY_DATA (only if row labels contain month names) ──
+    # EC-style: "     January 2026", "     March 2026" etc.
+    # Other:    "     2026" — year only, no monthly data available
+    matched_monthly = 0
+    month_name_re = re.compile(
+        r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\b',
+        re.IGNORECASE
+    )
+    month_num = {
+        'january':'01','february':'02','march':'03','april':'04',
+        'may':'05','june':'06','july':'07','august':'08',
+        'september':'09','october':'10','november':'11','december':'12'
+    }
+
+    for row in rows[4:]:
+        if not row or row[0] is None:
+            continue
+        label = str(row[0]).strip()
+        mn = month_name_re.search(label)
+        if not mn:
+            continue  # year-only row — no monthly breakdown available
+        month_str = month_num[mn.group(1).lower()]
+        # Extract year from label (e.g. "January 2026" → 2026)
+        yr_m = re.search(r'\b(20\d{2})\b', label)
+        if not yr_m:
+            continue
+        year = yr_m.group(1)
+
+        # The count for this month lives in the column corresponding to that year
+        # Find the column index where years_row == year
+        count = None
+        for col_i, col_yr in year_cols:
+            if col_yr == year:
+                val = row[col_i]
+                if val is not None:
+                    try:
+                        count = int(float(str(val)))
+                    except:
+                        pass
+                break
+        if count is None or count <= 0:
+            continue
+
+        (monthly_updates
+            .setdefault(html_centre, {})
+            .setdefault(cd_key, {})
+            .setdefault(year, {})[month_str]) = count
+        matched_monthly += 1
+
+    monthly_note = f", {matched_monthly} monthly entries" if matched_monthly else ""
+    print(f"  ✓ {source_label} [CRM]: {matched_annual} annual{monthly_note} → "
           f"{html_centre} / {cd_key}")
     return True
 
@@ -253,10 +321,6 @@ def export_to_csv(file_path, tmp_csv):
 
 # ── Parse one CSV, merge into regs (LIVE_REGS) and cd_updates (CENTRE_DATA) ──
 def parse_csv(csv_path, regs, cd_updates, source_label):
-    """
-    regs       — {centre_key: {prog_key: count}}  → becomes LIVE_REGS
-    cd_updates — {html_centre: {cd_key: {year: count}}}  → updates CENTRE_DATA
-    """
     skipped = 0
     matched = 0
 
@@ -318,29 +382,81 @@ def parse_csv(csv_path, regs, cd_updates, source_label):
 CD_START = "/* __CENTRE_DATA_START__ */"
 CD_END   = "/* __CENTRE_DATA_END__ */"
 
+def _js_to_json(s):
+    """Convert JS object literal (single-quoted keys, bare keys) to valid JSON."""
+    # Quote bare JS keys (word chars before colon, not already quoted)
+    s = re.sub(r"(?<!['\"\w])(\b[a-zA-Z_]\w*)\s*:", r'"\1":', s)
+    # Replace single-quoted strings with double-quoted
+    s = re.sub(r"'([^']*)'", r'"\1"', s)
+    return s
+
 def read_centre_data(html):
     m = re.search(re.escape(CD_START) + r'(.*?)' + re.escape(CD_END), html, re.DOTALL)
     if not m:
         return None, None
     block = m.group(1).strip()
-    # Extract just the JS object literal
     obj_m = re.search(r'const CENTRE_DATA\s*=\s*(\{.*\});', block, re.DOTALL)
     if not obj_m:
         return None, None
-    # Convert JS object to JSON (keys aren't quoted in JS but they are strings)
-    # The existing data uses single-quoted keys — replace with double quotes carefully
-    js_obj = obj_m.group(1)
-    # Parse via json after minimal cleanup (keys already use double-quoted strings)
     try:
-        return json.loads(js_obj), block
+        return json.loads(obj_m.group(1)), block
     except json.JSONDecodeError:
-        return None, None
+        try:
+            return json.loads(_js_to_json(obj_m.group(1))), block
+        except json.JSONDecodeError as e:
+            print(f"  ✗ Could not parse CENTRE_DATA: {e}")
+            return None, None
 
-# ── Inject both LIVE_REGS and CENTRE_DATA into HTML ──────────────────────────
+# ── Read existing MONTHLY_DATA from HTML ─────────────────────────────────────
+MD_START = "/* __MONTHLY_DATA_START__ */"
+MD_END   = "/* __MONTHLY_DATA_END__ */"
+
+def read_monthly_data(html):
+    m = re.search(re.escape(MD_START) + r'(.*?)' + re.escape(MD_END), html, re.DOTALL)
+    if not m:
+        return None
+    block = m.group(1)
+    js = re.search(r'const MONTHLY_DATA\s*=\s*(\{.*\});', block, re.DOTALL)
+    if not js:
+        return None
+    try:
+        return json.loads(js.group(1))
+    except json.JSONDecodeError:
+        try:
+            return json.loads(_js_to_json(js.group(1)))
+        except json.JSONDecodeError as e:
+            print(f"  ✗ Could not parse MONTHLY_DATA: {e}")
+            return None
+
+# ── Build JS object string for MONTHLY_DATA (compact inner dicts) ────────────
+def monthly_data_to_js(md):
+    """Serialize MONTHLY_DATA back to compact JS object literal."""
+    lines = ['const MONTHLY_DATA = {']
+    centres = sorted(md.keys())
+    for ci, centre in enumerate(centres):
+        comma_c = ',' if ci < len(centres) - 1 else ''
+        lines.append(f"  '{centre}': {{")
+        progs = md[centre]
+        prog_keys = list(progs.keys())
+        for pi, prog in enumerate(prog_keys):
+            comma_p = ',' if pi < len(prog_keys) - 1 else ''
+            lines.append(f"    {prog}: {{")
+            years = sorted(progs[prog].keys())
+            for yi, year in enumerate(years):
+                months = progs[prog][year]
+                comma_y = ',' if yi < len(years) - 1 else ''
+                inner = ','.join(f"'{m}':{v}" for m, v in sorted(months.items()))
+                lines.append(f"      '{year}':{{{inner}}}{comma_y}")
+            lines.append(f"    }}{comma_p}")
+        lines.append(f"  }}{comma_c}")
+    lines.append('};')
+    return '\n'.join(lines)
+
+# ── Inject LIVE_REGS, CENTRE_DATA, and MONTHLY_DATA into HTML ────────────────
 LIVE_START = "/* __LIVE_REGS_START__ */"
 LIVE_END   = "/* __LIVE_REGS_END__ */"
 
-def inject_html(html, regs, centre_data, latest_mtime):
+def inject_html(html, regs, centre_data, monthly_data, latest_mtime):
     # 1. LIVE_REGS block
     dt          = datetime.datetime.fromtimestamp(latest_mtime)
     updated_str = dt.strftime('%d %b %Y, %I:%M %p')
@@ -363,7 +479,17 @@ def inject_html(html, regs, centre_data, latest_mtime):
                       cd_block, html, flags=re.DOTALL)
         print(f"  ✓ Updated CENTRE_DATA")
     else:
-        print(f"  ⚠ CENTRE_DATA markers not found — skipping centre insights update")
+        print(f"  ⚠ CENTRE_DATA markers not found — skipping")
+
+    # 3. MONTHLY_DATA block
+    if monthly_data is not None and MD_START in html:
+        md_js    = monthly_data_to_js(monthly_data)
+        md_block = f"{MD_START}\n// Monthly data — centres with month-level CRM data (others have annual totals only)\n{md_js}\n{MD_END}"
+        html = re.sub(re.escape(MD_START) + r'.*?' + re.escape(MD_END),
+                      md_block, html, flags=re.DOTALL)
+        print(f"  ✓ Updated MONTHLY_DATA")
+    else:
+        print(f"  ⚠ MONTHLY_DATA markers not found — skipping")
 
     with open(HTML, 'w', encoding='utf-8') as f:
         f.write(html)
@@ -381,15 +507,20 @@ if __name__ == '__main__':
     with open(HTML, 'r', encoding='utf-8') as f:
         html = f.read()
 
-    # Read existing CENTRE_DATA so we only patch changed years
+    # Read existing CENTRE_DATA and MONTHLY_DATA
     centre_data, _ = read_centre_data(html)
     if centre_data is None:
         print("  ⚠ Could not parse CENTRE_DATA from HTML — will skip Centre Insights update")
 
-    regs       = {}   # merged LIVE_REGS
-    cd_updates = {}   # CENTRE_DATA changes to apply
-    tmp_files  = []
-    latest_mtime = max(os.path.getmtime(f) for f in files)
+    monthly_data = read_monthly_data(html)
+    if monthly_data is None:
+        print("  ⚠ Could not parse MONTHLY_DATA from HTML — will skip monthly chart update")
+
+    regs            = {}   # merged LIVE_REGS
+    cd_updates      = {}   # CENTRE_DATA changes to apply
+    monthly_updates = {}   # MONTHLY_DATA changes to apply
+    tmp_files       = []
+    latest_mtime    = max(os.path.getmtime(f) for f in files)
 
     for xlsx in files:
         label = os.path.relpath(xlsx, SANTHOSHA_DIR)
@@ -397,10 +528,13 @@ if __name__ == '__main__':
 
         # Try CRM "Total row" format first (xlsx only — no CSV export needed)
         if ext in ('.xlsx', '.xls') and HAS_OPENPYXL:
-            if try_parse_crm_xlsx(xlsx, regs, cd_updates, label):
+            if try_parse_crm_xlsx(xlsx, regs, cd_updates, monthly_updates, label):
                 continue   # handled — skip CSV export path
 
         # Standard batch-level format (Numbers files + non-CRM xlsx)
+        if ext == '.numbers' and sys.platform != 'darwin':
+            print(f"  ⚠ Skipping {label} (.numbers requires macOS)")
+            continue
         tmp_csv = tempfile.mktemp(suffix=".csv")
         tmp_files.append(tmp_csv)
         print(f"\nExporting {label} → CSV …")
@@ -409,27 +543,45 @@ if __name__ == '__main__':
         else:
             print(f"  ⚠ Skipping {label} (export failed)")
 
-    # Apply cd_updates → patch only the years found in the Numbers files
+    # Apply cd_updates → patch CENTRE_DATA
     if centre_data and cd_updates:
         changed = []
         for html_centre, progs in cd_updates.items():
-            if html_centre not in centre_data:
-                centre_data[html_centre] = {}
+            centre_data.setdefault(html_centre, {})
             for cd_key, year_counts in progs.items():
-                if cd_key not in centre_data[html_centre]:
-                    centre_data[html_centre][cd_key] = {}
+                centre_data[html_centre].setdefault(cd_key, {})
                 for year, count in year_counts.items():
                     old = centre_data[html_centre][cd_key].get(year, 0)
                     centre_data[html_centre][cd_key][year] = count
                     if old != count:
-                        changed.append(f"  {html_centre} / {cd_key} / {year}: {old} → {count}")
+                        changed.append(f"  {html_centre}/{cd_key}/{year}: {old} → {count}")
         if changed:
             print(f"\nCENTRE_DATA changes:")
             for c in changed: print(c)
         else:
-            print(f"\nCENTRE_DATA: no changes detected")
+            print(f"\nCENTRE_DATA: no changes")
 
-    # Print LIVE_REGS summary table
+    # Apply monthly_updates → patch MONTHLY_DATA
+    if monthly_data and monthly_updates:
+        changed = []
+        for html_centre, progs in monthly_updates.items():
+            monthly_data.setdefault(html_centre, {})
+            for cd_key, year_months in progs.items():
+                monthly_data[html_centre].setdefault(cd_key, {})
+                for year, months in year_months.items():
+                    monthly_data[html_centre][cd_key].setdefault(year, {})
+                    for month, count in months.items():
+                        old = monthly_data[html_centre][cd_key][year].get(month, 0)
+                        monthly_data[html_centre][cd_key][year][month] = count
+                        if old != count:
+                            changed.append(f"  {html_centre}/{cd_key}/{year}-{month}: {old} → {count}")
+        if changed:
+            print(f"\nMONTHLY_DATA changes:")
+            for c in changed: print(c)
+        else:
+            print(f"\nMONTHLY_DATA: no changes")
+
+    # Print LIVE_REGS summary
     total = sum(sum(p.values()) for p in regs.values())
     print(f"\n{'─'*62}")
     print(f"  {'CENTRE':<22}  {'PROGRAMME':<28}  {'COUNT':>5}")
@@ -446,7 +598,13 @@ if __name__ == '__main__':
     print(f"  {'TOTAL':<52}  {total:>5}")
 
     print(f"\nInjecting into dashboard …")
-    inject_html(html, regs, centre_data if cd_updates else None, latest_mtime)
+    inject_html(
+        html,
+        regs,
+        centre_data if cd_updates else None,
+        monthly_data if monthly_updates else None,
+        latest_mtime
+    )
 
     # Cleanup
     for t in tmp_files:
