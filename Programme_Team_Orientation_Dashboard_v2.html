@@ -271,6 +271,32 @@ tr:hover td{background:#faf6ef;}
 .cal-guide-bar{background:linear-gradient(135deg,#FFF8E7,#FEF3CC);border:1.5px solid var(--gold);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:.78rem;color:var(--tlt);line-height:1.6;}
 .cal-guide-bar strong{color:var(--m);}
 
+/* View toggle */
+.cal-view-toggle{display:flex;gap:0;border-radius:20px;overflow:hidden;border:1.5px solid var(--m);}
+.cal-view-btn{padding:6px 16px;font-size:.78rem;font-weight:700;cursor:pointer;background:transparent;color:var(--m);border:none;transition:background .15s,color .15s;}
+.cal-view-btn.active{background:var(--m);color:#fff;}
+.cal-view-btn:hover:not(.active){background:rgba(123,26,26,.08);}
+
+/* Month nav */
+.cal-month-nav{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.cal-month-nav button{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--m);background:transparent;color:var(--m);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;transition:background .15s;}
+.cal-month-nav button:hover{background:var(--m);color:#fff;}
+.cal-month-nav .cal-month-label{font-size:1.05rem;font-weight:800;color:var(--m);min-width:130px;text-align:center;}
+
+/* Month view event cards */
+.cal-mv-section{margin-bottom:20px;}
+.cal-mv-ctr-head{padding:8px 14px;border-radius:8px;font-weight:800;font-size:.88rem;color:#fff;margin-bottom:10px;}
+.cal-mv-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;}
+.cal-mv-card{background:var(--card);border-radius:10px;box-shadow:var(--sh);padding:12px 14px;border-left:4px solid #ccc;cursor:pointer;transition:transform .12s,box-shadow .12s;}
+.cal-mv-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.12);}
+.cal-mv-card.confirmed{border-left-color:#66BB6A;}
+.cal-mv-card.planned{border-left-color:#FFB74D;}
+.cal-mv-card.done{border-left-color:#BDBDBD;opacity:.7;}
+.cal-mv-card-prog{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--tlt);margin-bottom:3px;}
+.cal-mv-card-label{font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:4px;}
+.cal-mv-card-meta{font-size:.72rem;color:var(--tlt);line-height:1.6;}
+.cal-mv-empty{color:var(--tlt);font-size:.82rem;font-style:italic;padding:18px 0;}
+
 .cal-wrap{background:var(--card);border-radius:12px;box-shadow:var(--sh);overflow-x:auto;margin-bottom:20px;}
 .cal-grid{min-width:900px;}
 .cal-head-row{display:grid;grid-template-columns:160px repeat(12,1fr);background:var(--m);}
@@ -452,6 +478,8 @@ tr:hover td{background:#faf6ef;}
 .ctr-card-poc{font-size:.75rem;color:var(--tlt);margin-bottom:3px;font-weight:500;}
 .ctr-card-venue{font-size:.71rem;color:#aaa;font-weight:400;}
 .ctr-card-tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.65rem;font-weight:600;color:#fff;margin-top:6px;letter-spacing:.02em;}
+.prog-count-badge{display:inline-block;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;}
+.prog-count-badge:hover{transform:translateY(-2px) scale(1.06);box-shadow:0 3px 10px rgba(0,0,0,.15);filter:brightness(1.05);}
 .ctr-detail-section{margin-bottom:14px;}
 .ctr-detail-label{font-size:.72rem;font-weight:700;color:var(--tlt);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
 .ctr-detail-value{font-size:.84rem;color:var(--text);}
@@ -708,7 +736,7 @@ tr:hover td{background:#faf6ef;}
     <div class="tab" onclick="showPanel('team');renderTeamTable()">👥 Team View</div>
     <div class="tab" onclick="showPanel('voled')">📚 Vol. Education</div>
     <div class="tsep">|</div>
-    <div class="tab" onclick="showPanel('calendar');renderCalendar()">📅 Calendar</div>
+    <div class="tab" onclick="showPanel('calendar');syncCalendarFromFirebase().then(r=>{if(r)renderCalendar();else renderCalendar();}).catch(()=>renderCalendar())">📅 Calendar</div>
     <div class="tab" onclick="showPanel('resources');renderResources()">📁 Resources</div>
     <div class="tab" onclick="showPanel('templates');renderTemplates()">📱 Templates</div>
     <div class="tab" onclick="showPanel('materials');renderMaterials()">📦 Materials</div>
@@ -721,21 +749,24 @@ tr:hover td{background:#faf6ef;}
 <div class="panel active" id="panel-overview">
   <div class="sector-hero" style="background:linear-gradient(135deg,#7B1A1A,#9C2626,#B71C1C)">
     <div class="sh-lbl">Programme Dashboard</div>
-    <div class="sh-title">🗺️ Karnataka Region</div>
-    <div class="sh-sub" id="overview-sub">34 Centres · 2 Regions · 5 Programme Types</div>
+    <div class="sh-title">Karnataka Region</div>
+    <div class="sh-sub" id="overview-sub">36 Centres · 3 Regions · 5 Programme Types</div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:18px">
     <div class="card" style="cursor:pointer;text-align:center" onclick="showPanel('centers');filterRegion('blr')">
-      <div style="font-size:2rem">🏙️</div>
       <div style="font-weight:800;font-size:1rem;color:#7B1A1A;margin:4px 0">Bangalore</div>
-      <div style="font-size:2.2rem;font-weight:900;color:#283593" id="overview-blr-count">18</div>
+      <div style="font-size:2.2rem;font-weight:900;color:#283593" id="overview-blr-count">19</div>
       <div style="font-size:.76rem;color:#888">Centres — click to explore</div>
     </div>
     <div class="card" style="cursor:pointer;text-align:center" onclick="showPanel('centers');filterRegion('ka')">
-      <div style="font-size:2rem">🗺️</div>
       <div style="font-weight:800;font-size:1rem;color:#7B1A1A;margin:4px 0">Outside Bangalore</div>
       <div style="font-size:2.2rem;font-weight:900;color:#4A148C" id="overview-ka-count">16</div>
       <div style="font-size:.76rem;color:#888">Centres — click to explore</div>
+    </div>
+    <div class="card" style="cursor:pointer;text-align:center" onclick="showPanel('centers');filterRegion('ssb')">
+      <div style="font-weight:800;font-size:1rem;color:#8D3C00;margin:4px 0">Sadhguru Sannidhi</div>
+      <div style="font-size:2.2rem;font-weight:900;color:#8D3C00" id="overview-ssb-count">1</div>
+      <div style="font-size:.76rem;color:#888">Ashram — click to explore</div>
     </div>
   </div>
   <div id="ka-all-centers-preview" style="margin-top:18px"></div>
@@ -744,9 +775,10 @@ tr:hover td{background:#faf6ef;}
 <!-- ══════════════ CENTRES BROWSER ══════════════ -->
 <div class="panel" id="panel-centers">
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-    <div class="reg-tab active" id="reg-tab-all" onclick="filterRegion('all',this)">🌐 Karnataka (34)</div>
-    <div class="reg-tab" id="reg-tab-blr" onclick="filterRegion('blr',this)">🏙️ Bangalore (18)</div>
-    <div class="reg-tab" id="reg-tab-ka" onclick="filterRegion('ka',this)">🗺️ Outside Bangalore (16)</div>
+    <div class="reg-tab active" id="reg-tab-all" onclick="filterRegion('all',this)">All Centres</div>
+    <div class="reg-tab" id="reg-tab-blr" onclick="filterRegion('blr',this)">Bangalore</div>
+    <div class="reg-tab" id="reg-tab-ka" onclick="filterRegion('ka',this)">Outside Bangalore</div>
+    <div class="reg-tab" id="reg-tab-ssb" onclick="filterRegion('ssb',this)">Sadhguru Sannidhi</div>
     <input type="text" id="ctr-search" placeholder="Search centre..." oninput="renderCentersGrid()" style="margin-left:auto;padding:6px 12px;border-radius:16px;border:1.5px solid var(--brd);font-size:.8rem;background:var(--card);color:var(--text);outline:none;width:180px">
     <button id="add-ctr-btn" onclick="openAddCtrModal()" style="display:none;padding:6px 14px;border-radius:16px;background:var(--m);color:#fff;border:none;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap">+ Add Centre</button>
   </div>
@@ -800,45 +832,68 @@ tr:hover td{background:#faf6ef;}
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <label style="font-size:.8rem;color:var(--tlt);font-weight:700">Centre:</label>
         <select id="cal-ctr-select" onchange="switchCalCtr(this.value)" style="padding:6px 12px;border-radius:16px;border:1.5px solid var(--brd);background:var(--card);color:var(--text);font-size:.8rem;outline:none;cursor:pointer">
-          <option value="all">🌐 Karnataka (All)</option>
-          <option value="b_g_road">B G Road</option>
-          <option value="banaswadi">Banaswadi</option>
-          <option value="budigere_cross">Budigere Cross</option>
-          <option value="e_city">Electronic City</option>
-          <option value="chandapura">Chandapura</option>
-          <option value="singasandra">Singasandra</option>
-          <option value="girinagar">Girinagar</option>
-          <option value="hebbal">Hebbal</option>
-          <option value="indiranagar">Indiranagar</option>
-          <option value="jayanagar">Jayanagar</option>
-          <option value="jakkur">Jakkur</option>
-          <option value="kanakapura_road">Kanakapura Road</option>
-          <option value="koramangala">Koramangala</option>
-          <option value="malleshwaram">Malleshwaram</option>
-          <option value="marathahalli">Marathahalli</option>
-          <option value="vijayanagar">Vijayanagar</option>
-          <option value="whitefield">Whitefield</option>
-          <option value="yelahanka">Yelahanka</option>
-          <option value="belagavi">Belagavi</option>
-          <option value="chikkaballapura">Chikkaballapura</option>
-          <option value="chikkamagalur">Chikkamagalur</option>
-          <option value="hassan">Hassan</option>
-          <option value="hubballi">Hubballi</option>
-          <option value="kalaburagi">Kalaburagi</option>
-          <option value="kolar">Kolar</option>
-          <option value="mandya">Mandya</option>
-          <option value="mangalore">Mangalore</option>
-          <option value="mysuru">Mysuru</option>
-          <option value="shivamogga">Shivamogga</option>
-          <option value="tiptur">Tiptur</option>
-          <option value="tumkur">Tumkur</option>
-          <option value="udupi">Udupi</option>
-          <option value="vijayapura">Vijayapura</option>
-          <option value="bengaluru_rural">Bengaluru Rural</option>
+          <option value="all">All Centres</option>
+          <optgroup label="Sadhguru Sannidhi">
+            <option value="sadhguru_sannidhi">Sadhguru Sannidhi (Ashram)</option>
+          </optgroup>
+          <optgroup label="Bangalore">
+            <option value="b_g_road">B G Road</option>
+            <option value="banaswadi">Banaswadi</option>
+            <option value="budigere_cross">Budigere Cross</option>
+            <option value="e_city">Electronic City</option>
+            <option value="chandapura">Chandapura</option>
+            <option value="singasandra">Singasandra</option>
+            <option value="girinagar">Girinagar</option>
+            <option value="hebbal">Hebbal</option>
+            <option value="hsr_layout">HSR Layout</option>
+            <option value="indiranagar">Indiranagar</option>
+            <option value="jayanagar">Jayanagar</option>
+            <option value="jakkur">Jakkur</option>
+            <option value="kanakapura_road">Kanakapura Road</option>
+            <option value="koramangala">Koramangala</option>
+            <option value="malleshwaram">Malleswaram</option>
+            <option value="marathahalli">Marathahalli</option>
+            <option value="vijayanagar">Vijayanagar</option>
+            <option value="whitefield">Whitefield</option>
+            <option value="yelahanka">Yelahanka</option>
+          </optgroup>
+          <optgroup label="Outside Bangalore">
+            <option value="belagavi">Belagavi</option>
+            <option value="chikkaballapura">Chikkaballapura</option>
+            <option value="chikkamagalur">Chikkamagalur</option>
+            <option value="hassan">Hassan</option>
+            <option value="hubballi">Hubballi</option>
+            <option value="kalaburagi">Kalaburagi</option>
+            <option value="kolar">Kolar</option>
+            <option value="mandya">Mandya</option>
+            <option value="mangalore">Mangalore</option>
+            <option value="mysuru">Mysuru</option>
+            <option value="shivamogga">Shivamogga</option>
+            <option value="tiptur">Tiptur</option>
+            <option value="tumkur">Tumkur</option>
+            <option value="udupi">Udupi</option>
+            <option value="vijayapura">Vijayapura</option>
+            <option value="bengaluru_rural">Bengaluru Rural</option>
+          </optgroup>
         </select>
       </div>
     </div>
-    <span class="cal-year-lbl">2026</span>
+    <select id="cal-year-select" onchange="switchCalYear(this.value)" style="padding:6px 14px;border-radius:16px;border:1.5px solid var(--m);background:var(--m);color:#fff;font-size:.85rem;font-weight:700;outline:none;cursor:pointer;">
+      <option value="2026">2026</option>
+      <option value="2027">2027</option>
+      <option value="2028">2028</option>
+      <option value="2029">2029</option>
+    </select>
+    <div class="cal-view-toggle" style="margin-left:auto">
+      <button class="cal-view-btn active" id="cal-view-year" onclick="switchCalView('year')">Year</button>
+      <button class="cal-view-btn" id="cal-view-month" onclick="switchCalView('month')">Month</button>
+    </div>
+  </div>
+  <!-- Month navigation (shown only in month view) -->
+  <div class="cal-month-nav" id="cal-month-nav" style="display:none">
+    <button onclick="stepCalMonth(-1)">&#8249;</button>
+    <div class="cal-month-label" id="cal-month-label">January 2026</div>
+    <button onclick="stepCalMonth(1)">&#8250;</button>
   </div>
   <div class="cal-legend">
     <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#FFF3E0;border:1px solid #FFB74D"></span> Planned</span>
@@ -861,6 +916,7 @@ tr:hover td{background:#faf6ef;}
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px">
       <label style="font-size:.8rem;color:var(--tlt);font-weight:700">Centre:</label>
       <select id="mat-ctr-select" onchange="setMatCtr(this.value)" style="padding:6px 12px;border-radius:16px;border:1.5px solid var(--brd);background:var(--card);color:var(--text);font-size:.8rem;outline:none;cursor:pointer">
+        <option value="sadhguru_sannidhi">Sadhguru Sannidhi (Ashram)</option>
         <option value="b_g_road">B G Road</option>
         <option value="banaswadi">Banaswadi</option>
         <option value="budigere_cross">Budigere Cross</option>
@@ -869,12 +925,13 @@ tr:hover td{background:#faf6ef;}
           <option value="singasandra">Singasandra</option>
         <option value="girinagar">Girinagar</option>
         <option value="hebbal">Hebbal</option>
+        <option value="hsr_layout">HSR Layout</option>
         <option value="indiranagar">Indiranagar</option>
         <option value="jayanagar">Jayanagar</option>
         <option value="jakkur">Jakkur</option>
         <option value="kanakapura_road">Kanakapura Road</option>
         <option value="koramangala">Koramangala</option>
-        <option value="malleshwaram">Malleshwaram</option>
+        <option value="malleshwaram">Malleswaram</option>
         <option value="marathahalli">Marathahalli</option>
         <option value="vijayanagar">Vijayanagar</option>
         <option value="whitefield">Whitefield</option>
@@ -1727,9 +1784,14 @@ const PROGS = [
     tasks:['Identify participants needing correction from tracker','Send targeted invitations — only eligible practitioners','Confirm a qualified teacher or senior practitioner to guide','Keep group small — max 20 for quality correction','Maintain confidentiality — corrections are personal','Update practice status in database post session'] },
   { key:'ap',  name:'Advanced Programs',      icon:'✨', color:'#7B1A1A', bg:'#FCE8E8', lt:'#FFF5F5',
     tasks:['Strict eligibility check — only qualified participants','Coordinate with zone/national team for teacher & materials','Special venue setup — altar, flowers, specific arrangements','Heightened silence and sanctity during the programme','Confidentiality from all participants if required','Post-programme integration support and check-in'] },
+  { key:'samyama', name:'Samyama',            icon:'🔱', color:'#4A148C', bg:'#EDE7F6', lt:'#F8F4FF',
+    tasks:['Verify Samyama eligibility — practitioners with consistent sadhana','Coordinate with national team for dates, teacher & venue','Residential setup — accommodation, meals, complete silence','Strict silence protocol — phones collected before programme','Samyama-specific altar & sacred space setup','Post-programme: support re-integration into regular life'] },
+  { key:'shoonya', name:'Shoonya',            icon:'🌑', color:'#1A237E', bg:'#E8EAF6', lt:'#F3F4FF',
+    tasks:['Verify eligibility — practitioners with at least 6 months sadhana','Coordinate teacher certified for Shoonya initiation','Venue: quiet, clean space conducive to deep meditation','Prepare participants: fasting guidelines and day-of instructions','Maintain absolute silence and sanctity during process','Post-programme check-in and sadhana support'] },
 ];
 
 const CTRS = [
+  { key:"sadhguru_sannidhi", tag:"Ashram", name:"Sadhguru Sannidhi", region:"ssb", color:"#8D3C00" },
   { key:"b_g_road", name:"B G Road", region:"blr", color:"#283593" },
   { key:"banaswadi", name:"Banaswadi", region:"blr", color:"#1B5E20" },
   { key:"budigere_cross", name:"Budigere Cross", region:"blr", color:"#B71C1C" },
@@ -1738,12 +1800,13 @@ const CTRS = [
   { key:"singasandra",name:"Singasandra",     region:"blr", color:"#1B5E20" },
   { key:"girinagar", name:"Girinagar", region:"blr", color:"#E65100" },
   { key:"hebbal", name:"Hebbal", region:"blr", color:"#006064" },
+  { key:"hsr_layout", name:"HSR Layout", region:"blr", color:"#00838F" },
   { key:"indiranagar", name:"Indiranagar", region:"blr", color:"#1A237E" },
   { key:"jayanagar", tag:"Isha Place", name:"Jayanagar", region:"blr", color:"#33691E" },
   { key:"jakkur", name:"Jakkur", region:"blr", color:"#880E4F" },
   { key:"kanakapura_road", name:"Kanakapura Road", region:"blr", color:"#01579B" },
   { key:"koramangala", name:"Koramangala", region:"blr", color:"#1B5E20" },
-  { key:"malleshwaram", tag:"Isha Place", name:"Malleshwaram", region:"blr", color:"#37474F" },
+  { key:"malleshwaram", tag:"Isha Place", name:"Malleswaram", region:"blr", color:"#37474F" },
   { key:"marathahalli", tag:"Isha Place", name:"Marathahalli", region:"blr", color:"#3E2723" },
   { key:"vijayanagar", tag:"Isha Place", name:"Vijayanagar", region:"blr", color:"#1A237E" },
   { key:"whitefield", name:"Whitefield", region:"blr", color:"#004D40" },
@@ -1767,7 +1830,8 @@ const CTRS = [
 ];
 const REGIONS = [
   { key:'blr', name:'Bangalore', icon:'🏙️', color:'#7B1A1A' },
-  { key:'ka',  name:'Outside Bangalore', icon:'🗺️', color:'#4A148C' }
+  { key:'ka',  name:'Outside Bangalore', icon:'🗺️', color:'#4A148C' },
+  { key:'ssb', name:'Sadhguru Sannidhi', icon:'🕌', color:'#8D3C00' }
 ];
 const POC_DATA = {
   "b_g_road": {"prog": "Jaywardene, Nikhil", "prog_ph": "9821201721,9740060767", "ie": "", "ie_ph": "", "sat": "", "sat_ph": "", "step": "", "step_ph": "", "hatha": "", "hatha_ph": "", "other": "", "other_ph": ""},
@@ -1775,6 +1839,8 @@ const POC_DATA = {
   "budigere_cross": {"prog": "Sanjay, Sivakumar", "prog_ph": "8073 871 589", "ie": "Shamanth", "ie_ph": "97407 81555", "sat": "Jyothishree", "sat_ph": "90049 98197", "step": "Anusha", "step_ph": "97414 51483", "hatha": "Pooja", "hatha_ph": "95916 22255", "other": "", "other_ph": ""},
   "e_city": {"prog": "Nitesh", "prog_ph": "93863 29656", "ie": "Currently restructuring ( Praveen)", "ie_ph": "9880032253", "sat": "Currently restructuring (Rohan)", "sat_ph": "8123676861", "step": "Currently restructuring (Deepa)", "step_ph": "9986734637", "hatha": "Currently restructuring (Mandeep)", "hatha_ph": "7795593093", "other": "Currently restructuring(Nitesh)", "other_ph": "9386329656"},
   "girinagar": {"prog": "", "prog_ph": "", "ie": "", "ie_ph": "", "sat": "", "sat_ph": "", "step": "", "step_ph": "", "hatha": "", "hatha_ph": "", "other": "", "other_ph": ""},
+  "sadhguru_sannidhi": {"prog": "", "prog_ph": "", "ie": "", "ie_ph": "", "sat": "", "sat_ph": "", "step": "", "step_ph": "", "hatha": "", "hatha_ph": "", "other": "", "other_ph": ""},
+  "hsr_layout": {"prog": "", "prog_ph": "", "ie": "", "ie_ph": "", "sat": "", "sat_ph": "", "step": "", "step_ph": "", "hatha": "", "hatha_ph": "", "other": "", "other_ph": ""},
   "hebbal": {"prog": "Vikram", "prog_ph": "99801 17404", "ie": "Vikram", "ie_ph": "99801 17404", "sat": "Somashekar", "sat_ph": "7259434765", "step": "Rupesh", "step_ph": "81492 90680", "hatha": "", "hatha_ph": "", "other": "", "other_ph": ""},
   "indiranagar": {"prog": "Prasanna", "prog_ph": "88841 99041", "ie": "Prasanna J", "ie_ph": "8884199041", "sat": "Avinash", "sat_ph": "9740121849", "step": "Bhavya", "step_ph": "9740757778", "hatha": "Prasanna J", "hatha_ph": "8884199041", "other": "", "other_ph": ""},
   "jayanagar": {"prog": "Kanna", "prog_ph": "6374247090", "ie": "Kanna", "ie_ph": "6374247090", "sat": "Vishal", "sat_ph": "9480703323", "step": "Naveen", "step_ph": "6361953264", "hatha": "Sathish Kanna", "hatha_ph": "9886295830", "other": "Janani - Anuradha Guru Pooja - Smitha PCS - Brundha", "other_ph": ""},
@@ -2601,7 +2667,13 @@ async function init(){
   renderSocBar();
   renderSectorProgCards();
   CTRS.forEach(c=>{ try{ renderCenter(c); }catch(e){} });
+  migrateCalDataToYear();
   seedMonthlySatsangs();
+  seedProgrammeCalendar();
+  autoMarkDone();
+  // Pull calendar + centre POC/venue from Firebase in background and refresh
+  syncCalendarFromFirebase().then(remote=>{ if(remote) renderCalendar(); }).catch(()=>{});
+  syncCtrStoresFromFirebase().then(()=>{ renderCentersGrid(); updateCtrCounts(); }).catch(()=>{});
   if(SESSION){
     applySession();
   } else {
@@ -2617,7 +2689,36 @@ document.addEventListener('DOMContentLoaded', ()=>init());
 const CAL_SK = 'isha_cal_v3';
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MONTH_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-let calActiveCtr = 'all';
+const CAL_YEARS = [2026, 2027, 2028, 2029];
+let calActiveCtr  = 'all';
+let calActiveYear = 2026;
+let calViewMode   = 'year';
+let calActiveMonth = new Date().getMonth(); // 0-based
+
+function migrateCalDataToYear(){
+  // Convert old key format (ctrKey-progKey-mi) → new (YYYY-ctrKey-progKey-mi)
+  const raw = getCalData();
+  const migrated = {};
+  let changed = false;
+  for(const [k, v] of Object.entries(raw)){
+    if(/^\d{4}-/.test(k)){ migrated[k] = v; }
+    else { migrated[`2026-${k}`] = v; changed = true; }
+  }
+  if(changed){ localStorage.setItem(CAL_SK, JSON.stringify(migrated)); fbSet('calendar', migrated).catch(()=>{}); }
+}
+
+function calCellKey(ctrKey, progKey, mi){
+  return `${calActiveYear}-${ctrKey}-${progKey}-${mi}`;
+}
+
+function switchCalYear(val){
+  calActiveYear = parseInt(typeof val === 'string' ? val : val.target.value);
+  const sel = document.getElementById('cal-year-select');
+  if(sel) sel.value = calActiveYear;
+  const lbl = document.getElementById('cal-month-label');
+  if(lbl) lbl.textContent = `${MONTH_FULL[calActiveMonth]} ${calActiveYear}`;
+  renderCalendar();
+}
 
 const VENUES = {
   ec: [
@@ -2649,16 +2750,231 @@ const VENUES = {
   ],
 };
 
+// Default venue name + Google Maps URL for each centre
+const CTR_ADDR = {
+  sadhguru_sannidhi: { venue:'Sadhguru Sannidhi, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Sadhguru+Sannidhi+Kanakapura+Road+Bengaluru' },
+  b_g_road:          { venue:'Isha Yoga Center, B G Road, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+BG+Road+Bengaluru' },
+  banaswadi:         { venue:'Isha Yoga Center, Banaswadi, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Banaswadi+Bengaluru' },
+  budigere_cross:    { venue:'Isha Yoga Center, Budigere Cross, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Budigere+Cross+Bengaluru' },
+  e_city:            { venue:'Isha Yoga Center, Electronic City, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Electronic+City+Bengaluru' },
+  chandapura:        { venue:'Isha Yoga Center, Chandapura, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Chandapura+Bengaluru' },
+  singasandra:       { venue:'Isha Yoga Center, Singasandra, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Singasandra+Bengaluru' },
+  girinagar:         { venue:'Isha Yoga Center, Girinagar, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Girinagar+Bengaluru' },
+  hebbal:            { venue:'Isha Yoga Center, Hebbal, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Hebbal+Bengaluru' },
+  hsr_layout:        { venue:'Isha Yoga Center, HSR Layout, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+HSR+Layout+Bengaluru' },
+  indiranagar:       { venue:'Isha Yoga Center, Indiranagar, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Indiranagar+Bengaluru' },
+  jayanagar:         { venue:'Isha Yoga Center, Jayanagar, Bengaluru – 560082', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Jayanagar+Bengaluru' },
+  jakkur:            { venue:'Isha Yoga Center, Jakkur, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Jakkur+Bengaluru' },
+  kanakapura_road:   { venue:'Isha Yoga Center, Kanakapura Road, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Kanakapura+Road+Bengaluru' },
+  koramangala:       { venue:'Isha Yoga Center, Koramangala, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Koramangala+Bengaluru' },
+  malleshwaram:      { venue:'Isha Yoga Center, Malleswaram, Bengaluru – 560055', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Malleswaram+Bengaluru' },
+  marathahalli:      { venue:'Isha Yoga Center, Marathahalli, Bengaluru – 560037', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Marathahalli+Bengaluru' },
+  vijayanagar:       { venue:'Isha Yoga Center, Vijayanagar, Bengaluru – 560040', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Vijayanagar+Bengaluru' },
+  whitefield:        { venue:'Isha Yoga Center, Whitefield, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Whitefield+Bengaluru' },
+  yelahanka:         { venue:'Isha Yoga Center, Yelahanka, Bengaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Yelahanka+Bengaluru' },
+  belagavi:          { venue:'Isha Yoga Center, Belagavi', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Belagavi+Karnataka' },
+  chikkaballapura:   { venue:'Isha Yoga Center, Chikkaballapura', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Chikkaballapura+Karnataka' },
+  chikkamagalur:     { venue:'Isha Yoga Center, Chikkamagalur', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Chikkamagalur+Karnataka' },
+  hassan:            { venue:'Isha Yoga Center, Hassan', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Hassan+Karnataka' },
+  hubballi:          { venue:'Isha Yoga Center, Hubballi', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Hubballi+Karnataka' },
+  kalaburagi:        { venue:'Isha Yoga Center, Kalaburagi', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Kalaburagi+Karnataka' },
+  kolar:             { venue:'Isha Yoga Center, Kolar', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Kolar+Karnataka' },
+  mandya:            { venue:'Isha Yoga Center, Mandya', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Mandya+Karnataka' },
+  mangalore:         { venue:'Isha Yoga Center, Mangaluru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Mangaluru+Karnataka' },
+  mysuru:            { venue:'Isha Yoga Center, Mysuru', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Mysuru+Karnataka' },
+  shivamogga:        { venue:'Isha Yoga Center, Shivamogga', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Shivamogga+Karnataka' },
+  tiptur:            { venue:'Isha Yoga Center, Tiptur', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Tiptur+Karnataka' },
+  tumkur:            { venue:'Isha Yoga Center, Tumkur', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Tumkur+Karnataka' },
+  udupi:             { venue:'Isha Yoga Center, Udupi', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Udupi+Karnataka' },
+  vijayapura:        { venue:'Isha Yoga Center, Vijayapura', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Vijayapura+Karnataka' },
+  bengaluru_rural:   { venue:'Isha Yoga Center, Bengaluru Rural', maps:'https://www.google.com/maps/search/?api=1&query=Isha+Yoga+Center+Bengaluru+Rural+Karnataka' },
+};
+
+// Real venue addresses + exact Google Maps "Get Directions" URLs fetched from isha.sadhguru.org
+const ISHA_VENUES = {
+  jayanagar:    { venue:'Isha Place Jayanagar, Bengaluru – 560082',                                                         maps:'https://www.google.com/maps/place/Isha+Place+Jayanagar/@12.9427627,77.5829002,808m/data=!3m1!1e3!4m6!3m5!1s0x3bae15bfe8772cb9:0xd052875cb8b0df31!8m2!3d12.9427636!4d77.585559!16s%2Fg%2F11b6s8bbkr!5m1!1e2?entry=ttu' },
+  malleswaram:  { venue:'Isha Place, Malleswaram, Bengaluru – 560055',                                                      maps:'https://www.google.com/maps/place/Isha+Place,+Malleshwaram/@13.0072004,77.5676166,808m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3bae17ce54a2058b:0x7242aa7535319830!8m2!3d13.0072004!4d77.5676166!16s%2Fg%2F11vz3r97bt!5m1!1e1?entry=ttu' },
+  marathahalli: { venue:'Isha Place Marathahalli, 4th Floor, Gopalan Enterprises, ITPL Main Rd, Bengaluru – 560037',        maps:'https://www.google.com/maps/place/Isha+Place+Marathahalli/@12.9674337,77.7130637,808m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3bae130f033fc1ef:0xc49506aae178d70f!8m2!3d12.9674337!4d77.7130637!16s%2Fg%2F11fpjmltss!5m1!1e1?entry=ttu' },
+  vijayanagar:  { venue:'Isha Place - Vijayanagar, Bengaluru',                                                              maps:'https://www.google.com/maps/place/Isha+Place+-+Vijayanagar/@12.9752485,77.5385852,808m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3bae3def9d87df77:0x6c18353d609ae06e!8m2!3d12.9752485!4d77.5385852!16s%2Fg%2F11h0816krc!5m1!1e1?entry=ttu' },
+  kanakapura:   { venue:'Amruthavarshini, Kanakapura Main Rd, Talaghattapura, Bengaluru – 560109',                         maps:'https://www.google.com/maps/place/Amruthavarshini/@12.8660157,77.5374275,808m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3bae41000286fceb:0xa0de9d0f5883b2fc!8m2!3d12.8660157!4d77.5374275!16s%2Fg%2F11mf2cx2bm!5m1!1e1?entry=ttu' },
+  hsr_layout:   { venue:'HSR Studio #1972, 15th Cross Rd, Vanganahalli, 1st Sector, HSR Layout, Bengaluru – 560102',          maps:'https://www.google.com/maps/place/12%C2%B054\'50.9%22N+77%C2%B038\'48.4%22E/@12.914149,77.64678,808m/data=!3m2!1e3!4b1!4m4!3m3!8m2!3d12.914149!4d77.64678!5m1!1e1?entry=ttu&g_ep=EgoyMDI2MDUxMy4wIKXMDSoASAFQAw%3D%3D' },
+  hubballi:     { venue:'Yoga Suraksha Studio, 3rd Floor, Hosamani Building, Prashant Colony, Vidya Nagar, Hubballi – 580031', maps:'https://www.google.com/maps/place/Yoga+Suraksha/@15.3652114,75.121967,1048m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3bb8d75f01127509:0x7dec0f5f62a2ee0b!8m2!3d15.3652114!4d75.121967!16s%2Fg%2F11z4vssfzk!5m1!1e1?entry=ttu' },
+  mysuru_maha:  { venue:'Mahajana Alumni Association Hall, 1st Cross, Jayalakshmipuram, Mysuru – 570012',                   maps:'https://www.google.com/maps/place/Mahajana+Alumni+Hall/@12.3214499,76.6265206,1062m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3baf7a91b1fee469:0x254d24e0df05ef38!8m2!3d12.3214499!4d76.6265206!16s%2Fg%2F11gf9fxzxt!5m1!1e1?entry=ttu' },
+  ssb:          { venue:'Sadhguru Sannidhi, Avalagurki Village, Chikkabalapura Taluk, Bengaluru – 562101',                  maps:'https://www.google.com/maps/place/Sadhguru+Sannidhi/@13.4861346,77.7089802,15z/data=!4m6!3m5!1s0x3bb1efa400e03a7f:0x85080d2d579542dc!8m2!3d13.4861346!4d77.7089802' },
+  ecity_temple: { venue:'Sri Madduramma Devi Temple, 123, Gatthalli Rd, Gulimangala, Huskur, Bengaluru – 560099',          maps:'https://www.google.com/maps/place/Sri+Madduramma+Devi+Temple/@12.8611569,77.7052273,17z/data=!4m6!3m5!1s0x3bae6d2221430f79:0x83a2395b2eb1b017!8m2!3d12.8611569!4d77.7052273!16s%2Fg%2F11hctgmmv8?entry=ttu' },
+};
+// Maps program ID → ISHA_VENUES key
+const PROG_VENUES = {
+  '1201611':'jayanagar',   '1201703':'kanakapura',  '1201704':'malleswaram', '1201705':'marathahalli',
+  '1202059':'hubballi',    '1202273':'malleswaram', '1202274':'kanakapura',
+  '1202635':'vijayanagar', '1202636':'marathahalli',
+  '1202148':'mysuru_maha', '1202054':'mysuru_maha', '1202486':'mysuru_maha', '1201706':'vijayanagar', '1201707':'vijayanagar',
+  '1202061':'jayanagar',   '1202062':'marathahalli','1202056':'marathahalli','1201765':'jayanagar',
+  '1201827':'jayanagar',   '1202485':'malleswaram', '1202057':'marathahalli','1202544':'kanakapura',
+  '1202058':'marathahalli','1202487':'malleswaram', '1200263':'marathahalli','1202545':'kanakapura',
+  '1202488':'malleswaram', '1202264':'marathahalli',
+  '1201411':'ssb','1201867':'ssb','1200950':'ssb','1202074':'ssb','1202076':'ssb','1202077':'ssb',
+  '1202078':'ssb','1202075':'ssb','1202090':'ssb','1202091':'ssb','1202092':'ssb','1202093':'ssb',
+  '1202094':'ssb','1202095':'ssb','1202108':'ssb','1202109':'ssb','1201188':'ssb','1200951':'ssb',
+  '1201370':'ssb','1201881':'ssb',
+  '1201764':'hsr_layout','1202493':'hsr_layout','1202489':'hsr_layout','1202490':'hsr_layout','1202495':'hsr_layout',
+  '1201493':'ecity_temple','1202492':'malleswaram',
+};
+
 const CAL_FREQ = [
   { prog:'ie',  icon:'🧘', name:'Inner Engineering', freq:'Monthly at all centres (English + Kannada batches). Aim for 1–2 batches/month.' },
   { prog:'hy',  icon:'🤸', name:'Hatha Yoga Programs', freq:'Once a month per Isha place (Angamardana / Surya Kriya / Yogasanas).' },
   { prog:'ms',  icon:'🕉️', name:'Monthly Satsangs', freq:'1st Sunday of every month at each centre.' },
   { prog:'pcs', icon:'🎯', name:'Practice Correction', freq:'One session the week following each programme completion.' },
-  { prog:'ap',  icon:'✨', name:'Advanced Programs (Guru Puja)', freq:'Once in 6 months per Isha place. SSB once in 3 months. 2026 Guru Puja: Jan-Malleshwaram, Feb-JN, Mar-Marathalli, Apr-Mysore, May-VJN, Jul-Malleshwaram, Oct-VJN.' },
+  { prog:'ap',  icon:'✨', name:'Advanced Programs (Guru Puja)', freq:'Once in 6 months per Isha place. SSB once in 3 months. 2026 Guru Puja: Jan-Malleswaram, Feb-JN, Mar-Marathalli, Apr-Mysore, May-VJN, Jul-Malleswaram, Oct-VJN.' },
 ];
 
 function getCalData(){ try{ return JSON.parse(localStorage.getItem(CAL_SK)||'{}'); }catch(e){ return {}; } }
-function saveCalData(d){ localStorage.setItem(CAL_SK, JSON.stringify(d)); touchLastUpdated(); }
+function saveCalData(d){
+  localStorage.setItem(CAL_SK, JSON.stringify(d));
+  touchLastUpdated();
+  // Sync to Firebase in background (non-blocking)
+  fbSet('calendar', d).catch(()=>{});
+}
+async function fetchFirebaseCalendar(){
+  const data = await fbGet('calendar');
+  if(!data || typeof data !== 'object') return null;
+  return data;
+}
+async function syncCalendarFromFirebase(){
+  try{
+    const remote = await fetchFirebaseCalendar();
+    if(remote && Object.keys(remote).length > 0){
+      localStorage.setItem(CAL_SK, JSON.stringify(remote));
+      return remote;
+    }
+  }catch(e){}
+  return null;
+}
+
+function seedProgrammeCalendar(){
+  // Seed confirmed IE and HY programme events for 2026 with registration links.
+  // Adds the event if absent; updates reglink if event exists but link is missing.
+  const BASE = 'https://isha.sadhguru.org/in/en/program-details?id=';
+  const EVENTS = [
+    // IE June (mi=5)
+    {c:'jayanagar',       p:'ie', mi:5,  ev:{id:'ie-2026-06-24-jay',  label:'Inner Engineering 7 Days', date:'24 Jun', rawDate:'2026-06-24', status:'confirmed', notes:'24-30 Jun 2026 · Jayanagar',             reglink:BASE+'1201611'}},
+    {c:'kanakapura_road', p:'ie', mi:5,  ev:{id:'ie-2026-06-24-kan',  label:'Inner Engineering 7 Days', date:'24 Jun', rawDate:'2026-06-24', status:'confirmed', notes:'24-30 Jun 2026 · Kanakapura Road',        reglink:BASE+'1201703'}},
+    {c:'malleshwaram',    p:'ie', mi:5,  ev:{id:'ie-2026-06-24-mal',  label:'Inner Engineering 7 Days', date:'24 Jun', rawDate:'2026-06-24', status:'confirmed', notes:'24-30 Jun 2026 · Malleswaram (Reg. Closed)',reglink:BASE+'1201704'}},
+    {c:'marathahalli',    p:'ie', mi:5,  ev:{id:'ie-2026-06-24-mar',  label:'Inner Engineering 7 Days', date:'24 Jun', rawDate:'2026-06-24', status:'confirmed', notes:'24-30 Jun 2026 · Marathahalli',            reglink:BASE+'1201705'}},
+    {c:'hubballi',        p:'ie', mi:5,  ev:{id:'ie-2026-06-24-hub',  label:'Inner Engineering 7 Days', date:'24 Jun', rawDate:'2026-06-24', status:'confirmed', notes:'24-30 Jun 2026 · Hubballi',                reglink:BASE+'1202059'}},
+    // IE July (mi=6)
+    {c:'malleshwaram',    p:'ie', mi:6,  ev:{id:'ie-2026-07-23-mal',  label:'Inner Engineering 4 Days', date:'23 Jul', rawDate:'2026-07-23', status:'confirmed', notes:'23-26 Jul 2026 · Malleswaram',            reglink:BASE+'1202273'}},
+    {c:'kanakapura_road', p:'ie', mi:6,  ev:{id:'ie-2026-07-23-kan',  label:'Inner Engineering 4 Days', date:'23 Jul', rawDate:'2026-07-23', status:'confirmed', notes:'23-26 Jul 2026 · Kanakapura Road',        reglink:BASE+'1202274'}},
+    // IE August (mi=7)
+    {c:'vijayanagar',     p:'ie', mi:7,  ev:{id:'ie-2026-08-05-vij',  label:'Inner Engineering 7 Days', date:'5 Aug',  rawDate:'2026-08-05', status:'confirmed', notes:'5-11 Aug 2026 · Vijayanagar (Kannada)',   reglink:BASE+'1202635'}},
+    {c:'marathahalli',    p:'ie', mi:7,  ev:{id:'ie-2026-08-06-mar',  label:'Inner Engineering 4 Days', date:'6 Aug',  rawDate:'2026-08-06', status:'confirmed', notes:'6-9 Aug 2026 · Marathahalli',             reglink:BASE+'1202636'}},
+    // HY June (mi=5)
+    {c:'mysuru',          p:'hy', mi:5,  ev:{id:'hy-2026-06-25-mys',  label:'Surya Kriya',             date:'25 Jun', rawDate:'2026-06-25', status:'confirmed', notes:'25-28 Jun 2026 · Mysuru',              reglink:BASE+'1202054'}},
+    {c:'mysuru',          p:'hy', mi:5,  ev:{id:'hy-2026-06-26-mys2', label:'Eye Care & Upa Yoga',     date:'26 Jun', rawDate:'2026-06-26', status:'confirmed', notes:'26-28 Jun 2026 · Mysuru',              reglink:BASE+'1202148'}},
+    {c:'vijayanagar',     p:'hy', mi:5,  ev:{id:'hy-2026-06-27-vij',  label:'Surya Kriya',             date:'27 Jun', rawDate:'2026-06-27', status:'confirmed', notes:'27-28 Jun 2026 · Vijayanagar',          reglink:BASE+'1201706'}},
+    {c:'vijayanagar',     p:'hy', mi:5,  ev:{id:'hy-2026-06-27-vij2', label:'Bhuta Shuddhi',           date:'27 Jun', rawDate:'2026-06-27', status:'confirmed', notes:'27 Jun 2026 · Vijayanagar',             reglink:BASE+'1201707'}},
+    // HY July (mi=6)
+    {c:'jayanagar',       p:'hy', mi:6,  ev:{id:'hy-2026-07-04-jay0', label:'Eye Care & Shanmukhi',    date:'4 Jul',  rawDate:'2026-07-04', status:'confirmed', notes:'4-5 Jul 2026 · Jayanagar',              reglink:BASE+'1202061'}},
+    {c:'marathahalli',    p:'hy', mi:6,  ev:{id:'hy-2026-07-05-mar0', label:'Shanmukhi Mudra',         date:'5 Jul',  rawDate:'2026-07-05', status:'confirmed', notes:'5 Jul 2026 · Marathahalli',             reglink:BASE+'1202062'}},
+    {c:'marathahalli',    p:'hy', mi:6,  ev:{id:'hy-2026-07-06-mar1', label:'Angamardana',             date:'6 Jul',  rawDate:'2026-07-06', status:'confirmed', notes:'6-10 Jul 2026 · Marathahalli',          reglink:BASE+'1202056'}},
+    {c:'jayanagar',       p:'hy', mi:6,  ev:{id:'hy-2026-07-08-jay1', label:'Angamardana',             date:'8 Jul',  rawDate:'2026-07-08', status:'confirmed', notes:'8-12 Jul 2026 · Jayanagar',             reglink:BASE+'1201765'}},
+    {c:'jayanagar',       p:'hy', mi:6,  ev:{id:'hy-2026-07-09-jay2', label:'Surya Kriya',             date:'9 Jul',  rawDate:'2026-07-09', status:'confirmed', notes:'9-12 Jul 2026 · Jayanagar',             reglink:BASE+'1201827'}},
+    {c:'malleshwaram',    p:'hy', mi:6,  ev:{id:'hy-2026-07-11-mal1', label:'Angamardana',    date:'11 Jul', rawDate:'2026-07-11', status:'confirmed', notes:'11-15 Jul 2026 · Malleswaram',          reglink:BASE+'1202485'}},
+    {c:'marathahalli',    p:'hy', mi:6,  ev:{id:'hy-2026-07-11-mar2', label:'Surya Kriya',    date:'11 Jul', rawDate:'2026-07-11', status:'confirmed', notes:'11-12 Jul 2026 · Marathahalli',         reglink:BASE+'1202057'}},
+    {c:'kanakapura_road', p:'hy', mi:6,  ev:{id:'hy-2026-07-12-kan1', label:'Surya Kriya',    date:'12 Jul', rawDate:'2026-07-12', status:'confirmed', notes:'12-15 Jul 2026 · Kanakapura Road',      reglink:BASE+'1202544'}},
+    {c:'marathahalli',    p:'hy', mi:6,  ev:{id:'hy-2026-07-13-mar3', label:'Yogasanas',      date:'13 Jul', rawDate:'2026-07-13', status:'confirmed', notes:'13-17 Jul 2026 · Marathahalli',         reglink:BASE+'1202058'}},
+    {c:'mysuru',          p:'hy', mi:6,  ev:{id:'hy-2026-07-15-mys1', label:'Angamardana',    date:'15 Jul', rawDate:'2026-07-15', status:'confirmed', notes:'15-19 Jul 2026 · Mysuru',               reglink:BASE+'1202486'}},
+    {c:'malleshwaram',    p:'hy', mi:6,  ev:{id:'hy-2026-07-18-mal2', label:'Surya Kriya',    date:'18 Jul', rawDate:'2026-07-18', status:'confirmed', notes:'18-19 Jul 2026 · Malleswaram',          reglink:BASE+'1202487'}},
+    {c:'marathahalli',    p:'hy', mi:6,  ev:{id:'hy-2026-07-18-mar5', label:'Surya Kriya',    date:'18 Jul', rawDate:'2026-07-18', status:'confirmed', notes:'18-19 Jul 2026 · Marathahalli',         reglink:BASE+'1200263'}},
+    {c:'kanakapura_road', p:'hy', mi:6,  ev:{id:'hy-2026-07-19-kan2', label:'Bhuta Shuddhi',  date:'19 Jul', rawDate:'2026-07-19', status:'confirmed', notes:'19 Jul 2026 · Kanakapura Road',          reglink:BASE+'1202545'}},
+    {c:'malleshwaram',    p:'hy', mi:6,  ev:{id:'hy-2026-07-19-mal3', label:'Bhuta Shuddhi',  date:'19 Jul', rawDate:'2026-07-19', status:'confirmed', notes:'19 Jul 2026 · Malleswaram',              reglink:BASE+'1202488'}},
+    {c:'marathahalli',    p:'hy', mi:6,  ev:{id:'hy-2026-07-19-mar4', label:'Bhuta Shuddhi',  date:'19 Jul', rawDate:'2026-07-19', status:'confirmed', notes:'19 Jul 2026 · Marathahalli',             reglink:BASE+'1202264'}},
+    // Sadhguru Sannidhi — HY (June mi=5)
+    {c:'sadhguru_sannidhi', p:'hy', mi:5, ev:{id:'ssb-2026-06-26-hy1', label:'Angamardana Review',          date:'26 Jun', rawDate:'2026-06-26', status:'confirmed', notes:'26 Jun 2026 · Sadhguru Sannidhi',       reglink:BASE+'1201411'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:5, ev:{id:'ssb-2026-06-27-hy2', label:'Yogasanas',                   date:'27 Jun', rawDate:'2026-06-27', status:'confirmed', notes:'27-28 Jun 2026 · Sadhguru Sannidhi',     reglink:BASE+'1201867'}},
+    // Sadhguru Sannidhi — Shoonya (June mi=5)
+    {c:'sadhguru_sannidhi', p:'shoonya', mi:5, ev:{id:'ssb-2026-06-25-sh1', label:'Shoonya Intensive',      date:'25 Jun', rawDate:'2026-06-25', status:'confirmed', notes:'25-28 Jun 2026 · Sadhguru Sannidhi',     reglink:BASE+'1200950'}},
+    // Sadhguru Sannidhi — HY (July mi=6)
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-04-hy3', label:'Surya Kriya & Surya Shakti',  date:'4 Jul',  rawDate:'2026-07-04', status:'confirmed', notes:'4-5 Jul 2026 · Sadhguru Sannidhi',       reglink:BASE+'1202074'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-05-hy4', label:'Eye Care',                    date:'5 Jul',  rawDate:'2026-07-05', status:'confirmed', notes:'5 Jul 2026 · Sadhguru Sannidhi',         reglink:BASE+'1202076'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-05-hy5', label:'Shanmukhi Mudra',             date:'5 Jul',  rawDate:'2026-07-05', status:'confirmed', notes:'5 Jul 2026 · Sadhguru Sannidhi',         reglink:BASE+'1202077'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-10-hy6', label:'Surya Kriya Review',          date:'10 Jul', rawDate:'2026-07-10', status:'confirmed', notes:'10 Jul 2026 · Sadhguru Sannidhi',        reglink:BASE+'1202078'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-11-hy7', label:'Angamardana',                 date:'11 Jul', rawDate:'2026-07-11', status:'confirmed', notes:'11-12 Jul 2026 · Sadhguru Sannidhi',     reglink:BASE+'1202075'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-12-hy8', label:'Bhastrika Kriya',             date:'12 Jul', rawDate:'2026-07-12', status:'confirmed', notes:'12 Jul 2026 · Sadhguru Sannidhi',        reglink:BASE+'1202090'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-12-hy9', label:'Thoppukarnam',                date:'12 Jul', rawDate:'2026-07-12', status:'confirmed', notes:'12 Jul 2026 · Sadhguru Sannidhi',        reglink:BASE+'1202091'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-17-hy10',label:'Yogasanas Review',            date:'17 Jul', rawDate:'2026-07-17', status:'confirmed', notes:'17 Jul 2026 · Sadhguru Sannidhi',        reglink:BASE+'1202092'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-18-hy11',label:'Yogasanas',                   date:'18 Jul', rawDate:'2026-07-18', status:'confirmed', notes:'18-19 Jul 2026 · Sadhguru Sannidhi',     reglink:BASE+'1202093'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-19-hy12',label:'Bhuta Shuddhi',               date:'19 Jul', rawDate:'2026-07-19', status:'confirmed', notes:'19 Jul 2026 · Sadhguru Sannidhi',        reglink:BASE+'1202094'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-19-hy13',label:'Jala Neti',                   date:'19 Jul', rawDate:'2026-07-19', status:'confirmed', notes:'19 Jul 2026 · Sadhguru Sannidhi',        reglink:BASE+'1202095'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-25-hy14',label:'Angamardana',                 date:'25 Jul', rawDate:'2026-07-25', status:'confirmed', notes:'25-26 Jul 2026 · Sadhguru Sannidhi',     reglink:BASE+'1202108'}},
+    {c:'sadhguru_sannidhi', p:'hy', mi:6, ev:{id:'ssb-2026-07-26-hy15',label:'Yogasanas Advanced',          date:'26 Jul', rawDate:'2026-07-26', status:'confirmed', notes:'26 Jul 2026 · Sadhguru Sannidhi',        reglink:BASE+'1202109'}},
+    // Sadhguru Sannidhi — Shoonya (July mi=6)
+    {c:'sadhguru_sannidhi', p:'shoonya', mi:6, ev:{id:'ssb-2026-07-02-sh2', label:'Shoonya Intensive',      date:'2 Jul',  rawDate:'2026-07-02', status:'confirmed', notes:'2-5 Jul 2026 · Sadhguru Sannidhi',       reglink:BASE+'1201188'}},
+    {c:'sadhguru_sannidhi', p:'shoonya', mi:6, ev:{id:'ssb-2026-07-16-sh3', label:'Shoonya Intensive',      date:'16 Jul', rawDate:'2026-07-16', status:'confirmed', notes:'16-19 Jul 2026 · Sadhguru Sannidhi',     reglink:BASE+'1200951'}},
+    {c:'sadhguru_sannidhi', p:'shoonya', mi:6, ev:{id:'ssb-2026-07-23-sh4', label:'Shoonya Intensive',      date:'23 Jul', rawDate:'2026-07-23', status:'confirmed', notes:'23-26 Jul 2026 · Sadhguru Sannidhi',     reglink:BASE+'1201370'}},
+    // Sadhguru Sannidhi — Shoonya (August mi=7)
+    {c:'sadhguru_sannidhi', p:'shoonya', mi:7, ev:{id:'ssb-2026-08-06-sh5', label:'Shoonya Intensive',      date:'6 Aug',  rawDate:'2026-08-06', status:'confirmed', notes:'6-9 Aug 2026 · Sadhguru Sannidhi',       reglink:BASE+'1201881'}},
+    // HSR Layout HY
+    {c:'hsr_layout',      p:'hy', mi:5,  ev:{id:'hy-2026-06-27-hsr1', label:'Surya Kriya',        date:'27 Jun', rawDate:'2026-06-27', status:'confirmed', notes:'27-30 Jun 2026 · HSR Layout',           reglink:BASE+'1201764'}},
+    {c:'hsr_layout',      p:'hy', mi:6,  ev:{id:'hy-2026-07-15-hsr2', label:'Yogasanas',           date:'15 Jul', rawDate:'2026-07-15', status:'confirmed', notes:'15-19 Jul 2026 · HSR Layout',           reglink:BASE+'1202493'}},
+    {c:'hsr_layout',      p:'hy', mi:6,  ev:{id:'hy-2026-07-20-hsr3', label:'Surya Kriya',         date:'20 Jul', rawDate:'2026-07-20', status:'confirmed', notes:'20-23 Jul 2026 · HSR Layout',           reglink:BASE+'1202489'}},
+    {c:'hsr_layout',      p:'hy', mi:6,  ev:{id:'hy-2026-07-25-hsr4', label:'Angamardana',         date:'25 Jul', rawDate:'2026-07-25', status:'confirmed', notes:'25-29 Jul 2026 · HSR Layout',           reglink:BASE+'1202490'}},
+    {c:'hsr_layout',      p:'hy', mi:6,  ev:{id:'hy-2026-07-25-hsr5', label:'Bhastrika Kriya',     date:'25 Jul', rawDate:'2026-07-25', status:'confirmed', notes:'25 Jul 2026 · HSR Layout',              reglink:BASE+'1202495'}},
+    // Guru Pooja (under Advanced Programs / ap)
+    {c:'e_city',          p:'ap', mi:6,  ev:{id:'ap-2026-07-17-ect',  label:'Guru Pooja',      date:'17 Jul', rawDate:'2026-07-17', status:'confirmed', notes:'17-19 Jul 2026 · Electronic City',       reglink:BASE+'1201493'}},
+    {c:'malleshwaram',    p:'ap', mi:7,  ev:{id:'ap-2026-08-07-mal',  label:'Guru Pooja',      date:'7 Aug',  rawDate:'2026-08-07', status:'confirmed', notes:'7-9 Aug 2026 · Malleswaram',             reglink:BASE+'1202492'}},
+  ];
+  // Attach real venue + exact Maps URL from ISHA_VENUES lookup
+  // Track which events have authoritative venue data (from ISHA_VENUES)
+  const authVenueIds = new Set();
+  EVENTS.forEach(({ev}) => {
+    const pid  = (ev.reglink||'').split('=').pop();
+    const vkey = PROG_VENUES[pid];
+    if(vkey && ISHA_VENUES[vkey]){
+      ev.venue   = ISHA_VENUES[vkey].venue;
+      ev.mapsUrl = ISHA_VENUES[vkey].maps;
+      authVenueIds.add(ev.id);
+    }
+  });
+  const data = getCalData();
+  let changed = false;
+  EVENTS.forEach(({c, p, mi, ev}) => {
+    const key = `2026-${c}-${p}-${mi}`;
+    if(!data[key]) { data[key] = [ev]; changed = true; return; }
+    if(!Array.isArray(data[key])) data[key] = [data[key]];
+    const existing = data[key].find(e => e.id === ev.id);
+    if(!existing){ data[key].push(ev); changed = true; }
+    else {
+      if(!existing.reglink && ev.reglink){ existing.reglink = ev.reglink; changed = true; }
+      // Always overwrite venue/mapsUrl when we have authoritative data from ISHA_VENUES
+      if(authVenueIds.has(ev.id)){
+        if(existing.venue   !== ev.venue  ){ existing.venue   = ev.venue;   changed = true; }
+        if(existing.mapsUrl !== ev.mapsUrl){ existing.mapsUrl = ev.mapsUrl; changed = true; }
+      } else {
+        if(!existing.venue   && ev.venue  ){ existing.venue   = ev.venue;   changed = true; }
+        if(!existing.mapsUrl && ev.mapsUrl){ existing.mapsUrl = ev.mapsUrl; changed = true; }
+      }
+    }
+  });
+  if(changed) saveCalData(data);
+}
+
+function autoMarkDone(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const data = getCalData();
+  let changed = false;
+  Object.values(data).forEach(evs => {
+    const arr = Array.isArray(evs) ? evs : [evs];
+    arr.forEach(ev => {
+      if((ev.status === 'confirmed' || ev.status === 'planned') && ev.rawDate){
+        const d = new Date(ev.rawDate);
+        if(d < today){ ev.status = 'done'; changed = true; }
+      }
+    });
+  });
+  if(changed) saveCalData(data);
+}
 
 function seedMonthlySatsangs(){
   // Seed Monthly Satsang on the 1st Sunday of each month, June–Dec 2026, for all 3 centres.
@@ -2681,7 +2997,7 @@ function seedMonthlySatsangs(){
     const dateDisp = `${day} ${MONTHS[mi]}`;
 
     CTRS.forEach(ctr => {
-      const key = `${ctr.key}-ms-${mi}`;
+      const key = `${YEAR}-${ctr.key}-ms-${mi}`;
       if(!data[key]){
         data[key] = [{
           id:      'ms-'+rawDate,
@@ -2707,6 +3023,8 @@ function renderCalendar(){
   if(rl) rl.innerHTML = CAL_FREQ.map(f=>
     `<div class="cal-rec-item">${f.icon} <span><strong>${f.name}:</strong> ${f.freq}</span></div>`
   ).join('');
+
+  if(calViewMode === 'month'){ renderCalendarMonthView(); return; }
 
   const cc = document.getElementById('cal-content');
   if(!cc) return;
@@ -2747,12 +3065,18 @@ function getEventsForCell(data, key){
 function buildCalRow(ctrKey, prog){
   const data = getCalData();
   const cells = MONTHS.map((m,mi) => {
-    const key = `${ctrKey}-${prog.key}-${mi}`;
+    const key = calCellKey(ctrKey, prog.key, mi);
     const evs = getEventsForCell(data, key);
     const chips = evs.map((ev,ei) => {
       const cls = ev.status || 'planned';
       const dateStr = ev.date ? `<span style="font-size:.58rem;opacity:.8;display:block">${ev.date}</span>` : '';
-      return `<div class="cal-event ${cls}" onclick="event.stopPropagation();openCalModal('${ctrKey}','${prog.key}',${mi},'${ev.id||ei}')" style="margin-bottom:2px;cursor:pointer">${ev.label||m}${dateStr}</div>`;
+      let fillStr = '';
+      if(ev.capacity){
+        const pct = ev.registered ? Math.round((ev.registered/ev.capacity)*100) : 0;
+        const fillColor = pct>=90?'#C62828':pct>=70?'#E65100':'#2E7D32';
+        fillStr = `<span style="font-size:.55rem;display:block;color:${fillColor};font-weight:700">${ev.registered||0}/${ev.capacity} seats</span>`;
+      }
+      return `<div class="cal-event ${cls}" onclick="event.stopPropagation();openCalModal('${ctrKey}','${prog.key}',${mi},'${ev.id||ei}')" style="margin-bottom:2px;cursor:pointer">${ev.label||m}${dateStr}${fillStr}</div>`;
     }).join('');
     return `<div class="cal-cell">
       ${chips}
@@ -2773,13 +3097,93 @@ function switchCalCtr(val){
   renderCalendar();
 }
 
+function switchCalView(mode){
+  calViewMode = mode;
+  document.getElementById('cal-view-year').classList.toggle('active', mode==='year');
+  document.getElementById('cal-view-month').classList.toggle('active', mode==='month');
+  document.getElementById('cal-month-nav').style.display = mode==='month' ? 'flex' : 'none';
+  renderCalendar();
+}
+
+function stepCalMonth(dir){
+  calActiveMonth = (calActiveMonth + dir + 12) % 12;
+  // Advance year if wrapping
+  if(dir===1 && calActiveMonth===0) calActiveYear = Math.min(calActiveYear+1, 2029);
+  if(dir===-1 && calActiveMonth===11) calActiveYear = Math.max(calActiveYear-1, 2026);
+  const sel = document.getElementById('cal-year-select');
+  if(sel) sel.value = calActiveYear;
+  renderCalendar();
+}
+
+function renderCalendarMonthView(){
+  const cc = document.getElementById('cal-content');
+  if(!cc) return;
+
+  // Update month label
+  const lbl = document.getElementById('cal-month-label');
+  if(lbl) lbl.textContent = `${MONTH_FULL[calActiveMonth]} ${calActiveYear}`;
+
+  const mi = calActiveMonth;
+  const data = getCalData();
+  if(SESSION && SESSION.role==='coord' && calActiveCtr !== SESSION.ctrKey) calActiveCtr = SESSION.ctrKey;
+  const ctrsToShow = calActiveCtr === 'all' ? CTRS : CTRS.filter(c=>c.key===calActiveCtr);
+
+  const STATUS_LABEL = {confirmed:'✅ Confirmed', planned:'📋 Planned', done:'☑️ Done'};
+
+  const sections = ctrsToShow.map(ctr => {
+    const allCards = [];
+    PROGS.forEach(prog => {
+      const key  = calCellKey(ctr.key, prog.key, mi);
+      const evs  = getEventsForCell(data, key);
+      evs.forEach((ev,ei) => {
+        allCards.push({ctr, prog, ev, mi, ei});
+      });
+    });
+    if(!allCards.length) return '';
+
+    const cards = allCards.map(({ctr,prog,ev,mi,ei}) => {
+      const status = ev.status || 'planned';
+      const venueLine = ev.venue ? `<div>📍 ${ev.venue}</div>` : '';
+      const teacherLine = ev.teacher ? `<div>👤 ${ev.teacher}</div>` : '';
+      const dateLine = ev.date ? `<div>📅 ${ev.date}</div>` : '';
+      const fillLine = ev.capacity ? `<div>🪑 ${ev.registered||0}/${ev.capacity} seats</div>` : '';
+      return `<div class="cal-mv-card ${status}" onclick="openCalModal('${ctr.key}','${prog.key}',${mi},'${ev.id||ei}')">
+        <div class="cal-mv-card-prog">${prog.icon} ${prog.name}</div>
+        <div class="cal-mv-card-label">${ev.label||prog.name}</div>
+        <div class="cal-mv-card-meta">
+          <div style="display:inline-block;padding:1px 7px;border-radius:10px;font-size:.62rem;font-weight:700;margin-bottom:4px;background:${status==='confirmed'?'#E8F5E9':status==='done'?'#F5F5F5':'#FFF3E0'};color:${status==='confirmed'?'#2E7D32':status==='done'?'#757575':'#E65100'}">${STATUS_LABEL[status]||status}</div>
+          ${dateLine}${venueLine}${teacherLine}${fillLine}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="cal-mv-section">
+      <div class="cal-mv-ctr-head" style="background:${ctr.color||'#7B1A1A'}">${ctr.name}</div>
+      <div class="cal-mv-cards">${cards}</div>
+    </div>`;
+  }).join('');
+
+  // Add-new buttons per prog if single centre
+  let addRow = '';
+  if(calActiveCtr !== 'all'){
+    const ctr = CTRS.find(c=>c.key===calActiveCtr);
+    if(ctr){
+      addRow = `<div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px">
+        ${PROGS.map(p=>`<button onclick="openCalModal('${ctr.key}','${p.key}',${mi},null)" style="padding:5px 12px;border-radius:12px;border:1.5px dashed var(--brd);background:transparent;color:var(--tlt);font-size:.76rem;cursor:pointer;font-weight:600">+ ${p.name}</button>`).join('')}
+      </div>`;
+    }
+  }
+
+  cc.innerHTML = (sections||'<div class="cal-mv-empty">No programmes scheduled for this month.</div>') + addRow;
+}
+
 // Calendar modal — supports multiple events per cell
 let _calCtx = {};
 function openCalModal(ctrKey, progKey, monthIdx, evId){
   const ctr  = CTRS.find(c=>c.key===ctrKey);
   const prog = PROGS.find(p=>p.key===progKey);
   const data = getCalData();
-  const key  = `${ctrKey}-${progKey}-${monthIdx}`;
+  const key  = calCellKey(ctrKey, progKey, monthIdx);
   const evs  = getEventsForCell(data, key);
 
   // Find existing event by id, or blank for new
@@ -2790,20 +3194,25 @@ function openCalModal(ctrKey, progKey, monthIdx, evId){
     if(found){ ev = found; isNew = false; }
   }
 
-  _calCtx = {ctrKey, progKey, monthIdx, key, evId: ev.id||evId, isNew};
+  _calCtx = {ctrKey, progKey, monthIdx, key, evId: ev.id||evId, isNew, evMapsUrl: ev.mapsUrl||''};
 
-  const year = 2026;
+  const year = calActiveYear;
   const daysInMonth = new Date(year, monthIdx+1, 0).getDate();
   const dateMin = `${year}-${String(monthIdx+1).padStart(2,'0')}-01`;
   const dateMax = `${year}-${String(monthIdx+1).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`;
   const defaultDate = ev.rawDate || dateMin;
 
   const venueList = VENUES[ctrKey] || [];
-  const savedVenue = ev.venue || '';
+  const ctrMeta   = CTR_ADDR[ctrKey] || {};
+  // Auto-fill venue for confirmed/done events that have no venue yet
+  const savedVenue = ev.venue || (ev.status && ev.status !== 'planned' ? ctrMeta.venue||'' : '');
   const isCustomVenue = savedVenue && !venueList.includes(savedVenue);
   const venueOpts = venueList.map(v =>
     `<option value="${v}" ${savedVenue===v?'selected':''}>${v}</option>`
   ).join('');
+  const defaultMapsUrl = ctrMeta.maps || '';
+  const activeMapsUrl  = ev.mapsUrl ||
+    (savedVenue ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(savedVenue)}` : defaultMapsUrl);
 
   // Show existing events list at top if there are others
   const otherEvs = evs.filter(e => String(e.id||evs.indexOf(e)) !== String(ev.id||evId));
@@ -2853,6 +3262,12 @@ function openCalModal(ctrKey, progKey, monthIdx, evId){
           <option value="Thaimai"             ${ev.progType==='Thaimai'?'selected':''}>Thaimai</option>
           <option value="Samyama Satsang"     ${ev.progType==='Samyama Satsang'?'selected':''}>Samyama Satsang</option>
         </optgroup>
+        <optgroup label="Samyama &amp; Shoonya">
+          <option value="Samyama"             ${ev.progType==='Samyama'?'selected':''}>Samyama</option>
+          <option value="Samyama Satsang"     ${ev.progType==='Samyama Satsang'?'selected':''}>Samyama Satsang</option>
+          <option value="Shoonya"             ${ev.progType==='Shoonya'?'selected':''}>Shoonya</option>
+          <option value="Shoonya Satsang"     ${ev.progType==='Shoonya Satsang'?'selected':''}>Shoonya Satsang</option>
+        </optgroup>
         <optgroup label="Special Programmes">
           <option value="IDY + Together on Grounds" ${ev.progType==='IDY + Together on Grounds'?'selected':''}>IDY + Together on Grounds</option>
           <option value="Gramotsavam"         ${ev.progType==='Gramotsavam'?'selected':''}>Gramotsavam</option>
@@ -2876,15 +3291,41 @@ function openCalModal(ctrKey, progKey, monthIdx, evId){
       </select>
 
       <label>Venue</label>
-      <select id="cev-venue" onchange="toggleCustomVenue(this)">
-        <option value="" ${!savedVenue?'selected':''}>— Select venue —</option>
-        ${venueOpts}
-        <option value="__other__" ${isCustomVenue?'selected':''}>Other (type below)</option>
-      </select>
-      <input id="cev-venue-other" placeholder="Enter venue name" style="display:${isCustomVenue?'block':'none'};margin-top:-4px" value="${isCustomVenue?savedVenue:''}">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <select id="cev-venue" onchange="toggleCustomVenue(this);updateVenueMapsBtn()" style="margin-bottom:0;flex:1">
+          <option value="" ${!savedVenue?'selected':''}>— Select venue —</option>
+          ${venueOpts}
+          <option value="__other__" ${isCustomVenue?'selected':''}>Other (type below)</option>
+        </select>
+        <a id="cev-venue-maps" href="${activeMapsUrl||'#'}" target="_blank" rel="noopener"
+           title="Open in Google Maps"
+           style="display:${activeMapsUrl?'flex':'none'};align-items:center;justify-content:center;width:32px;height:32px;border-radius:7px;background:#1A73E8;color:#fff;text-decoration:none;flex-shrink:0;font-size:.85rem;font-weight:700;transition:opacity .15s"
+           onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">📍</a>
+      </div>
+      <input id="cev-venue-other" placeholder="Enter venue name" style="display:${isCustomVenue?'block':'none'};margin-top:0;margin-bottom:10px" value="${isCustomVenue?savedVenue:''}" oninput="updateVenueMapsBtn()">
 
       <label>Teacher / Facilitator</label>
       <input id="cev-teacher" placeholder="Name" value="${ev.teacher||''}">
+
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <label>Capacity (seats)</label>
+          <input id="cev-capacity" type="number" min="0" placeholder="e.g. 30" value="${ev.capacity||''}">
+        </div>
+        <div style="flex:1">
+          <label>Registered</label>
+          <input id="cev-registered" type="number" min="0" placeholder="e.g. 18" value="${ev.registered||''}">
+        </div>
+      </div>
+
+      <label>Registration Link</label>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+        <input id="cev-reglink" type="url" placeholder="https://..." value="${ev.reglink||''}" oninput="updateRegLinkBtn()" style="margin-bottom:0;flex:1">
+        <a id="cev-reglink-btn" href="${ev.reglink||'#'}" target="_blank" rel="noopener"
+           title="Open registration page"
+           style="display:${ev.reglink ? 'flex' : 'none'};align-items:center;justify-content:center;width:32px;height:32px;border-radius:7px;background:var(--m);color:#fff;text-decoration:none;flex-shrink:0;font-size:1rem;transition:opacity .15s"
+           onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">&#8599;</a>
+      </div>
 
       <label>Notes</label>
       <textarea id="cev-notes" rows="2" placeholder="Timing, batch count, special instructions...">${ev.notes||''}</textarea>
@@ -2898,9 +3339,44 @@ function openCalModal(ctrKey, progKey, monthIdx, evId){
   mo.style.display='flex';
 }
 
+function updateRegLinkBtn(){
+  const inp = document.getElementById('cev-reglink');
+  const btn = document.getElementById('cev-reglink-btn');
+  if(!inp || !btn) return;
+  const url = inp.value.trim();
+  if(url){ btn.href = url; btn.style.display = 'flex'; }
+  else { btn.style.display = 'none'; }
+}
+
+function updateVenueMapsBtn(){
+  const sel   = document.getElementById('cev-venue');
+  const other = document.getElementById('cev-venue-other');
+  const btn   = document.getElementById('cev-venue-maps');
+  if(!sel || !btn) return;
+  // If we have an exact pinned Maps URL from the Isha program page, use it
+  if(_calCtx.evMapsUrl){
+    btn.href = _calCtx.evMapsUrl;
+    btn.style.display = 'flex';
+    return;
+  }
+  // Otherwise derive from current venue text
+  let venueTxt = sel.value === '__other__' ? (other ? other.value.trim() : '') : sel.value;
+  if(!venueTxt){
+    const ctrMeta = CTR_ADDR[_calCtx.ctrKey] || {};
+    venueTxt = ctrMeta.venue || '';
+  }
+  if(venueTxt){
+    btn.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueTxt)}`;
+    btn.style.display = 'flex';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
 function toggleCustomVenue(sel){
   const other = document.getElementById('cev-venue-other');
   other.style.display = sel.value==='__other__' ? 'block' : 'none';
+  updateVenueMapsBtn();
 }
 
 function calProgTypeChange(sel){
@@ -2948,16 +3424,21 @@ function saveCalEvent(){
     || progTypeLabel
     || MONTHS[monthIdx];
 
+  const capVal = parseInt(document.getElementById('cev-capacity').value)||0;
+  const regVal = parseInt(document.getElementById('cev-registered').value)||0;
   const evObj = {
-    id:       isNew ? Date.now().toString(36) : (evId||Date.now().toString(36)),
-    label:    labelVal,
-    progType: progTypeVal,
-    date:     dateDisp,
-    rawDate:  rawDate,
-    status:   document.getElementById('cev-status').value,
-    venue:    venueVal,
-    teacher:  document.getElementById('cev-teacher').value.trim(),
-    notes:    document.getElementById('cev-notes').value.trim(),
+    id:         isNew ? Date.now().toString(36) : (evId||Date.now().toString(36)),
+    label:      labelVal,
+    progType:   progTypeVal,
+    date:       dateDisp,
+    rawDate:    rawDate,
+    status:     document.getElementById('cev-status').value,
+    venue:      venueVal,
+    teacher:    document.getElementById('cev-teacher').value.trim(),
+    capacity:   capVal||undefined,
+    registered: regVal||undefined,
+    reglink:    document.getElementById('cev-reglink').value.trim()||undefined,
+    notes:      document.getElementById('cev-notes').value.trim(),
   };
 
   let evs = getEventsForCell(data, key);
@@ -7821,14 +8302,19 @@ function renderTemplates(){
   if(sel && sel.options.length <= 1){
     const blr = CTRS.filter(c=>c.region==='blr');
     const ka  = CTRS.filter(c=>c.region==='ka');
+    const ssb = CTRS.filter(c=>c.region==='ssb');
     const grpBlr = document.createElement('optgroup');
     grpBlr.label = 'Bangalore';
     blr.forEach(c=>{ const o=document.createElement('option'); o.value=c.name; o.textContent=c.name; grpBlr.appendChild(o); });
     const grpKa = document.createElement('optgroup');
     grpKa.label = 'Outside Bangalore';
     ka.forEach(c=>{ const o=document.createElement('option'); o.value=c.name; o.textContent=c.name; grpKa.appendChild(o); });
+    const grpSsb = document.createElement('optgroup');
+    grpSsb.label = 'Sadhguru Sannidhi';
+    ssb.forEach(c=>{ const o=document.createElement('option'); o.value=c.name; o.textContent=c.name; grpSsb.appendChild(o); });
     sel.appendChild(grpBlr);
     sel.appendChild(grpKa);
+    sel.appendChild(grpSsb);
     if(!sel.value) sel.value = blr[0]?.name || '';
   }
   // Lock to coordinator's centre
@@ -8041,15 +8527,37 @@ function updateCtrCounts(){
   const all = getEffectiveCTRS();
   const blr = all.filter(c=>c.region==='blr').length;
   const ka  = all.filter(c=>c.region==='ka').length;
+  const ssb = all.filter(c=>c.region==='ssb').length;
   const el = id => document.getElementById(id);
-  if(el('reg-tab-all'))  el('reg-tab-all').textContent  = `🌐 Karnataka (${all.length})`;
-  if(el('reg-tab-blr'))  el('reg-tab-blr').textContent  = `🏙️ Bangalore (${blr})`;
-  if(el('reg-tab-ka'))   el('reg-tab-ka').textContent   = `🗺️ Outside Bangalore (${ka})`;
-  if(el('overview-sub')) el('overview-sub').textContent = `${all.length} Centres · 2 Regions · 5 Programme Types`;
+  if(el('reg-tab-all'))  el('reg-tab-all').textContent  = `All Centres (${all.length})`;
+  if(el('reg-tab-blr'))  el('reg-tab-blr').textContent  = `Bangalore (${blr})`;
+  if(el('reg-tab-ka'))   el('reg-tab-ka').textContent   = `Outside Bangalore (${ka})`;
+  if(el('reg-tab-ssb'))  el('reg-tab-ssb').textContent  = `Sadhguru Sannidhi (${ssb})`;
+  if(el('overview-sub')) el('overview-sub').textContent = `${all.length} Centres · 3 Regions · 5 Programme Types`;
   if(el('overview-blr-count')) el('overview-blr-count').textContent = blr;
   if(el('overview-ka-count'))  el('overview-ka-count').textContent  = ka;
+  if(el('overview-ssb-count')) el('overview-ssb-count').textContent = ssb;
   const addBtn = el('add-ctr-btn');
   if(addBtn) addBtn.style.display = (SESSION && SESSION.role==='admin') ? 'inline-block' : 'none';
+}
+
+function getCtrProgCounts(ctrKey){
+  const data = getCalData();
+  const today = new Date(); today.setHours(0,0,0,0);
+  let confirmed = 0, planned = 0, done = 0;
+  Object.entries(data).forEach(([key, evs]) => {
+    // Key format: YYYY-ctrKey-progKey-mi
+    if(!key.slice(5).startsWith(ctrKey + '-')) return;
+    const arr = Array.isArray(evs) ? evs : [evs];
+    arr.forEach(ev => {
+      const d = ev.rawDate ? new Date(ev.rawDate) : null;
+      const upcoming = d && d >= today;
+      if(ev.status === 'confirmed' && upcoming) confirmed++;
+      else if(ev.status === 'planned' && upcoming) planned++;
+      else if(ev.status === 'done') done++;
+    });
+  });
+  return { confirmed, planned, done, total: confirmed + planned };
 }
 
 function renderCentersGrid(){
@@ -8068,7 +8576,7 @@ function renderCentersGrid(){
   grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px';
   grid.innerHTML = filtered.map(c=>{
     const poc = getMergedPoc(c.key);
-    const ven = VENUE_DATA[c.key] || {};
+    const ven = getMergedVen(c.key);
     const regionTag = c.region==='ka' ? 'Outside Bangalore' : 'Bangalore';
     const regionTagColor = c.region==='blr' ? '#283593' : '#4A148C';
     const extraTagHtml = c.tag ? `<span class="ctr-card-tag" style="background:#558B2F;margin-left:4px">${c.tag}</span>` : '';
@@ -8083,12 +8591,20 @@ function renderCentersGrid(){
       ? `<span title="All POCs assigned" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#66BB6A;margin-left:6px;vertical-align:middle"></span>`
       : `<span title="${filled}/${pocFields.length} POCs assigned" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#EF9A9A;margin-left:6px;vertical-align:middle"></span>`;
     const deleteBtn = isAdmin ? `<button onclick="event.stopPropagation();confirmDeleteCtr('${c.key}','${c.name.replace(/'/g,"\\'")}' )" title="Remove centre" style="position:absolute;top:8px;right:8px;background:rgba(198,40,40,.08);border:none;cursor:pointer;opacity:0;transition:all .15s;padding:5px;border-radius:6px;line-height:0;display:flex;align-items:center;justify-content:center;" class="ctr-del-btn" onmouseenter="this.style.background='rgba(198,40,40,.18)'" onmouseleave="this.style.background='rgba(198,40,40,.08)'"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 1h3a.5.5 0 0 1 .5.5V2H6v-.5a.5.5 0 0 1 .5-.5z" fill="#C62828"/><path d="M11 2H5a1 1 0 0 0-1 1v9a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V3a1 1 0 0 0-1-1zM3 3h10M6.5 5.5v5M9.5 5.5v5" stroke="#C62828" stroke-width="1.4" stroke-linecap="round"/><line x1="3" y1="3" x2="13" y2="3" stroke="#C62828" stroke-width="1.4" stroke-linecap="round"/></svg></button>` : '';
+    const counts = getCtrProgCounts(c.key);
+    const calNav = `event.stopPropagation();showPanel('calendar');const s=document.getElementById('cal-ctr-select');if(s){s.value='${c.key}';switchCalCtr('${c.key}');}syncCalendarFromFirebase().then(r=>{renderCalendar();}).catch(()=>renderCalendar());`;
+    const progBadges = counts.total > 0 ? `
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;">
+        ${counts.confirmed > 0 ? `<span onclick="${calNav}" class="prog-count-badge" style="padding:2px 8px;border-radius:10px;font-size:.62rem;font-weight:700;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;cursor:pointer;">✅ ${counts.confirmed} confirmed</span>` : ''}
+        ${counts.planned   > 0 ? `<span onclick="${calNav}" class="prog-count-badge" style="padding:2px 8px;border-radius:10px;font-size:.62rem;font-weight:700;background:#FFF8E1;color:#F57F17;border:1px solid #FFE082;cursor:pointer;">📋 ${counts.planned} planned</span>` : ''}
+      </div>` : `<div style="margin-top:8px;font-size:.62rem;color:#bbb;font-style:italic">No upcoming programmes</div>`;
     return `<div class="ctr-card" onclick="openCtrDetail('${c.key}')" style="border:${cardBorder};${cardBg};position:relative;" onmouseenter="const b=this.querySelector('.ctr-del-btn');if(b)b.style.opacity='1'" onmouseleave="const b=this.querySelector('.ctr-del-btn');if(b)b.style.opacity='0'">
       ${deleteBtn}
       <div class="ctr-card-name">${c.name}${statusDot}</div>
       <div class="ctr-card-poc">👤 ${pocName}</div>
       <div class="ctr-card-venue">🏛️ ${ieVen.length>40 ? ieVen.slice(0,38)+'…' : ieVen}</div>
-      <span class="ctr-card-tag" style="background:${regionTagColor}">${regionTag}</span>${extraTagHtml}
+      ${progBadges}
+      <div style="margin-top:6px"><span class="ctr-card-tag" style="background:${regionTagColor}">${regionTag}</span>${extraTagHtml}</div>
     </div>`;
   }).join('');
 }
@@ -8176,18 +8692,41 @@ function saveNewCtr(){
   renderCentersGrid();
 }
 
-// ── Centre POC + Venue localStorage ──────────────────────────────────────────
+// ── Centre POC + Venue store (localStorage + Firebase) ───────────────────────
 const CTR_POC_SK = 'isha_ctr_poc_v1';
 const CTR_VEN_SK = 'isha_ctr_ven_v1';
 function getCtrPocStore(){ try{ return JSON.parse(localStorage.getItem(CTR_POC_SK)||'{}'); }catch(e){ return {}; } }
-function saveCtrPocStore(d){ localStorage.setItem(CTR_POC_SK, JSON.stringify(d)); touchLastUpdated(); }
+function saveCtrPocStore(d){ localStorage.setItem(CTR_POC_SK, JSON.stringify(d)); touchLastUpdated(); fbSet('ctr-poc', d).catch(()=>{}); }
 function getCtrVenStore(){ try{ return JSON.parse(localStorage.getItem(CTR_VEN_SK)||'{}'); }catch(e){ return {}; } }
-function saveCtrVenStore(d){ localStorage.setItem(CTR_VEN_SK, JSON.stringify(d)); touchLastUpdated(); }
+function saveCtrVenStore(d){ localStorage.setItem(CTR_VEN_SK, JSON.stringify(d)); touchLastUpdated(); fbSet('ctr-ven', d).catch(()=>{}); }
+async function syncCtrStoresFromFirebase(){
+  try{
+    const [poc, ven] = await Promise.all([fbGet('ctr-poc'), fbGet('ctr-ven')]);
+    if(poc && typeof poc === 'object' && Object.keys(poc).length)
+      localStorage.setItem(CTR_POC_SK, JSON.stringify(poc));
+    if(ven && typeof ven === 'object' && Object.keys(ven).length)
+      localStorage.setItem(CTR_VEN_SK, JSON.stringify(ven));
+  }catch(e){}
+}
+function showSaveToast(msg){
+  let t = document.getElementById('save-toast');
+  if(!t){ t = document.createElement('div'); t.id='save-toast';
+    t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#2E7D32;color:#fff;padding:8px 22px;border-radius:20px;font-size:.82rem;font-weight:700;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none';
+    document.body.appendChild(t); }
+  t.textContent = msg || '✓ Saved';
+  t.style.opacity='1';
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>{ t.style.opacity='0'; }, 1800);
+}
 function getMergedPoc(key){
   return Object.assign({}, POC_DATA[key]||{}, (getCtrPocStore()[key])||{});
 }
 function getMergedVen(key){
-  return Object.assign({}, VENUE_DATA[key]||{}, (getCtrVenStore()[key])||{});
+  const base = Object.assign({}, VENUE_DATA[key]||{});
+  const stored = getCtrVenStore()[key] || {};
+  // Only apply stored overrides that are non-empty (empty string = no override, use VENUE_DATA default)
+  Object.keys(stored).forEach(k => { if(stored[k]) base[k] = stored[k]; });
+  return base;
 }
 
 function openCtrDetail(key){
@@ -8269,7 +8808,7 @@ function openCtrDetail(key){
               style="width:140px;padding:5px 9px;border-radius:7px;border:1.5px solid var(--m);font-size:.82rem;background:var(--bg);color:var(--text);outline:none;">
           </div>
           <div style="display:flex;gap:6px">
-            <button onclick="saveVenRow('${key}','${venKey}','${typeKey}','${costKey}')" style="padding:4px 12px;border-radius:6px;background:var(--m);color:#fff;border:none;font-size:.76rem;cursor:pointer;font-weight:700">Save</button>
+            <button type="button" onclick="saveVenRow(this,'${key}','${venKey}','${typeKey}','${costKey}')" style="padding:4px 12px;border-radius:6px;background:var(--m);color:#fff;border:none;font-size:.76rem;cursor:pointer;font-weight:700">Save</button>
             <button onclick="cancelVenEdit('${rowId}')" style="padding:4px 10px;border-radius:6px;background:var(--card);color:var(--tlt);border:1.5px solid var(--brd);font-size:.76rem;cursor:pointer">Cancel</button>
           </div>
         </div>
@@ -8300,6 +8839,35 @@ function openCtrDetail(key){
     ${venRow('Inner Engineering','ie','ie_type','ie_cost')}
     ${venRow('Satsang','sat','sat_type','sat_cost')}
     ${venRow('Other Meetings','other','oth_type','oth_cost')}
+
+    <div style="font-weight:800;font-size:.78rem;color:var(--m);margin-top:16px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">📅 Programme Calendar Summary</div>
+    ${(()=>{
+      const data = getCalData();
+      const today = new Date(); today.setHours(0,0,0,0);
+      const calNav = `closeModal();showPanel('calendar');const s=document.getElementById('cal-ctr-select');if(s){s.value='${key}';switchCalCtr('${key}');}syncCalendarFromFirebase().then(()=>renderCalendar()).catch(()=>renderCalendar());`;
+      const rows = PROGS.map(prog => {
+        let confirmed=0, planned=0, done=0;
+        for(let mi=0;mi<12;mi++){
+          const k = `${calActiveYear}-${key}-${prog.key}-${mi}`;
+          const evs = Array.isArray(data[k]) ? data[k] : (data[k] ? [data[k]] : []);
+          evs.forEach(ev => {
+            const d = ev.rawDate ? new Date(ev.rawDate) : null;
+            if(ev.status==='done') done++;
+            else if(d && d>=today && ev.status==='confirmed') confirmed++;
+            else if(d && d>=today && ev.status==='planned') planned++;
+          });
+        }
+        if(!confirmed && !planned && !done) return '';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--brd)">
+          <span style="font-size:.88rem;width:20px;text-align:center">${prog.icon}</span>
+          <span style="flex:1;font-size:.78rem;font-weight:700;color:var(--text)">${prog.name}</span>
+          ${confirmed ? `<span onclick="${calNav}" class="prog-count-badge" style="padding:2px 9px;border-radius:10px;font-size:.65rem;font-weight:700;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;cursor:pointer;">✅ ${confirmed}</span>` : ''}
+          ${planned   ? `<span onclick="${calNav}" class="prog-count-badge" style="padding:2px 9px;border-radius:10px;font-size:.65rem;font-weight:700;background:#FFF8E1;color:#F57F17;border:1px solid #FFE082;cursor:pointer;">📋 ${planned}</span>` : ''}
+          ${done      ? `<span onclick="${calNav}" class="prog-count-badge" style="padding:2px 9px;border-radius:10px;font-size:.65rem;font-weight:700;background:#F5F5F5;color:#757575;border:1px solid #E0E0E0;cursor:pointer;">☑️ ${done} done</span>` : ''}
+        </div>`;
+      }).join('');
+      return rows || `<div style="font-size:.78rem;color:#bbb;font-style:italic;padding:6px 0">No programmes scheduled yet</div>`;
+    })()}
 
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
       <button class="btn" onclick="closeModal();showPanel('calendar');const s=document.getElementById('cal-ctr-select');if(s){s.value='${key}';switchCalCtr('${key}');}">📅 Calendar</button>
@@ -8332,19 +8900,35 @@ function savePocRow(key, nameKey, phoneKey){
   store[key] = Object.assign(store[key]||{}, {[nameKey]: nameVal, [phoneKey]: phoneVal});
   saveCtrPocStore(store);
   POC_DATA[key] = Object.assign(POC_DATA[key]||{}, {[nameKey]: nameVal, [phoneKey]: phoneVal});
-  openCtrDetail(key); // re-render modal with saved values
+  showSaveToast('✓ POC saved');
+  openCtrDetail(key);
   renderCentersGrid();
 }
 
-function saveVenRow(key, venKey, typeKey, costKey){
-  const venVal  = (document.getElementById(`inp-${venKey}-${key}`)||{value:''}).value.trim();
-  const typeVal = (document.getElementById(`inp-${typeKey}-${key}`)||{value:''}).value;
-  const costVal = (document.getElementById(`inp-${costKey}-${key}`)||{value:''}).value.trim();
-  const store = getCtrVenStore();
-  store[key] = Object.assign(store[key]||{}, {[venKey]: venVal, [typeKey]: typeVal, [costKey]: costVal});
-  saveCtrVenStore(store);
-  VENUE_DATA[key] = Object.assign(VENUE_DATA[key]||{}, {[venKey]: venVal, [typeKey]: typeVal, [costKey]: costVal});
-  openCtrDetail(key);
+function saveVenRow(btn, key, venKey, typeKey, costKey){
+  try {
+    // Find inputs by traversing up to the edit div (robust — doesn't rely on dynamic IDs)
+    const editDiv = btn && btn.closest ? btn.closest('div[class*="ven-edit-"]') : null;
+    const allInputs = editDiv ? editDiv.querySelectorAll('input') : [];
+    const selEl     = editDiv ? editDiv.querySelector('select') : null;
+    // Fallback to getElementById if traversal fails
+    const venVal  = (allInputs[0]  || document.getElementById(`inp-${venKey}-${key}`)  || {value:''}).value.trim();
+    const typeVal = (selEl          || document.getElementById(`inp-${typeKey}-${key}`) || {value:''}).value;
+    const costVal = (allInputs[1]  || document.getElementById(`inp-${costKey}-${key}`) || {value:''}).value.trim();
+    const store = getCtrVenStore();
+    if(!store[key]) store[key] = {};
+    if(venVal)  store[key][venKey]  = venVal;  else delete store[key][venKey];
+    if(typeVal) store[key][typeKey] = typeVal; else delete store[key][typeKey];
+    if(costVal) store[key][costKey] = costVal; else delete store[key][costKey];
+    saveCtrVenStore(store);
+    VENUE_DATA[key] = Object.assign(VENUE_DATA[key]||{}, getMergedVen(key));
+    showSaveToast('✓ Venue saved' + (venVal ? ': ' + venVal.slice(0,28) : ''));
+    renderCentersGrid();
+    openCtrDetail(key);
+  } catch(e) {
+    console.error('saveVenRow error:', e);
+    showSaveToast('✗ Save failed — see console');
+  }
 }
 
 function renderKaOverview(){
