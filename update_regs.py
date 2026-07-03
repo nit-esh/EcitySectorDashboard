@@ -52,7 +52,8 @@ CENTRE_PATTERNS = [
     (r'yelahanka',                                            'yelahanka'),
     (r'chandapura',                                           'chandapura'),
     (r'begur',                                                'begur'),
-    (r'budigere',                                             'budigere'),
+    (r'budigere cross',                                       'budigere cross'),  # full name first
+    (r'budigere',                                             'budigere cross'),  # short alias → same key
     (r'mangalore|mangaluru',                                  'mangalore'),
     (r'kengeri',                                              'kengeri'),
     (r'peenya',                                               'peenya'),
@@ -64,7 +65,7 @@ CENTRE_PATTERNS = [
 
 PROG_PATTERNS = [
     (r'inner engineering|isha yoga|\bie\b',                          'inner engineering'),
-    (r'bhava spandana',                                              'bhava spandana'),
+    (r'bhava spandana|\bbsp\b',                                      'bhava spandana'),
     (r'shoonya',                                                     'shoonya intensive'),
     (r'samyama',                                                     'samyama'),
     (r'vairagya',                                                    'vairagya'),
@@ -98,14 +99,16 @@ PROG_PATTERNS = [
 
 # Maps python centre key → CENTRE_DATA / MONTHLY_DATA key in HTML
 CENTRE_KEY_MAP = {
-    'electronic':   'Electronic City',
-    'banaswadi':    'Banaswadi',
-    'hebbal':       'Hebbal',
-    'indiranagar':  'Indiranagar',
-    'jayanagar':    'IP - Jayanagar',
-    'malleswaram':  'IP - Malleswaram',
-    'marathahalli': 'IP - Marathahalli',
-    'vijayanagar':  'IP - Vijayanagar',
+    'electronic':    'Electronic City',
+    'banaswadi':     'Banaswadi',
+    'hebbal':        'Hebbal',
+    'indiranagar':   'Indiranagar',
+    'jayanagar':     'IP - Jayanagar',
+    'malleswaram':   'IP - Malleswaram',
+    'marathahalli':  'IP - Marathahalli',
+    'vijayanagar':   'IP - Vijayanagar',
+    'budigere cross':'Budigere Cross',
+    'mangalore':     'Mangalore',
 }
 
 # Maps normalised prog key → CENTRE_DATA / MONTHLY_DATA sub-key
@@ -209,8 +212,8 @@ def try_parse_crm_xlsx(xlsx_path, regs, cd_updates, monthly_updates, source_labe
     centre_key    = norm_centre(parent_folder)
     html_centre   = CENTRE_KEY_MAP.get(centre_key) if centre_key else None
 
-    # Infer programme from filename
-    fname    = os.path.basename(xlsx_path).lower()
+    # Infer programme from filename (normalise underscores → spaces for pattern matching)
+    fname    = os.path.basename(xlsx_path).lower().replace('_', ' ')
     prog_key = norm_prog(fname)
     cd_key   = PROG_TO_CD_KEY.get(prog_key) if prog_key else None
 
@@ -222,9 +225,11 @@ def try_parse_crm_xlsx(xlsx_path, regs, cd_updates, monthly_updates, source_labe
     # Build col_index → year map for quick lookup
     col_to_year = {i: yr for i, yr in year_cols}
 
-    # ── Annual totals → CENTRE_DATA (IE only) ────────────────────────────────
-    # NOTE: CRM exports for BSP/Shoonya/Samyama contain ALL-CENTRE participant
-    # counts (not programme-specific), so we only trust IE files for annual totals.
+    # ── Annual totals → CENTRE_DATA ──────────────────────────────────────────
+    # For IE: the Total row is programme-specific, use it directly.
+    # For BSP/Shoonya/Samyama: the Total row is an all-member aggregate (same
+    # value across all programme files), so we skip it and instead derive annual
+    # totals by summing the programme-specific monthly rows (see section below).
     matched_annual = 0
     if cd_key == 'ie':
         for col_i, year in year_cols:
@@ -268,19 +273,20 @@ def try_parse_crm_xlsx(xlsx_path, regs, cd_updates, monthly_updates, source_labe
             continue
         year = yr_m.group(1)
 
-        # The count for this month lives in the column corresponding to that year
-        # Find the column index where years_row == year
-        count = None
+        # Sum ALL year columns for this row — the CRM pivot columns are member-join-year,
+        # but the row label year is when the programme happened. Off-diagonal entries
+        # (join year ≠ programme year) are the majority for repeat programmes like BSP/Shoonya.
+        # Summing all columns gives the true participant count for that month.
+        count = 0
         for col_i, col_yr in year_cols:
-            if col_yr == year:
-                val = row[col_i]
-                if val is not None:
-                    try:
-                        count = int(float(str(val)))
-                    except:
-                        pass
-                break
-        if count is None or count <= 0:
+            val = row[col_i]
+            if val is None:
+                continue
+            try:
+                count += int(float(str(val)))
+            except:
+                pass
+        if count <= 0:
             continue
 
         (monthly_updates
@@ -288,6 +294,15 @@ def try_parse_crm_xlsx(xlsx_path, regs, cd_updates, monthly_updates, source_labe
             .setdefault(cd_key, {})
             .setdefault(year, {})[month_str]) = count
         matched_monthly += 1
+
+    # ── Derive annual totals from monthly rows for BSP/Shoonya/Samyama ──────
+    if cd_key != 'ie' and matched_monthly > 0:
+        centre_monthly = monthly_updates.get(html_centre, {}).get(cd_key, {})
+        for yr, months in centre_monthly.items():
+            yr_total = sum(v for v in months.values() if v)
+            if yr_total > 0:
+                cd_updates.setdefault(html_centre, {}).setdefault(cd_key, {})[yr] = yr_total
+                matched_annual += 1
 
     monthly_note = f", {matched_monthly} monthly entries" if matched_monthly else ""
     print(f"  ✓ {source_label} [CRM]: {matched_annual} annual{monthly_note} → "
