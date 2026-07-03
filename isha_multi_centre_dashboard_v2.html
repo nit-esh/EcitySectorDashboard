@@ -733,7 +733,15 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
 
     <!-- Admin Reg Counts page -->
     <div id="ovRegCountsPage" style="display:none">
+      <!-- Sub-tab bar -->
+      <div style="display:flex;gap:0;margin-bottom:18px;border-bottom:2px solid var(--border)">
+        <button id="rcSubTable"     onclick="switchRegSubTab('table')"
+          style="padding:8px 20px;border:none;background:none;font-size:.75rem;font-weight:700;cursor:pointer;border-bottom:3px solid #1e4080;color:#1e4080;margin-bottom:-2px">📋 Table</button>
+        <button id="rcSubAnalytics" onclick="switchRegSubTab('analytics')"
+          style="padding:8px 20px;border:none;background:none;font-size:.75rem;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;color:var(--muted);margin-bottom:-2px">📊 Analytics</button>
+      </div>
       <div id="ovRegCountsContent"></div>
+      <div id="ovRegAnalyticsContent" style="display:none"></div>
     </div>
 
     <!-- Karnataka Insights page -->
@@ -4988,7 +4996,7 @@ function showOvPage(page){
   document.getElementById('ovNavInsights').classList.toggle('active',   isInsights);
   document.getElementById('ovNavRegCounts').classList.toggle('active',  isRegCounts);
   if(isInsights)  buildInsights();
-  if(isRegCounts) buildAdminRegCounts();
+  if(isRegCounts){ switchRegSubTab('table'); buildAdminRegCounts(); }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -5143,6 +5151,231 @@ function buildAdminRegCounts(){
       <thead><tr style="background:#f5f2eb;border-bottom:2px solid var(--border)">${colHdrs}</tr></thead>
       <tbody>${tableRows}</tbody>
     </table></div>`;
+}
+
+// ── Reg Counts sub-tab switcher ─────────────────────────────
+let _regSubTab = 'table';
+let _regAnalyticsCharts = [];
+
+function switchRegSubTab(tab){
+  _regSubTab = tab;
+  const isTable = tab === 'table';
+  document.getElementById('ovRegCountsContent').style.display    = isTable ? '' : 'none';
+  document.getElementById('ovRegAnalyticsContent').style.display = isTable ? 'none' : '';
+  const tBtn = document.getElementById('rcSubTable');
+  const aBtn = document.getElementById('rcSubAnalytics');
+  tBtn.style.borderBottomColor = isTable ? '#1e4080' : 'transparent';
+  tBtn.style.color             = isTable ? '#1e4080' : 'var(--muted)';
+  tBtn.style.fontWeight        = isTable ? '700' : '600';
+  aBtn.style.borderBottomColor = isTable ? 'transparent' : '#1e4080';
+  aBtn.style.color             = isTable ? 'var(--muted)' : '#1e4080';
+  aBtn.style.fontWeight        = isTable ? '600' : '700';
+  if(!isTable) buildRegAnalytics();
+}
+
+function buildRegAnalytics(){
+  const el = document.getElementById('ovRegAnalyticsContent');
+  const rows = _regCountRows.filter(r => r.confirmed !== null && r.confirmed > 0);
+  if(!rows.length){
+    el.innerHTML = `<div style="padding:32px;text-align:center;color:var(--muted);font-size:.8rem">No confirmed registration data available yet.</div>`;
+    return;
+  }
+
+  // ── Aggregate by programme ────────────────────────────────
+  const byProg = {};
+  for(const r of rows){
+    byProg[r.progLabel] = (byProg[r.progLabel]||0) + r.confirmed;
+  }
+  const progLabels  = Object.keys(byProg).sort((a,b)=>byProg[b]-byProg[a]);
+  const progValues  = progLabels.map(k=>byProg[k]);
+  const grandTotal  = progValues.reduce((s,v)=>s+v,0);
+
+  // ── Aggregate by centre ───────────────────────────────────
+  const byCentre = {};
+  for(const r of rows){
+    byCentre[r.centre] = (byCentre[r.centre]||0) + r.confirmed;
+  }
+  const centreLabels = Object.keys(byCentre).sort((a,b)=>byCentre[b]-byCentre[a]);
+  const centreValues = centreLabels.map(k=>byCentre[k]);
+
+  // ── Programme × Centre matrix (stacked bar data) ──────────
+  const topProgs = progLabels.slice(0,6); // top 6 programmes
+  const matrixData = topProgs.map(prog=>{
+    return centreLabels.map(c=>{
+      return rows.filter(r=>r.progLabel===prog && r.centre===c).reduce((s,r)=>s+(r.confirmed||0),0);
+    });
+  });
+
+  const PALETTE = [
+    '#1e4080','#c8922a','#1a6b3a','#7a1a1a','#2d8a8a','#6b4a1a',
+    '#4a1a6b','#1a4a6b','#6b1a4a','#3a6b1a'
+  ];
+
+  el.innerHTML = `
+    <!-- KPI row -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:22px">
+      <div style="background:#1e4080;border-radius:10px;padding:14px 16px;color:#fff">
+        <div style="font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.7;margin-bottom:4px">Total Confirmed</div>
+        <div style="font-size:1.4rem;font-weight:900">${grandTotal.toLocaleString()}</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Programmes</div>
+        <div style="font-size:1.4rem;font-weight:900;color:var(--navy)">${progLabels.length}</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Centres</div>
+        <div style="font-size:1.4rem;font-weight:900;color:var(--navy)">${centreLabels.length}</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Top Programme</div>
+        <div style="font-size:.85rem;font-weight:800;color:var(--navy)">${progLabels[0]}</div>
+        <div style="font-size:.65rem;color:var(--muted)">${progValues[0]} confirmed</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Top Centre</div>
+        <div style="font-size:.85rem;font-weight:800;color:var(--navy)">${centreLabels[0]}</div>
+        <div style="font-size:.65rem;color:var(--muted)">${centreValues[0]} confirmed</div>
+      </div>
+    </div>
+
+    <!-- Charts row 1: donut + bar -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <!-- Donut: by programme -->
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px">
+        <div style="font-size:.75rem;font-weight:800;color:var(--navy);margin-bottom:2px">By Programme</div>
+        <div style="font-size:.6rem;color:var(--muted);margin-bottom:12px">Confirmed registrations per programme type</div>
+        <div style="position:relative;height:220px"><canvas id="rcDonutProg"></canvas></div>
+        <!-- Legend -->
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px 14px">
+          ${progLabels.map((l,i)=>`
+            <div style="display:flex;align-items:center;gap:5px">
+              <span style="width:10px;height:10px;border-radius:50%;background:${PALETTE[i%PALETTE.length]};flex-shrink:0"></span>
+              <span style="font-size:.62rem;color:var(--navy);font-weight:600">${l}</span>
+              <span style="font-size:.6rem;color:var(--muted)">${Math.round(byProg[l]/grandTotal*100)}%</span>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Bar: by centre -->
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px">
+        <div style="font-size:.75rem;font-weight:800;color:var(--navy);margin-bottom:2px">By Centre</div>
+        <div style="font-size:.6rem;color:var(--muted);margin-bottom:12px">Total confirmed across all programmes per centre</div>
+        <div style="position:relative;height:260px"><canvas id="rcBarCentre"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Charts row 2: stacked bar programme × centre -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px">
+      <div style="font-size:.75rem;font-weight:800;color:var(--navy);margin-bottom:2px">Programme Breakdown by Centre</div>
+      <div style="font-size:.6rem;color:var(--muted);margin-bottom:12px">Stacked — each colour = one programme type · top ${topProgs.length} programmes shown</div>
+      <div style="position:relative;height:260px"><canvas id="rcStackedBar"></canvas></div>
+    </div>
+
+    <!-- Table: programme share -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px">
+      <div style="font-size:.75rem;font-weight:800;color:var(--navy);margin-bottom:12px">Programme Summary</div>
+      <table style="width:100%;border-collapse:collapse;font-size:.72rem">
+        <thead><tr style="background:#f5f2eb">
+          <th style="text-align:left;padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Programme</th>
+          <th style="text-align:right;padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Confirmed</th>
+          <th style="text-align:right;padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Share</th>
+          <th style="padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Bar</th>
+        </tr></thead>
+        <tbody>
+          ${progLabels.map((l,i)=>{
+            const pct = Math.round(byProg[l]/grandTotal*100);
+            return `<tr style="border-top:1px solid #f0ebe0">
+              <td style="padding:7px 10px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:6px">
+                <span style="width:8px;height:8px;border-radius:50%;background:${PALETTE[i%PALETTE.length]};flex-shrink:0"></span>${l}
+              </td>
+              <td style="padding:7px 10px;text-align:right;font-weight:700;color:#1a7a30">${byProg[l]}</td>
+              <td style="padding:7px 10px;text-align:right;color:var(--muted)">${pct}%</td>
+              <td style="padding:7px 10px"><div style="background:#f0ebe0;border-radius:3px;height:8px;overflow:hidden">
+                <div style="width:${pct}%;background:${PALETTE[i%PALETTE.length]};height:100%;border-radius:3px"></div>
+              </div></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  // Destroy old charts
+  _regAnalyticsCharts.forEach(c=>{ try{c.destroy();}catch(e){} });
+  _regAnalyticsCharts = [];
+
+  // Donut — by programme
+  _regAnalyticsCharts.push(new Chart(document.getElementById('rcDonutProg'),{
+    type:'doughnut',
+    data:{
+      labels: progLabels,
+      datasets:[{data:progValues, backgroundColor:PALETTE.slice(0,progLabels.length),
+        borderWidth:2, borderColor:'#fff', hoverOffset:6}]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      cutout:'62%',
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#fff',borderColor:'#e8dfc8',borderWidth:1,
+          titleColor:'#1e2a45',bodyColor:'#555',padding:10,
+          callbacks:{label:c=>`${c.label}: ${c.raw} (${Math.round(c.raw/grandTotal*100)}%)`}}
+      }
+    }
+  }));
+
+  // Bar — by centre (horizontal)
+  _regAnalyticsCharts.push(new Chart(document.getElementById('rcBarCentre'),{
+    type:'bar',
+    data:{
+      labels: centreLabels,
+      datasets:[{label:'Confirmed',data:centreValues,
+        backgroundColor:'#1e4080cc', hoverBackgroundColor:'#1e4080',
+        borderRadius:4, borderSkipped:false}]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#fff',borderColor:'#e8dfc8',borderWidth:1,
+          titleColor:'#1e2a45',bodyColor:'#555',padding:10,
+          callbacks:{label:c=>`${c.raw} confirmed`}}
+      },
+      scales:{
+        x:{grid:{color:'#f0ebe0'},ticks:{color:'#7a7060',font:{size:9}},beginAtZero:true},
+        y:{grid:{display:false},ticks:{color:'#444',font:{size:9}}}
+      }
+    }
+  }));
+
+  // Stacked bar — programme × centre
+  _regAnalyticsCharts.push(new Chart(document.getElementById('rcStackedBar'),{
+    type:'bar',
+    data:{
+      labels: centreLabels,
+      datasets: topProgs.map((prog,i)=>({
+        label: prog,
+        data: matrixData[i],
+        backgroundColor: PALETTE[i%PALETTE.length]+'cc',
+        hoverBackgroundColor: PALETTE[i%PALETTE.length],
+        borderRadius: i===topProgs.length-1?4:0,
+        borderSkipped: false,
+        stack: 'reg'
+      }))
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{color:'#444',font:{size:9},boxWidth:10,padding:8}},
+        tooltip:{mode:'index',intersect:false,backgroundColor:'#fff',borderColor:'#e8dfc8',
+          borderWidth:1,titleColor:'#1e2a45',bodyColor:'#555',padding:10}
+      },
+      scales:{
+        x:{stacked:true,grid:{display:false},ticks:{color:'#444',font:{size:8},maxRotation:35}},
+        y:{stacked:true,grid:{color:'#f0ebe0'},ticks:{color:'#7a7060',font:{size:9}},beginAtZero:true}
+      }
+    }
+  }));
 }
 
 function buildInsights(){
