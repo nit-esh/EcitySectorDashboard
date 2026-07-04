@@ -2091,20 +2091,20 @@ async function fetchSheetRegistrations(){
 /* __LIVE_REGS_START__ */
 const LIVE_REGS = {
   "sadhguru sannidhi": {
-    "angamardana|2026-07-11": 16,
-    "angamardana|2026-07-25": 6,
+    "angamardana|2026-07-11": 18,
+    "angamardana|2026-07-25": 7,
     "bhastrika|2026-07-12": 4,
     "bhuta shuddhi|2026-07-19": 5,
     "eye care|2026-07-05": 4,
     "jala neti|2026-07-19": 3,
-    "samyama": 25,
+    "samyama": 30,
     "shanmukhi|2026-07-05": 2,
-    "shoonya intensive|2026-08-06": 54,
-    "shoonya intensive|2026-07-16": 46,
+    "shoonya intensive|2026-08-06": 58,
+    "shoonya intensive|2026-07-16": 49,
     "shoonya intensive|2026-07-23": 56,
     "shoonya intensive|2026-07-02": 3,
     "surya kriya|2026-07-10": 0,
-    "surya kriya surya shakti|2026-07-04": 19,
+    "surya kriya surya shakti|2026-07-04": 1,
     "thoppukarnam|2026-07-12": 1,
     "upa yoga": 1330,
     "yogasanas|2026-07-26": 2,
@@ -2112,51 +2112,51 @@ const LIVE_REGS = {
     "yogasanas|2026-07-17": 1
   },
   "girinagar": {
-    "satsang": 21
+    "satsang": 25
   },
   "banaswadi": {
-    "satsang": 17
+    "satsang": 22
   },
   "bg road": {
     "inner engineering": 0,
-    "satsang": 25
+    "satsang": 33
   },
   "electronic": {
     "guru pooja": 9,
     "inner engineering": 0,
-    "satsang": 38
+    "satsang": 46
   },
   "begur": {
-    "satsang": 3
+    "satsang": 7
   },
   "chandapura": {
-    "satsang": 9
+    "satsang": 14
   },
   "singasandra": {
     "satsang": 0
   },
   "hebbal": {
-    "satsang": 28
+    "satsang": 42
   },
   "yelahanka": {
-    "satsang": 28
+    "satsang": 39
   },
   "hubballi": {
-    "satsang": 6
+    "satsang": 7
   },
   "budigere cross": {
-    "satsang": 38,
+    "satsang": 44,
     "inner engineering": 0
   },
   "indiranagar": {
-    "satsang": 46
+    "satsang": 52
   },
   "jayanagar": {
-    "angamardana": 6,
+    "angamardana": 7,
     "eye care shanmukhi": 6,
     "inner engineering": 1,
     "isha janani": 6,
-    "satsang": 31,
+    "satsang": 43,
     "surya kriya": 6
   },
   "hsr": {
@@ -2166,25 +2166,25 @@ const LIVE_REGS = {
     "yogasanas": 3
   },
   "sarjapur": {
-    "inner engineering": 14,
-    "satsang": 18
+    "inner engineering": 16,
+    "satsang": 22
   },
   "koramangala": {
-    "satsang": 22
+    "satsang": 26
   },
   "malleswaram": {
     "angamardana": 0,
     "bhuta shuddhi": 2,
     "guru pooja": 2,
     "inner engineering": 7,
-    "satsang": 29,
+    "satsang": 33,
     "surya kriya": 2
   },
   "peenya": {
     "satsang": 7
   },
   "mangalore": {
-    "satsang": 16
+    "satsang": 21
   },
   "marathahalli": {
     "angamardana|2026-03-17": 0,
@@ -2192,7 +2192,7 @@ const LIVE_REGS = {
     "bhuta shuddhi|2026-03-19": 2,
     "bhuta shuddhi|2026-03-30": 0,
     "inner engineering": 2,
-    "satsang": 58,
+    "satsang": 72,
     "shanmukhi|2026-03-05": 17,
     "surya kriya": 10,
     "yogasanas": 4
@@ -2204,29 +2204,29 @@ const LIVE_REGS = {
   "vijayanagar": {
     "hatha children": 0,
     "inner engineering": 4,
-    "satsang": 39
+    "satsang": 57
   },
   "kengeri": {
-    "satsang": 9
+    "satsang": 13
   },
   "whitefield": {
     "satsang": 0
   },
   "tumkur": {
-    "satsang": 8
+    "satsang": 10
   },
   "chikkaballapur": {
-    "satsang": 10
+    "satsang": 13
   },
   "kanakapura": {
     "inner engineering": 8,
-    "surya kriya": 6,
+    "surya kriya": 7,
     "bhuta shuddhi": 6,
-    "satsang": 24,
+    "satsang": 57,
     "yogasanas": 0
   }
 };
-const LIVE_REGS_UPDATED = "03 Jul 2026, 05:18 PM";
+const LIVE_REGS_UPDATED = "04 Jul 2026, 11:55 AM";
 /* __LIVE_REGS_END__ */
 
 // ── Static Hatha Yoga registration counts (from programme coordinator sheet) ──
@@ -5156,6 +5156,9 @@ function buildAdminRegCounts(){
 // ── Reg Counts sub-tab switcher ─────────────────────────────
 let _regSubTab = 'table';
 let _regAnalyticsCharts = [];
+let _rcMonthView = 'programme';  // 'programme' | 'centre'
+let _rcMonthChartInst = null;
+let _rcMonthData = {};  // set by buildRegAnalytics, read by _buildMonthChart
 
 function switchRegSubTab(tab){
   _regSubTab = tab;
@@ -5171,6 +5174,61 @@ function switchRegSubTab(tab){
   aBtn.style.color             = isTable ? 'var(--muted)' : '#1e4080';
   aBtn.style.fontWeight        = isTable ? '600' : '700';
   if(!isTable) buildRegAnalytics();
+}
+
+function _buildMonthChart(){
+  const {monthKeys,monthLabels,monthMap,progLabels,centreLabels,PALETTE} = _rcMonthData;
+  if(!monthKeys||!monthKeys.length) return;
+
+  // Update toggle button styles
+  const byProg = _rcMonthView==='programme';
+  const pb=document.getElementById('rcMVprog'), cb=document.getElementById('rcMVcentre');
+  if(pb){ pb.style.background=byProg?'#fff':'transparent'; pb.style.color=byProg?'var(--navy)':'#888'; pb.style.fontWeight=byProg?'700':'600'; pb.style.boxShadow=byProg?'0 1px 4px rgba(0,0,0,.18)':'none'; }
+  if(cb){ cb.style.background=byProg?'transparent':'#fff'; cb.style.color=byProg?'#888':'var(--navy)'; cb.style.fontWeight=byProg?'600':'700'; cb.style.boxShadow=byProg?'none':'0 1px 4px rgba(0,0,0,.18)'; }
+
+  if(_rcMonthChartInst){ try{_rcMonthChartInst.destroy();}catch(e){} _rcMonthChartInst=null; }
+  const canvas=document.getElementById('rcMonthChart');
+  if(!canvas) return;
+
+  let datasets;
+  if(byProg){
+    datasets = progLabels.map((prog,i)=>({
+      label: prog,
+      data: monthKeys.map(mk=>monthMap[mk].byProg[prog]||0),
+      backgroundColor: PALETTE[i%PALETTE.length]+'cc',
+      hoverBackgroundColor: PALETTE[i%PALETTE.length],
+      borderRadius: 4, borderSkipped: false, stack:'m'
+    }));
+  } else {
+    datasets = centreLabels.map((c,i)=>({
+      label: c,
+      data: monthKeys.map(mk=>monthMap[mk].byCentre[c]||0),
+      backgroundColor: PALETTE[i%PALETTE.length]+'cc',
+      hoverBackgroundColor: PALETTE[i%PALETTE.length],
+      borderRadius: 4, borderSkipped: false, stack:'m'
+    }));
+  }
+
+  _rcMonthChartInst = new Chart(canvas,{
+    type:'bar',
+    data:{ labels:monthLabels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{color:'#444',font:{size:9},boxWidth:10,padding:8}},
+        tooltip:{mode:'index',intersect:false,backgroundColor:'#fff',borderColor:'#e8dfc8',
+          borderWidth:1,titleColor:'#1e2a45',bodyColor:'#555',padding:10,
+          callbacks:{
+            footer: items => `Total: ${items.reduce((s,i)=>s+i.raw,0)}`
+          }}
+      },
+      scales:{
+        x:{stacked:true,grid:{display:false},ticks:{color:'#444',font:{size:10}}},
+        y:{stacked:true,grid:{color:'#f0ebe0'},ticks:{color:'#7a7060',font:{size:9}},beginAtZero:true,
+           title:{display:true,text:'Confirmed Registrations',color:'#888',font:{size:9}}}
+      }
+    }
+  });
 }
 
 function buildRegAnalytics(){
@@ -5206,6 +5264,34 @@ function buildRegAnalytics(){
     });
   });
 
+  // ── Month-wise aggregation ─────────────────────────────────
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtMonthKey = d => { // "2026-07-05 00:00:00" → "2026-07"
+    if(!d) return null;
+    const m = d.match(/^(\d{4})-(\d{2})/);
+    return m ? `${m[1]}-${m[2]}` : null;
+  };
+  const fmtMonthLabel = key => { // "2026-07" → "Jul 2026"
+    if(!key) return '—';
+    const [y,mo] = key.split('-');
+    return `${MONTH_NAMES[parseInt(mo)-1]} ${y}`;
+  };
+
+  // Build month map
+  const monthMap = {}; // { "2026-07": { total, byProg: {}, byCentre: {} } }
+  for(const r of rows){
+    const mk = fmtMonthKey(r.startDate);
+    if(!mk) continue;
+    if(!monthMap[mk]) monthMap[mk] = { total:0, byProg:{}, byCentre:{} };
+    monthMap[mk].total += r.confirmed;
+    monthMap[mk].byProg[r.progLabel]  = (monthMap[mk].byProg[r.progLabel]||0)  + r.confirmed;
+    monthMap[mk].byCentre[r.centre]   = (monthMap[mk].byCentre[r.centre]||0)   + r.confirmed;
+  }
+  const monthKeys   = Object.keys(monthMap).sort();
+  const monthLabels = monthKeys.map(fmtMonthLabel);
+  const monthTotals = monthKeys.map(k=>monthMap[k].total);
+  const topMonthKey = monthKeys.reduce((a,b)=>monthMap[a].total>=monthMap[b].total?a:b, monthKeys[0]);
+
   const PALETTE = [
     '#1e4080','#c8922a','#1a6b3a','#7a1a1a','#2d8a8a','#6b4a1a',
     '#4a1a6b','#1a4a6b','#6b1a4a','#3a6b1a'
@@ -5235,6 +5321,11 @@ function buildRegAnalytics(){
         <div style="font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Top Centre</div>
         <div style="font-size:.85rem;font-weight:800;color:var(--navy)">${centreLabels[0]}</div>
         <div style="font-size:.65rem;color:var(--muted)">${centreValues[0]} confirmed</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Busiest Month</div>
+        <div style="font-size:.85rem;font-weight:800;color:var(--navy)">${fmtMonthLabel(topMonthKey)}</div>
+        <div style="font-size:.65rem;color:var(--muted)">${monthMap[topMonthKey]?.total||0} confirmed</div>
       </div>
     </div>
 
@@ -5269,6 +5360,69 @@ function buildRegAnalytics(){
       <div style="font-size:.75rem;font-weight:800;color:var(--navy);margin-bottom:2px">Programme Breakdown by Centre</div>
       <div style="font-size:.6rem;color:var(--muted);margin-bottom:12px">Stacked — each colour = one programme type · top ${topProgs.length} programmes shown</div>
       <div style="position:relative;height:260px"><canvas id="rcStackedBar"></canvas></div>
+    </div>
+
+    <!-- Month-wise chart -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+        <div>
+          <div style="font-size:.75rem;font-weight:800;color:var(--navy)">Month-wise Confirmed Registrations</div>
+          <div style="font-size:.6rem;color:var(--muted)">Upcoming programme registrations grouped by start month</div>
+        </div>
+        <div style="display:inline-flex;background:#e8e4db;border-radius:8px;padding:3px;gap:2px" id="rcMonthToggle">
+          <button onclick="_rcMonthView='programme';_buildMonthChart()" id="rcMVprog"
+            style="padding:5px 12px;border:none;border-radius:6px;cursor:pointer;font-size:.68rem;font-weight:700;background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.18)">By Programme</button>
+          <button onclick="_rcMonthView='centre';_buildMonthChart()" id="rcMVcentre"
+            style="padding:5px 12px;border:none;border-radius:6px;cursor:pointer;font-size:.68rem;font-weight:600;background:transparent;color:#888">By Centre</button>
+        </div>
+      </div>
+      <div style="position:relative;height:260px;margin-top:12px"><canvas id="rcMonthChart"></canvas></div>
+    </div>
+
+    <!-- Month-wise detail table -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px">
+      <div style="font-size:.75rem;font-weight:800;color:var(--navy);margin-bottom:12px">Monthly Registration Detail</div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.7rem;min-width:400px">
+        <thead><tr style="background:#f5f2eb">
+          <th style="text-align:left;padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;white-space:nowrap">Month</th>
+          <th style="text-align:left;padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Programme</th>
+          <th style="text-align:right;padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Confirmed</th>
+          <th style="padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;min-width:80px">Share of Month</th>
+        </tr></thead>
+        <tbody>
+          ${monthKeys.map((mk,mi)=>{
+            const mTotal = monthMap[mk].total;
+            // Group all rows for this month by programme label
+            const progAgg = {};
+            rows.filter(r=>fmtMonthKey(r.startDate)===mk).forEach(r=>{
+              progAgg[r.progLabel] = (progAgg[r.progLabel]||0) + r.confirmed;
+            });
+            const progRows = Object.entries(progAgg).sort((a,b)=>b[1]-a[1]);
+            return progRows.map(([prog, count], ri)=>{
+              const pct = mTotal>0?Math.round(count/mTotal*100):0;
+              const pi  = progLabels.indexOf(prog);
+              return `<tr style="background:${(mi+ri)%2===0?'#fff':'#faf8f5'};border-top:1px solid #f0ebe0">
+                ${ri===0?`<td style="padding:7px 10px;font-weight:700;color:var(--navy);white-space:nowrap;vertical-align:top" rowspan="${progRows.length}">${fmtMonthLabel(mk)}<div style="font-size:.58rem;font-weight:600;color:#1a7a30;margin-top:2px">${mTotal} total</div></td>`:''}
+                <td style="padding:7px 10px;color:var(--navy);font-weight:600">
+                  <span style="display:inline-flex;align-items:center;gap:5px">
+                    <span style="width:7px;height:7px;border-radius:50%;background:${PALETTE[pi>=0?pi%PALETTE.length:0]};flex-shrink:0"></span>${prog}
+                  </span>
+                </td>
+                <td style="padding:7px 10px;text-align:right;font-weight:700;color:#1a7a30">${count}</td>
+                <td style="padding:7px 10px">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <div style="flex:1;background:#f0ebe0;border-radius:3px;height:6px;overflow:hidden">
+                      <div style="width:${pct}%;background:${PALETTE[pi>=0?pi%PALETTE.length:0]};height:100%"></div>
+                    </div>
+                    <span style="font-size:.6rem;color:var(--muted);flex-shrink:0">${pct}%</span>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('');
+          }).join('')}
+        </tbody>
+      </table></div>
     </div>
 
     <!-- Table: programme share -->
@@ -5347,6 +5501,11 @@ function buildRegAnalytics(){
       }
     }
   }));
+
+  // Store month data for toggle rebuilds
+  _rcMonthData = { monthKeys, monthLabels, monthTotals, monthMap, progLabels, centreLabels, PALETTE };
+  _rcMonthView = 'programme';
+  _buildMonthChart();
 
   // Stacked bar — programme × centre
   _regAnalyticsCharts.push(new Chart(document.getElementById('rcStackedBar'),{
