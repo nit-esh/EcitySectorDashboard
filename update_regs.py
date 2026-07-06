@@ -109,6 +109,7 @@ CENTRE_KEY_MAP = {
     'vijayanagar':   'IP - Vijayanagar',
     'budigere cross':'Budigere Cross',
     'mangalore':     'Mangalore',
+    'whitefield':    'Whitefield',
 }
 
 # Maps normalised prog key → CENTRE_DATA / MONTHLY_DATA sub-key
