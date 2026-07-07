@@ -111,6 +111,7 @@ CENTRE_KEY_MAP = {
     'mangalore':     'Mangalore',
     'whitefield':    'Whitefield',
     'mysuru':        'Mysuru',
+    'bg road':       'Bannerghatta Road',
 }
 
 # Maps normalised prog key → CENTRE_DATA / MONTHLY_DATA sub-key
