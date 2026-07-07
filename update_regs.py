@@ -110,6 +110,7 @@ CENTRE_KEY_MAP = {
     'budigere cross':'Budigere Cross',
     'mangalore':     'Mangalore',
     'whitefield':    'Whitefield',
+    'mysuru':        'Mysuru',
 }
 
 # Maps normalised prog key → CENTRE_DATA / MONTHLY_DATA sub-key
