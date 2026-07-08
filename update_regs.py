@@ -44,7 +44,9 @@ CENTRE_PATTERNS = [
     (r'hebbal|hebbala',                                       'hebbal'),
     (r'indiranagar|indira nagar',                             'indiranagar'),
     (r'mysuru|mysore',                                        'mysuru'),
-    (r'hubballi|hubli',                                       'hubballi'),
+    (r'hubballi|hubbali|hubli',                               'hubbali'),
+    (r'ballari|bellary',                                      'ballari'),
+    (r'belagavi|belgaum',                                     'belagavi'),
     (r'koramangala',                                          'koramangala'),
     (r'chikkaballapur',                                       'chikkaballapur'),
     # Sub-centres (primarily Monthly Satsang, parsed from Pivot Event xlsx)
@@ -112,6 +114,11 @@ CENTRE_KEY_MAP = {
     'whitefield':    'Whitefield',
     'mysuru':        'Mysuru',
     'bg road':       'Bannerghatta Road',
+    'ballari':       'Ballari',
+    'belagavi':      'Belagavi',
+    'hubbali':       'Hubbali',
+    'koramangala':   'Koramangala',
+    'kanakapura':    'Kanakapura Road',
 }
 
 # Maps normalised prog key → CENTRE_DATA / MONTHLY_DATA sub-key
