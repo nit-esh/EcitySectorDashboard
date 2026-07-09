@@ -145,24 +145,52 @@ main{max-width:1320px;margin:0 auto;padding:14px 12px 50px}
 .ov-nav-btn{background:none;border:none;padding:8px 18px;font-size:.78rem;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s;letter-spacing:.3px}
 .ov-nav-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
 .ov-nav-btn:hover:not(.active){color:var(--navy)}
-.ins-section{margin-bottom:14px}
-.ins-row{display:grid;gap:11px;margin-bottom:11px}
+.ins-section{margin-bottom:18px}
+.ins-row{display:grid;gap:12px;margin-bottom:12px}
 .ins-row-2{grid-template-columns:1fr 1fr}
 .ins-row-3{grid-template-columns:1fr 1fr 1fr}
 .ins-clink{color:inherit;font-weight:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;cursor:pointer;transition:color .15s}
 .ins-clink:hover{color:#b07a10}
-.ins-callout-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px}
-.ins-callout{background:#fffaf2;border:1px solid #f0e4c0;border-top:3px solid var(--saffron);border-radius:8px;padding:14px 16px;font-size:.72rem;color:var(--navy);line-height:1.7}
+/* Section header */
+.ins-sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.ins-sec-hdr::before{content:'';display:block;width:4px;height:18px;background:var(--navy);border-radius:2px;flex-shrink:0}
+.ins-sec-title{font-size:.82rem;font-weight:800;color:var(--navy);letter-spacing:.2px}
+/* KPI programme cards */
+.ins-kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.ins-kpi-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;border-top:4px solid var(--navy);position:relative;overflow:hidden}
+.ins-kpi-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0),rgba(255,255,255,.6));pointer-events:none}
+.ins-kpi-label{font-size:.52rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ins-kpi-val{font-size:1.4rem;font-weight:900;color:var(--navy);line-height:1;margin-bottom:4px}
+.ins-kpi-sub{font-size:.6rem;color:var(--muted)}
+/* Callouts */
+.ins-callout-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:4px}
+.ins-callout{background:#fffaf2;border:1px solid #f0e4c0;border-left:4px solid var(--saffron);border-radius:8px;padding:13px 15px;font-size:.72rem;color:var(--navy);line-height:1.75}
 .ins-callout strong{color:#b07a10;font-weight:800}
+/* Tables */
 .ins-table{width:100%;border-collapse:collapse;font-size:.7rem}
-.ins-table th{text-align:left;font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:5px 8px;border-bottom:2px solid var(--border)}
-.ins-table td{padding:6px 8px;border-bottom:1px solid #f0ebe0;color:var(--navy)}
+.ins-table th{text-align:left;font-size:.56rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:7px 10px;border-bottom:2px solid var(--border);background:#faf8f5}
+.ins-table td{padding:8px 10px;border-bottom:1px solid #f4f0e8;color:var(--navy);vertical-align:middle}
 .ins-table tr:last-child td{border-bottom:none}
-.ins-table tr:hover td{background:#faf8f5}
-.ins-badge{display:inline-block;font-size:.58rem;font-weight:800;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.ins-table tr:hover td{background:#fdfaf4}
+.ins-table .rank-cell{font-size:.85rem;text-align:center;width:36px}
+/* Badges */
+.ins-badge{display:inline-block;font-size:.58rem;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap}
 .ins-up{background:#e8f4ed;color:#1a6b3a}
 .ins-dn{background:#fdecea;color:#9b2020}
-.ins-neu{background:#f0ebe0;color:var(--muted)}
+.ins-neu{background:#f0ebe0;color:#6b5e4a}
+/* Sparkline grid */
+.ins-spark-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.ins-spark-item{background:#faf8f5;border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.ins-spark-name{font-size:.62rem;font-weight:700;color:var(--navy);margin-bottom:6px}
+.ins-spark-val{font-size:.58rem;color:var(--muted);margin-bottom:4px}
+/* Programme tabs & year-range buttons */
+.ins-tab{background:none;border:none;border-bottom:2px solid transparent;padding:7px 14px;font-size:.72rem;font-weight:700;color:var(--muted);cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap}
+.ins-tab:hover{color:var(--navy)}
+.ins-tab-act{font-weight:800;color:var(--navy)}
+/* Health matrix filter chips */
+.ins-chip{background:#f0ebe0;border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:.65rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.ins-chip:hover{background:#e8dfc8;color:var(--navy)}
+.ins-chip-act{background:var(--navy);border-color:var(--navy);color:#fff}
 .au-cat-header{display:flex;align-items:center;gap:10px;margin-bottom:4px;padding:8px 12px;background:var(--navy);border-radius:8px}
 .au-cat-label{font-size:.75rem;font-weight:800;color:#fff;letter-spacing:.3px}
 .au-cat-count{font-size:.6rem;font-weight:600;color:rgba(255,255,255,.65);margin-left:auto}
@@ -715,19 +743,16 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
     <div id="ovOverviewPage">
     <div style="margin-bottom:14px">
       <div id="ovHeading" style="font-size:1.1rem;font-weight:800;color:var(--navy);margin-bottom:4px">All Karnataka Centres — Overview</div>
-      <div id="ovSubtitle" style="font-size:.68rem;color:var(--muted)">Showing IE, BSP, Shoonya and Samyama totals across all centres · Green badge = % of IE participants · 2026 YTD in brackets</div>
+      <div id="ovSubtitle" style="font-size:.68rem;color:var(--muted)"></div>
     </div>
     <div id="ovKpiStrip" style="display:none;margin-bottom:14px"></div>
     <div class="overview-grid" id="overviewGrid"></div>
-    <div id="ovExtraCards" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px">
-        <div class="card" id="ovProgressCard"></div>
-        <div class="card" id="ovGrowthCard"></div>
+    <!-- Coordinator-only: single-centre year-over-year chart -->
+    <div id="coordOvChartWrap" style="display:none">
+      <div class="card">
+        <div class="card-t" id="ovChartTitle">IE Participants (Year-over-Year)</div>
+        <div style="height:220px;position:relative"><canvas id="coordOvChart"></canvas></div>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-t" id="ovChartTitle">IE Participants — All Centres Comparison (Annual)</div>
-      <div style="height:220px;position:relative"><canvas id="compareChart"></canvas></div>
     </div>
     </div><!-- /ovOverviewPage -->
 
@@ -748,9 +773,17 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
     <div id="ovInsightsPage" style="display:none">
       <div style="margin-bottom:16px">
         <div style="font-size:1.1rem;font-weight:800;color:var(--navy);margin-bottom:3px">Karnataka Region — Insights</div>
-        <div style="font-size:.68rem;color:var(--muted)">Collective analytics across all 8 Karnataka centres · Data through 2026 YTD</div>
+        <div style="font-size:.68rem;color:var(--muted)">Collective analytics across all Karnataka centres · Data through 2026 YTD</div>
       </div>
       <div id="insightsContent"></div>
+      <!-- Progress/growth cards + comparison chart -->
+      <div id="ovExtraCards" style="display:none;margin-top:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px">
+          <div class="card" id="ovProgressCard"></div>
+          <div class="card" id="ovGrowthCard"></div>
+        </div>
+      </div>
+      <canvas id="compareChart" style="display:none"></canvas>
     </div>
   </div>
 </main>
@@ -3113,15 +3146,15 @@ const LIVE_REGS = {
     "bhastrika|2026-07-12": 4,
     "bhuta shuddhi|2026-07-19": 7,
     "jala neti|2026-07-19": 3,
-    "samyama": 170,
-    "shoonya intensive|2026-08-06": 74,
-    "shoonya intensive|2026-07-16": 59,
-    "shoonya intensive|2026-07-23": 69,
+    "samyama": 172,
+    "shoonya intensive|2026-08-06": 76,
+    "shoonya intensive|2026-07-16": 60,
+    "shoonya intensive|2026-07-23": 70,
     "surya kriya|2026-07-10": 1,
     "thoppukarnam|2026-07-12": 1,
     "upa yoga": 1350,
     "yogasanas|2026-07-26": 2,
-    "yogasanas|2026-07-18": 24,
+    "yogasanas|2026-07-18": 25,
     "yogasanas|2026-07-17": 1
   },
   "bg road": {
@@ -3135,8 +3168,8 @@ const LIVE_REGS = {
     "angamardana": 3,
     "bhuta shuddhi": 1,
     "inner engineering": 2,
-    "isha janani": 8,
-    "surya kriya": 10,
+    "isha janani": 9,
+    "surya kriya": 2,
     "yogasanas": 1
   },
   "hsr": {
@@ -3152,8 +3185,8 @@ const LIVE_REGS = {
     "angamardana": 0,
     "bhuta shuddhi": 3,
     "guru pooja": 3,
-    "inner engineering": 11,
-    "surya kriya": 4
+    "inner engineering": 12,
+    "surya kriya": 5
   },
   "marathahalli": {
     "angamardana|2026-03-17": 1,
@@ -3161,15 +3194,15 @@ const LIVE_REGS = {
     "bhuta shuddhi|2026-03-19": 3,
     "bhuta shuddhi|2026-03-30": 0,
     "inner engineering": 6,
-    "surya kriya": 13,
-    "yogasanas": 9
+    "surya kriya": 15,
+    "yogasanas": 10
   },
   "mysuru": {
     "angamardana": 1
   },
   "vijayanagar": {
     "hatha children": 1,
-    "inner engineering": 8
+    "inner engineering": 10
   },
   "kanakapura": {
     "inner engineering": 11,
@@ -3181,7 +3214,7 @@ const LIVE_REGS = {
     "inner engineering": 2
   }
 };
-const LIVE_REGS_UPDATED = "08 Jul 2026, 10:55 PM";
+const LIVE_REGS_UPDATED = "09 Jul 2026, 12:35 PM";
 /* __LIVE_REGS_END__ */
 
 // ── Static Hatha Yoga registration counts (from programme coordinator sheet) ──
@@ -7446,254 +7479,421 @@ function buildRegAnalytics(){
 
 function buildInsights(){
   const el = document.getElementById('insightsContent');
-  const PY = String(parseInt(CY)-1);         // 2025
-  const PY2 = String(parseInt(CY)-2);        // 2024
+  const PY  = String(parseInt(CY)-1);
+  const PY2 = String(parseInt(CY)-2);
   const allYears = [...new Set(CENTRES.flatMap(c=>Object.keys(CENTRE_DATA[c].ie)))].sort();
-  const recentYears = allYears.slice(-6);
 
-  // ── helpers ──────────────────────────────────────────────
-  const ieTotal  = c => Object.values(CENTRE_DATA[c].ie).reduce((s,v)=>s+v,0);
-  const ieYear   = (c,y) => CENTRE_DATA[c].ie[y]||0;
-  const bspTotal = c => Object.values(CENTRE_DATA[c].bsp).reduce((s,v)=>s+v,0);
-  const shoTotal = c => Object.values(CENTRE_DATA[c].shoonya||{}).reduce((s,v)=>s+v,0);
-  const samTotal = c => Object.values(CENTRE_DATA[c].samyama).reduce((s,v)=>s+v,0);
-  const yoy = (c,y1,y2) => { const a=ieYear(c,y1),b=ieYear(c,y2); return b>0?((a-b)/b*100):null; };
+  // ── State ───────────────────────────────────────────────
+  window._ins = window._ins || {};
+  const S = window._ins._state = window._ins._state || {
+    prog:'ie', years:10, matSort:'cy', matDir:-1, rankSort:'cy', rankDir:-1, healthFilter:'all'
+  };
+
+  // ── Helpers ─────────────────────────────────────────────
+  const progData  = (c,p) => CENTRE_DATA[c][p] || {};
+  const progTotal = (c,p) => Object.values(progData(c,p)).reduce((s,v)=>s+v,0);
+  const progYear  = (c,p,y) => (progData(c,p)[y]||0);
   const fmtPct = (v,dec=1) => v===null?'—':(v>=0?'+':'')+v.toFixed(dec)+'%';
   const col = v => v===null?'ins-neu':v>=0?'ins-up':'ins-dn';
+  const yoyPct = (now,prev) => prev>0?((now-prev)/prev*100):null;
 
-  // Region totals
-  const karnIE    = CENTRES.reduce((s,c)=>s+ieTotal(c),0);
-  const karnIECY  = CENTRES.reduce((s,c)=>s+ieYear(c,CY),0);
-  const karnIEPY  = CENTRES.reduce((s,c)=>s+ieYear(c,PY),0);
-  const karnIEPY2 = CENTRES.reduce((s,c)=>s+ieYear(c,PY2),0);
-  const karnBSP   = CENTRES.reduce((s,c)=>s+bspTotal(c),0);
-  const karnSho   = CENTRES.reduce((s,c)=>s+shoTotal(c),0);
-  const karnSam   = CENTRES.reduce((s,c)=>s+samTotal(c),0);
-  const karnYoY   = karnIEPY>0?((karnIECY-karnIEPY)/karnIEPY*100):null;
-  const karnYoY2  = karnIEPY2>0?((karnIEPY-karnIEPY2)/karnIEPY2*100):null;
+  const PROG_LABELS = {ie:'Inner Engineering',bsp:'Bhava Spandana',shoonya:'Shoonya',samyama:'Samyama'};
+  const PROG_COLORS = {ie:'#1e4080',bsp:'#7a1a1a',shoonya:'#1a4a5a',samyama:'#1a5a3a'};
 
-  // Per-centre derived metrics
-  const centreStats = CENTRES.map(c=>({
-    c,
-    total:  ieTotal(c),
-    cy:     ieYear(c,CY),
-    py:     ieYear(c,PY),
-    py2:    ieYear(c,PY2),
-    yoyCY:  yoy(c,CY,PY),
-    yoyPY:  yoy(c,PY,PY2),
-    bsp:    bspTotal(c),
-    sho:    shoTotal(c),
-    sam:    samTotal(c),
-  }));
-  const ranked = [...centreStats].sort((a,b)=>b.total-a.total);
-  const rankedCY = [...centreStats].sort((a,b)=>b.cy-a.cy);
-  const fastest = [...centreStats].filter(x=>x.yoyCY!==null).sort((a,b)=>b.yoyCY-a.yoyCY);
-  const slowest = [...centreStats].filter(x=>x.yoyCY!==null).sort((a,b)=>a.yoyCY-b.yoyCY);
-
-  // Growth streak: how many consecutive years of growth ending at PY
-  const streak = c => {
-    const ys = Object.keys(CENTRE_DATA[c].ie).map(Number).sort((a,b)=>b-a).filter(y=>y<parseInt(CY));
+  // ── Health metric helpers (IE-based) ─────────────────────
+  const streakFn = c => {
+    const ys=Object.keys(CENTRE_DATA[c].ie).map(Number).sort((a,b)=>b-a).filter(y=>y<parseInt(CY));
     let s=0; for(let i=0;i<ys.length-1;i++){ if((CENTRE_DATA[c].ie[ys[i]]||0)>(CENTRE_DATA[c].ie[ys[i+1]]||0)) s++; else break; } return s;
   };
-
-  // Consistency score: % of years with growth (excluding COVID 2020)
-  const consistency = c => {
+  const consistencyFn = c => {
     const ys=Object.keys(CENTRE_DATA[c].ie).map(Number).sort().filter(y=>y!==2020&&y<parseInt(CY));
-    let growthYears=0; for(let i=1;i<ys.length;i++) if(ieYear(c,String(ys[i]))>ieYear(c,String(ys[i-1]))) growthYears++;
-    return ys.length>1?Math.round(growthYears/(ys.length-1)*100):0;
+    let g=0; for(let i=1;i<ys.length;i++) if((CENTRE_DATA[c].ie[String(ys[i])]||0)>(CENTRE_DATA[c].ie[String(ys[i-1])]||0)) g++;
+    return ys.length>1?Math.round(g/(ys.length-1)*100):0;
+  };
+  const recoveryFn = c => {
+    const pre=CENTRE_DATA[c].ie['2019']||CENTRE_DATA[c].ie['2018']||0;
+    const post=CENTRE_DATA[c].ie[PY]||0;
+    return pre>0?((post-pre)/pre*100):null;
+  };
+  const bspRateFn = c => {
+    const ie=Object.values(CENTRE_DATA[c].ie).reduce((s,v)=>s+v,0);
+    const bsp=Object.values(CENTRE_DATA[c].bsp||{}).reduce((s,v)=>s+v,0);
+    return ie>0?(bsp/ie*100):null;
   };
 
-  // Pre-COVID vs post-COVID recovery
-  const preCovid = c => (ieYear(c,'2019')||ieYear(c,'2018'));
-  const postCovid= c => ieYear(c,PY);
-  const recovery = c => { const pre=preCovid(c); return pre>0?((postCovid(c)-pre)/pre*100):null; };
+  // ── Main render ─────────────────────────────────────────
+  const render = () => {
+    const p     = S.prog;
+    const color = PROG_COLORS[p];
+    const label = PROG_LABELS[p];
 
-  // Karnataka aggregate IE by year for chart data
-  const karnByYear = recentYears.map(y=>CENTRES.reduce((s,c)=>s+ieYear(c,y),0));
+    // Year window
+    const showYears = S.years===0 ? allYears : allYears.slice(-Math.min(S.years, allYears.length));
 
-  // ── narrative callouts ───────────────────────────────────
-  const topAllTime = ranked[0];
-  const topCYCentre = rankedCY[0];
-  const fastestGrower = fastest[0];
-  const longestStreak = [...CENTRES].map(c=>({c,s:streak(c)})).sort((a,b)=>b.s-a.s)[0];
-  const bestRecovery  = [...CENTRES].map(c=>({c,r:recovery(c)})).filter(x=>x.r!==null).sort((a,b)=>b.r-a.r)[0];
+    // Per-centre stats for selected programme
+    const centreStats = CENTRES.map(c=>({
+      c,
+      total:  progTotal(c,p),
+      cy:     progYear(c,p,CY),
+      py:     progYear(c,p,PY),
+      py2:    progYear(c,p,PY2),
+      yoyCY:  yoyPct(progYear(c,p,CY), progYear(c,p,PY)),
+      yoyPY:  yoyPct(progYear(c,p,PY), progYear(c,p,PY2)),
+      ieCY:   CENTRE_DATA[c].ie[CY]||0,
+      iePY:   CENTRE_DATA[c].ie[PY]||0,
+      ieYoY:  yoyPct(CENTRE_DATA[c].ie[CY]||0, CENTRE_DATA[c].ie[PY]||0),
+    }));
 
-  // Clickable centre name link → navigates to that centre's dashboard
-  const cLink = c => `<a onclick="switchCentre('${c}',null)" class="ins-clink">${c}</a>`;
+    // Region KPIs
+    const regTotal = centreStats.reduce((s,x)=>s+x.total,0);
+    const regCY    = centreStats.reduce((s,x)=>s+x.cy,0);
+    const regPY    = centreStats.reduce((s,x)=>s+x.py,0);
+    const regYoY   = yoyPct(regCY,regPY);
+    const topCentre = [...centreStats].sort((a,b)=>b.cy-a.cy)[0];
 
-  const narratives = [
-    `Karnataka has collectively served <strong>${karnIE.toLocaleString()}</strong> Inner Engineering participants across all ${CENTRES.length} centres since inception.`,
-    `In ${CY}, the region has already reached <strong>${karnIECY.toLocaleString()}</strong> IE participants — <strong>${fmtPct(karnYoY)}</strong> vs full year ${PY} (${karnIEPY.toLocaleString()}).`,
-    `${cLink(topAllTime.c)} leads Karnataka all-time with <strong>${topAllTime.total.toLocaleString()}</strong> IE participants (${(topAllTime.total/karnIE*100).toFixed(1)}% of region total).`,
-    `${cLink(topCYCentre.c)} is the top performer in ${CY} with <strong>${topCYCentre.cy.toLocaleString()}</strong> participants so far.`,
-    fastestGrower?`${cLink(fastestGrower.c)} is the fastest growing centre this year at <strong>${fmtPct(fastestGrower.yoyCY)}</strong> YoY growth.`:'',
-    longestStreak.s>=2?`${cLink(longestStreak.c)} has grown for <strong>${longestStreak.s} consecutive years</strong> — the longest active growth streak in Karnataka.`:'',
-    bestRecovery?`Post-COVID recovery leader: ${cLink(bestRecovery.c)} at <strong>${fmtPct(bestRecovery.r)}</strong> vs 2019 levels.`:'',
-    `Programme mix: BSP conversion rate is <strong>${karnIE>0?(karnBSP/karnIE*100).toFixed(1):'—'}%</strong> · Shoonya <strong>${karnIE>0?(karnSho/karnIE*100).toFixed(1):'—'}%</strong> · Samyama <strong>${karnIE>0?(karnSam/karnIE*100).toFixed(1):'—'}%</strong> of total IE all-time.`,
-  ].filter(Boolean);
+    // Region trend
+    const regionByYear = showYears.map(y=>CENTRES.reduce((s,c)=>s+progYear(c,p,y),0));
 
-  // ── bar chart: Karnataka IE by year (canvas) ─────────────
-  const chartId = 'insBarChart';
-  const sparkIds = CENTRES.map((_,i)=>'insSpark'+i);
+    // IE-level narratives
+    const ieTotal = CENTRES.reduce((s,c)=>s+Object.values(CENTRE_DATA[c].ie).reduce((a,v)=>a+v,0),0);
+    const ieCY    = CENTRES.reduce((s,c)=>s+(CENTRE_DATA[c].ie[CY]||0),0);
+    const iePY    = CENTRES.reduce((s,c)=>s+(CENTRE_DATA[c].ie[PY]||0),0);
+    const karnYoY = yoyPct(ieCY,iePY);
+    const karnBSP = CENTRES.reduce((s,c)=>s+Object.values(CENTRE_DATA[c].bsp||{}).reduce((a,v)=>a+v,0),0);
+    const karnSho = CENTRES.reduce((s,c)=>s+Object.values(CENTRE_DATA[c].shoonya||{}).reduce((a,v)=>a+v,0),0);
+    const karnSam = CENTRES.reduce((s,c)=>s+Object.values(CENTRE_DATA[c].samyama||{}).reduce((a,v)=>a+v,0),0);
+    const ieStats = CENTRES.map(c=>({
+      c, total:Object.values(CENTRE_DATA[c].ie).reduce((s,v)=>s+v,0),
+      cy:CENTRE_DATA[c].ie[CY]||0, py:CENTRE_DATA[c].ie[PY]||0,
+      yoyCY:yoyPct(CENTRE_DATA[c].ie[CY]||0,CENTRE_DATA[c].ie[PY]||0)
+    }));
+    const topAllTime   = [...ieStats].sort((a,b)=>b.total-a.total)[0];
+    const topCYIE      = [...ieStats].sort((a,b)=>b.cy-a.cy)[0];
+    const fastestIE    = [...ieStats].filter(x=>x.yoyCY!==null).sort((a,b)=>b.yoyCY-a.yoyCY)[0];
+    const longestStrk  = [...CENTRES].map(c=>({c,s:streakFn(c)})).sort((a,b)=>b.s-a.s)[0];
+    const cLink = c=>`<a onclick="switchCentre('${c}',null)" class="ins-clink">${c}</a>`;
 
-  el.innerHTML = `
-    <!-- Key callouts -->
-    <div class="ins-section">
-      <div style="font-size:.8rem;font-weight:800;color:var(--navy);margin-bottom:8px;letter-spacing:.2px">Key Insights</div>
-      <div class="ins-callout-grid">
-        ${narratives.map(n=>`<div class="ins-callout">${n}</div>`).join('')}
+    const narratives = [
+      `Karnataka has served <strong>${ieTotal.toLocaleString()}</strong> Inner Engineering participants across all ${CENTRES.length} centres since inception.`,
+      `In ${CY}, the region has reached <strong>${ieCY.toLocaleString()}</strong> IE participants — <strong>${fmtPct(karnYoY)}</strong> vs full year ${PY} (${iePY.toLocaleString()}).`,
+      `${cLink(topAllTime.c)} leads all-time with <strong>${topAllTime.total.toLocaleString()}</strong> IE participants (${(topAllTime.total/ieTotal*100).toFixed(1)}% of region).`,
+      `${cLink(topCYIE.c)} is the top performer in ${CY} YTD with <strong>${topCYIE.cy.toLocaleString()}</strong> IE participants.`,
+      fastestIE?`${cLink(fastestIE.c)} is the fastest growing this year at <strong>${fmtPct(fastestIE.yoyCY)}</strong> YoY.`:'',
+      longestStrk.s>=2?`${cLink(longestStrk.c)} has grown for <strong>${longestStrk.s} consecutive years</strong> — longest growth streak in Karnataka.`:'',
+      `Programme mix (all-time): BSP <strong>${ieTotal>0?(karnBSP/ieTotal*100).toFixed(1):'—'}%</strong> · Shoonya <strong>${ieTotal>0?(karnSho/ieTotal*100).toFixed(1):'—'}%</strong> · Samyama <strong>${ieTotal>0?(karnSam/ieTotal*100).toFixed(1):'—'}%</strong> of IE.`,
+    ].filter(Boolean);
+
+    // Rankings sorted
+    const sortedByProg = [...centreStats].sort((a,b)=>{
+      const dir=S.rankDir;
+      if(S.rankSort==='total') return dir*(b.total-a.total);
+      if(S.rankSort==='py')    return dir*(b.py-a.py);
+      if(S.rankSort==='yoy')   return dir*((b.yoyCY??-9999)-(a.yoyCY??-9999));
+      return dir*(b.cy-a.cy);
+    });
+
+    // Health matrix data
+    const matData = centreStats.map(x=>({
+      ...x, streak:streakFn(x.c), consistency:consistencyFn(x.c),
+      recovery:recoveryFn(x.c), bspRate:bspRateFn(x.c)
+    }));
+    const filtered = matData.filter(x=>{
+      if(S.healthFilter==='growing')   return x.ieYoY!==null&&x.ieYoY>0;
+      if(S.healthFilter==='declining') return x.ieYoY!==null&&x.ieYoY<0;
+      if(S.healthFilter==='attention') return x.streak===0||x.consistency<50;
+      return true;
+    });
+    const sortedMat = [...filtered].sort((a,b)=>{
+      const dir=S.matDir, k=S.matSort;
+      const va=a[k]??-9999, vb=b[k]??-9999;
+      return dir*(vb-va);
+    });
+
+    // UI helpers
+    const tabBtn = (t,l) => `<button onclick="window._ins.setProg('${t}')" class="ins-tab${S.prog===t?' ins-tab-act':''}" style="${S.prog===t?`border-bottom-color:${PROG_COLORS[t]};color:${PROG_COLORS[t]}`:''}">${l}</button>`;
+    const yrBtn  = (y,l) => `<button onclick="window._ins.setYears(${y})" class="ins-tab${S.years===y?' ins-tab-act':''}" style="${S.years===y?`border-bottom-color:${color};color:${color}`:''}">${l}</button>`;
+    const chipBtn= (f,l) => `<button onclick="window._ins.setFilter('${f}')" class="ins-chip${S.healthFilter===f?' ins-chip-act':''}">${l}</button>`;
+    const thM = (label,key,align='center') => {
+      const act=S.matSort===key;
+      return `<th style="text-align:${align};cursor:pointer;user-select:none;white-space:nowrap" onclick="window._ins.matSort('${key}')">${label}${act?`<span style="color:var(--saffron)">${S.matDir===-1?' ↓':' ↑'}</span>`:'<span style="color:var(--border)"> ↕</span>'}</th>`;
+    };
+    const thR = (label,key) => {
+      const act=S.rankSort===key;
+      return `<th style="cursor:pointer;user-select:none;white-space:nowrap" onclick="window._ins.rankSort('${key}')">${label}${act?`<span style="color:var(--saffron)">${S.rankDir===-1?' ↓':' ↑'}</span>`:'<span style="color:var(--border)"> ↕</span>'}</th>`;
+    };
+
+    el.innerHTML = `
+      <!-- Programme tabs -->
+      <div style="display:flex;gap:2px;margin-bottom:16px;border-bottom:2px solid var(--border);padding-bottom:0;flex-wrap:wrap">
+        ${tabBtn('ie','Inner Engineering')}
+        ${tabBtn('bsp','Bhava Spandana')}
+        ${tabBtn('shoonya','Shoonya')}
+        ${tabBtn('samyama','Samyama')}
       </div>
-    </div>
 
-    <!-- Region totals strip -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:11px">
-      ${[
-        ['IE All-Time',        karnIE.toLocaleString(),  'Total across Karnataka'],
-        [`IE ${CY} YTD`,       karnIECY.toLocaleString(),`${fmtPct(karnYoY)} vs ${PY}`],
-        ['Bhava Spandana',     karnBSP.toLocaleString(), `${karnIE>0?(karnBSP/karnIE*100).toFixed(1):'—'}% of IE`],
-        ['Shoonya Intensive', karnSho.toLocaleString(),  `${karnIE>0?(karnSho/karnIE*100).toFixed(1):'—'}% of IE`],
-        ['Samyama',            karnSam.toLocaleString(),  `${karnIE>0?(karnSam/karnIE*100).toFixed(1):'—'}% of IE`],
-      ].map(([label,val,sub])=>`
-        <div class="card" style="padding:12px 14px">
-          <div style="font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${label}</div>
-          <div style="font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:2px">${val}</div>
-          <div style="font-size:.6rem;color:var(--muted)">${sub}</div>
-        </div>`).join('')}
-    </div>
-
-    <!-- Karnataka IE trend chart -->
-    <div class="card ins-section">
-      <div class="card-t" style="margin-bottom:12px">Karnataka Region — IE Participants by Year</div>
-      <div style="height:200px;position:relative"><canvas id="${chartId}"></canvas></div>
-    </div>
-
-    <!-- Centre performance table -->
-    <div class="ins-row ins-row-2">
-      <div class="card">
-        <div class="card-t" style="margin-bottom:10px">All-Time Rankings</div>
-        <table class="ins-table">
-          <thead><tr><th>#</th><th>Centre</th><th>All-Time IE</th><th>Share</th></tr></thead>
-          <tbody>${ranked.map((x,i)=>`
-            <tr>
-              <td style="font-weight:800;color:var(--saffron)">${['🥇','🥈','🥉'][i]||i+1}</td>
-              <td>${cLink(x.c)}</td>
-              <td style="font-weight:700">${x.total.toLocaleString()}</td>
-              <td><span class="ins-badge ins-neu">${(x.total/karnIE*100).toFixed(1)}%</span></td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
+      <!-- 3-card dynamic KPI strip -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">
+        <div class="ins-kpi-card" style="border-top-color:${color}">
+          <div class="ins-kpi-label">${label} — All-Time</div>
+          <div class="ins-kpi-val">${regTotal.toLocaleString()}</div>
+          <div class="ins-kpi-sub">Across ${CENTRES.length} centres</div>
+        </div>
+        <div class="ins-kpi-card" style="border-top-color:${color}">
+          <div class="ins-kpi-label">${label} — ${CY} YTD</div>
+          <div class="ins-kpi-val">${regCY.toLocaleString()}</div>
+          <div class="ins-kpi-sub" style="color:${regYoY!==null&&regYoY>=0?'#1a6b3a':'#9b2020'};font-weight:700">${fmtPct(regYoY)} vs ${PY}</div>
+        </div>
+        <div class="ins-kpi-card" style="border-top-color:${color}">
+          <div class="ins-kpi-label">${CY} Top Centre</div>
+          <div class="ins-kpi-val" style="font-size:1rem">${topCentre?.c||'—'}</div>
+          <div class="ins-kpi-sub">${(topCentre?.cy||0).toLocaleString()} participants YTD</div>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-t" style="margin-bottom:10px">${CY} YTD Rankings & Growth</div>
-        <table class="ins-table">
-          <thead><tr><th>#</th><th>Centre</th><th>${CY} YTD</th><th>YoY</th></tr></thead>
-          <tbody>${rankedCY.map((x,i)=>`
-            <tr>
-              <td style="font-weight:800;color:var(--saffron)">${['🥇','🥈','🥉'][i]||i+1}</td>
-              <td>${cLink(x.c)}</td>
-              <td style="font-weight:700">${x.cy.toLocaleString()}</td>
-              <td><span class="ins-badge ${col(x.yoyCY)}">${fmtPct(x.yoyCY)}</span></td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
+
+      <!-- Trend chart -->
+      <div class="card ins-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="ins-sec-hdr" style="margin-bottom:0"><span class="ins-sec-title">Karnataka ${label} — Year-on-Year</span></div>
+          <div style="display:flex;gap:4px">
+            ${yrBtn(3,'3Y')}${yrBtn(5,'5Y')}${yrBtn(10,'10Y')}${yrBtn(0,'All')}
+          </div>
+        </div>
+        <div style="height:200px;position:relative"><canvas id="insBarChart"></canvas></div>
       </div>
-    </div>
 
-    <!-- Growth & consistency table -->
-    <div class="card ins-section">
-      <div class="card-t" style="margin-bottom:10px">Centre Health Matrix</div>
-      <table class="ins-table">
-        <thead><tr>
-          <th>Centre</th>
-          <th>${CY} YoY</th>
-          <th>${PY} YoY</th>
-          <th>Growth Streak</th>
-          <th>Consistency</th>
-          <th>Post-COVID Recovery</th>
-          <th>BSP Conv.</th>
-        </tr></thead>
-        <tbody>${centreStats.map(x=>`
-          <tr>
-            <td>${cLink(x.c)}</td>
-            <td><span class="ins-badge ${col(x.yoyCY)}">${fmtPct(x.yoyCY)}</span></td>
-            <td><span class="ins-badge ${col(x.yoyPY)}">${fmtPct(x.yoyPY)}</span></td>
-            <td style="font-weight:700;text-align:center">${streak(x.c)} yr${streak(x.c)!==1?'s':''}</td>
-            <td style="text-align:center"><span class="ins-badge ${consistency(x.c)>=70?'ins-up':consistency(x.c)>=50?'ins-neu':'ins-dn'}">${consistency(x.c)}%</span></td>
-            <td><span class="ins-badge ${col(recovery(x.c))}">${fmtPct(recovery(x.c))}</span></td>
-            <td style="text-align:center">${x.total>0?((x.bsp/x.total)*100).toFixed(1)+'%':'—'}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Sparkline mini-charts per centre -->
-    <div class="card ins-section">
-      <div class="card-t" style="margin-bottom:12px">Centre IE Trends — Last 6 Years</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
-        ${CENTRES.map((c,i)=>`
-          <div>
-            <div style="font-size:.65rem;margin-bottom:4px">${cLink(c)}</div>
-            <div style="height:60px;position:relative"><canvas id="${sparkIds[i]}"></canvas></div>
-          </div>`).join('')}
+      <!-- Key Insights (IE-based) -->
+      <div class="ins-section">
+        <div class="ins-sec-hdr"><span class="ins-sec-title">Key Insights</span></div>
+        <div class="ins-callout-grid">
+          ${narratives.map(n=>`<div class="ins-callout">${n}</div>`).join('')}
+        </div>
       </div>
-    </div>
-  `;
 
-  // ── Draw region bar chart ─────────────────────────────────
-  const barCtx = document.getElementById(chartId)?.getContext('2d');
-  if(barCtx){
-    new Chart(barCtx,{
-      type:'bar',
-      data:{
-        labels: recentYears,
-        datasets:[{
-          label:'Karnataka IE',
-          data: karnByYear,
-          backgroundColor: recentYears.map(y=>y===CY?'#c8922a':'#1e4080'),
-          borderRadius:4,
-        }]
-      },
-      options:{
-        responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toLocaleString()+' participants'}}},
-        scales:{
-          x:{grid:{display:false},ticks:{font:{size:11}}},
-          y:{grid:{color:'#f0ebe0'},ticks:{font:{size:11},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}}
+      <!-- Rankings -->
+      <div class="ins-sec-hdr"><span class="ins-sec-title">${label} Rankings</span></div>
+      <div class="ins-row ins-row-2 ins-section">
+        <div class="card">
+          <div style="font-size:.72rem;font-weight:800;color:var(--navy);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border)">All Centres — Sortable</div>
+          <table class="ins-table">
+            <thead><tr>
+              <th class="rank-cell">#</th><th>Centre</th>
+              ${thR('All-Time','total')}
+              ${thR(CY+' YTD','cy')}
+              ${thR(PY,'py')}
+              ${thR('YoY','yoy')}
+            </tr></thead>
+            <tbody>${sortedByProg.map((x,i)=>`
+              <tr>
+                <td class="rank-cell">${['🥇','🥈','🥉'][i]||`<span style="color:var(--muted)">${i+1}</span>`}</td>
+                <td style="font-weight:600">${cLink(x.c)}</td>
+                <td style="text-align:right;font-weight:800;color:var(--navy)">${x.total.toLocaleString()}</td>
+                <td style="text-align:right;font-weight:700">${x.cy.toLocaleString()}</td>
+                <td style="text-align:right;color:var(--muted)">${x.py.toLocaleString()}</td>
+                <td style="text-align:right"><span class="ins-badge ${col(x.yoyCY)}">${fmtPct(x.yoyCY)}</span></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+          <div style="font-size:.55rem;color:var(--muted);margin-top:8px">Click column header to sort ↑↓</div>
+        </div>
+        <div class="card">
+          <div style="font-size:.72rem;font-weight:800;color:var(--navy);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border)">${CY} Fastest Growers</div>
+          <table class="ins-table">
+            <thead><tr><th class="rank-cell">#</th><th>Centre</th><th style="text-align:right">${CY} YTD</th><th style="text-align:right">YoY</th></tr></thead>
+            <tbody>${[...centreStats].filter(x=>x.yoyCY!==null).sort((a,b)=>b.yoyCY-a.yoyCY).map((x,i)=>`
+              <tr>
+                <td class="rank-cell">${['🥇','🥈','🥉'][i]||`<span style="color:var(--muted)">${i+1}</span>`}</td>
+                <td style="font-weight:600">${cLink(x.c)}</td>
+                <td style="text-align:right;font-weight:700">${x.cy.toLocaleString()}</td>
+                <td style="text-align:right"><span class="ins-badge ${col(x.yoyCY)}">${fmtPct(x.yoyCY)}</span></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Centre Health Matrix -->
+      <div class="card ins-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <div class="ins-sec-hdr" style="margin-bottom:0"><span class="ins-sec-title">Centre Health Matrix</span></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${chipBtn('all','All')}
+            ${chipBtn('growing','↑ Growing')}
+            ${chipBtn('declining','↓ Declining')}
+            ${chipBtn('attention','⚠ Needs Attention')}
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="ins-table" style="min-width:640px">
+            <thead><tr>
+              ${thM('Centre','c','left')}
+              ${thM(CY+' YoY','yoyCY')}
+              ${thM(PY+' YoY','yoyPY')}
+              ${thM('Streak','streak')}
+              ${thM('Consistency','consistency')}
+              ${thM('Post-COVID','recovery')}
+              ${thM('BSP Rate','bspRate')}
+            </tr></thead>
+            <tbody>${sortedMat.map((x,i)=>`
+              <tr style="${i%2===0?'background:#fdfaf4':''}">
+                <td style="font-weight:700">${cLink(x.c)}</td>
+                <td style="text-align:center"><span class="ins-badge ${col(x.yoyCY)}">${fmtPct(x.yoyCY)}</span></td>
+                <td style="text-align:center"><span class="ins-badge ${col(x.yoyPY)}">${fmtPct(x.yoyPY)}</span></td>
+                <td style="text-align:center;font-weight:700;color:${x.streak>=3?'#1a6b3a':x.streak>=1?'var(--navy)':'#9b2020'}">${x.streak} yr${x.streak!==1?'s':''}</td>
+                <td style="text-align:center"><span class="ins-badge ${x.consistency>=70?'ins-up':x.consistency>=50?'ins-neu':'ins-dn'}">${x.consistency}%</span></td>
+                <td style="text-align:center"><span class="ins-badge ${col(x.recovery)}">${fmtPct(x.recovery)}</span></td>
+                <td style="text-align:center;font-weight:700">${x.bspRate!==null?x.bspRate.toFixed(1)+'%':'—'}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="font-size:.55rem;color:var(--muted);margin-top:8px">Click header to sort · IE data used for growth/consistency/recovery metrics</div>
+      </div>
+
+      <!-- Centre Sparklines (always last 10 yrs for readability) -->
+      <div class="ins-section">
+        <div class="ins-sec-hdr"><span class="ins-sec-title">Centre Trends — ${label} (Last 10 Years)</span></div>
+        <div class="ins-spark-grid">
+          ${(()=>{const sparkYears=allYears.slice(-10);return CENTRES.map(c=>{
+            const vals=sparkYears.map(y=>progYear(c,p,y));
+            const maxV=Math.max(...vals,1);
+            const bars=vals.map((v,j)=>`
+              <div title="${sparkYears[j]}: ${v}" style="flex:1;display:flex;align-items:flex-end">
+                <div style="width:100%;height:${Math.round(v/maxV*36)+4}px;background:${sparkYears[j]===CY?'#c8922a':color};border-radius:2px 2px 0 0;opacity:${sparkYears[j]===CY?1:.7}"></div>
+              </div>`).join('');
+            return `<div class="ins-spark-item" onclick="switchCentre('${c}',null)" style="cursor:pointer">
+              <div class="ins-spark-name">${c}</div>
+              <div class="ins-spark-val">${CY}: <strong style="color:var(--navy)">${vals[vals.length-1]||0}</strong></div>
+              <div style="display:flex;gap:2px;align-items:flex-end;height:40px;margin-top:4px">${bars}</div>
+              <div style="display:flex;justify-content:space-between;margin-top:3px">
+                <span style="font-size:.5rem;color:var(--muted)">${sparkYears[0]}</span>
+                <span style="font-size:.5rem;color:#c8922a;font-weight:700">${CY}</span>
+              </div>
+            </div>`;
+          }).join('')})()}
+        </div>
+      </div>
+    `;
+
+    // Draw trend chart
+    if(window._ins._trendChart){ window._ins._trendChart.destroy(); window._ins._trendChart=null; }
+    const barCtx=document.getElementById('insBarChart')?.getContext('2d');
+    if(barCtx){
+      window._ins._trendChart=new Chart(barCtx,{
+        type:'bar',
+        data:{labels:showYears,datasets:[{
+          label, data:regionByYear,
+          backgroundColor:showYears.map(y=>y===CY?'#c8922a':color),
+          borderRadius:4
+        }]},
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toLocaleString()+' participants'}}},
+          scales:{
+            x:{grid:{display:false},ticks:{font:{size:11}}},
+            y:{grid:{color:'#f0ebe0'},ticks:{font:{size:11},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v},beginAtZero:true}
+          }
         }
-      }
+      });
+    }
+
+    // Update bottom cards
+    _buildProgressCard();
+    _buildGrowthCard();
+  };
+
+  // ── Register handlers ────────────────────────────────────
+  window._ins.setProg    = prog => { S.prog=prog; render(); };
+  window._ins.setYears   = y    => { S.years=y; render(); };
+  window._ins.setFilter  = f    => { S.healthFilter=f; render(); };
+  window._ins.matSort    = key  => { if(S.matSort===key) S.matDir*=-1; else{S.matSort=key;S.matDir=-1;} render(); };
+  window._ins.rankSort   = key  => { if(S.rankSort===key) S.rankDir*=-1; else{S.rankSort=key;S.rankDir=-1;} render(); };
+
+  render();
+}
+
+function _buildProgressCard(){
+  const PY=String(parseInt(CY)-1);
+  const progRows=[...CENTRES].map(c=>({c,cy:CENTRE_DATA[c].ie[CY]||0,py:CENTRE_DATA[c].ie[PY]||0})).sort((a,b)=>b.cy-a.cy);
+  const maxCY=Math.max(...progRows.map(x=>x.cy),1);
+  document.getElementById('ovProgressCard').innerHTML=`
+    <div class="card-t" style="margin-bottom:4px">${CY} YTD vs ${PY} — IE Participants</div>
+    <div style="font-size:.6rem;color:var(--muted);margin-bottom:12px">Bar = ${CY} YTD · dot = ${PY} full year</div>
+    ${progRows.map((x,i)=>{
+      const pct=(x.cy/maxCY*100).toFixed(1);
+      const dotPct=x.py>0?(Math.min(x.py,maxCY)/maxCY*100).toFixed(1):null;
+      const yoy=x.py>0?((x.cy-x.py)/x.py*100).toFixed(1):null;
+      const yoyCol=yoy===null?'var(--muted)':Number(yoy)>=0?'#1a6b3a':'#9b2020';
+      const medals=['🥇','🥈','🥉'];
+      return `<div style="margin-bottom:9px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <span style="font-size:.68rem;font-weight:600;color:var(--navy)">${medals[i]||''}${x.c}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            ${yoy!==null?`<span style="font-size:.6rem;font-weight:700;color:${yoyCol}">${Number(yoy)>=0?'+':''}${yoy}%</span>`:''}
+            <span style="font-size:.7rem;font-weight:700;color:var(--navy)">${x.cy.toLocaleString()}</span>
+          </div>
+        </div>
+        <div style="background:#f0ebe0;border-radius:4px;height:7px;overflow:visible;position:relative">
+          <div style="width:${pct}%;background:#1e4080;height:100%;border-radius:4px"></div>
+          ${dotPct?`<div style="position:absolute;top:-2px;left:calc(${dotPct}% - 3px);width:6px;height:11px;background:#c8922a;border-radius:2px;border:1.5px solid #fff"></div>`:''}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+function _buildGrowthCard(){
+  const PY=String(parseInt(CY)-1);
+  const growthRows=[...CENTRES].map(c=>{
+    const py=CENTRE_DATA[c].ie[PY]||0,cy=CENTRE_DATA[c].ie[CY]||0;
+    const rate=py>0?((cy-py)/py*100):null;
+    const fy=Object.keys(CENTRE_DATA[c].ie).filter(y=>y!==CY).sort();
+    const slice=fy.slice(-4),rates=[];
+    for(let i=1;i<slice.length;i++){const p=CENTRE_DATA[c].ie[slice[i-1]]||0,v=CENTRE_DATA[c].ie[slice[i]]||0;if(p>0)rates.push((v-p)/p*100);}
+    const mom=rates.length?rates.reduce((s,r)=>s+r,0)/rates.length:null;
+    return{c,cy,py,rate,mom};
+  }).sort((a,b)=>(b.rate??-999)-(a.rate??-999));
+  document.getElementById('ovGrowthCard').innerHTML=`
+    <div class="card-t" style="margin-bottom:4px">Growth Leaderboard — IE ${CY} YTD vs ${PY}</div>
+    <div style="font-size:.6rem;color:var(--muted);margin-bottom:12px">Ranked by YoY growth · 3-yr trend shown</div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:4px 12px;align-items:center">
+      <span style="font-size:.55rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Centre</span>
+      <span style="font-size:.55rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;text-align:right">YoY</span>
+      <span style="font-size:.55rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;text-align:right">3-Yr Trend</span>
+      ${growthRows.map((x,i)=>{
+        const yoyCol=x.rate===null?'var(--muted)':x.rate>=0?'#1a6b3a':'#9b2020';
+        const momCol=x.mom===null?'var(--muted)':x.mom>=0?'#1a6b3a':'#9b2020';
+        const rankEmoji=['🥇','🥈','🥉'][i]||`<span style="font-size:.6rem;color:var(--muted)">#${i+1}</span>`;
+        return `
+          <span style="font-size:.68rem;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:4px">${rankEmoji} ${x.c}</span>
+          <span style="font-size:.72rem;font-weight:800;color:${yoyCol};text-align:right">${x.rate!==null?(x.rate>=0?'+':'')+x.rate.toFixed(1)+'%':'—'}</span>
+          <span style="font-size:.68rem;font-weight:600;color:${momCol};text-align:right">${x.mom!==null?(x.mom>=0?'↑':'↓')+Math.abs(x.mom).toFixed(1)+'%':'—'}</span>`;
+      }).join('')}
+    </div>`;
+  document.getElementById('ovExtraCards').style.display='block';
+}
+
+function _buildCompareChart(showYears){
+  const colors=['#1e4080','#7a1a1a','#1a6b3a','#4a2800','#2d1a5c','#1a4a6b','#4a3800'];
+  const chartEl=document.getElementById('compareChart');
+  if(coordChart){coordChart.destroy();coordChart=null;}
+  if(!compareChart){
+    compareChart=new Chart(chartEl,{
+      type:'bar',
+      data:{labels:showYears,datasets:[]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:280},
+        plugins:{legend:{display:true,labels:{color:'#2c2c2c',font:{size:10}}},
+          tooltip:{backgroundColor:'#fff',borderColor:'#e8dfc8',borderWidth:1,titleColor:'#1e2a45',bodyColor:'#2c2c2c',padding:10}},
+        scales:{x:{grid:{display:false},ticks:{color:'#7a7060',font:{size:10}}},
+                y:{grid:{color:'#f0ebe0'},ticks:{color:'#7a7060',font:{size:9}},beginAtZero:true}}}
     });
   }
-
-  // ── Draw sparklines ───────────────────────────────────────
-  CENTRES.forEach((c,i)=>{
-    const ctx = document.getElementById(sparkIds[i])?.getContext('2d');
-    if(!ctx) return;
-    const vals = recentYears.map(y=>ieYear(c,y));
-    new Chart(ctx,{
-      type:'line',
-      data:{
-        labels: recentYears,
-        datasets:[{
-          data: vals,
-          borderColor:'#1e4080',
-          backgroundColor:'rgba(30,64,128,.08)',
-          borderWidth:2,
-          pointRadius:2,
-          pointBackgroundColor: recentYears.map(y=>y===CY?'#c8922a':'#1e4080'),
-          tension:.35,
-          fill:true,
-        }]
-      },
-      options:{
-        responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toLocaleString()}}},
-        scales:{
-          x:{display:false},
-          y:{display:false}
-        }
-      }
-    });
-  });
+  compareChart.data.labels=showYears;
+  compareChart.data.datasets=CENTRES.map((c,i)=>({
+    label:c, data:showYears.map(y=>CENTRE_DATA[c].ie[y]||0),
+    backgroundColor:colors[i%colors.length]+'99',
+    hoverBackgroundColor:colors[i%colors.length],
+    borderRadius:3,borderSkipped:false
+  }));
+  compareChart.update();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -7713,95 +7913,10 @@ function buildOverview(){
   } else {
     document.getElementById('ovNav').style.display='flex';
     document.getElementById('ovHeading').textContent = 'All Karnataka Centres — Overview';
-    document.getElementById('ovSubtitle').textContent = `Showing IE, BSP, Shoonya and Samyama totals across all ${CENTRES.length} centres · Green badge = % of IE participants · 2026 YTD in brackets`;
-    document.getElementById('ovChartTitle').textContent = 'IE Participants — All Centres Comparison (Annual)';
-
-    // ── Admin-only: KPI strip ──────────────────────────────────
-    const prevYear = String(parseInt(CY)-1);
-    const karnIETotal  = CENTRES.reduce((s,c)=>s+(Object.values(CENTRE_DATA[c].ie).reduce((a,v)=>a+v,0)),0);
-    const karnIECY     = CENTRES.reduce((s,c)=>s+(CENTRE_DATA[c].ie[CY]||0),0);
-    const karnIEPrev   = CENTRES.reduce((s,c)=>s+(CENTRE_DATA[c].ie[prevYear]||0),0);
-    const karnBSPTotal = CENTRES.reduce((s,c)=>s+(Object.values(CENTRE_DATA[c].bsp).reduce((a,v)=>a+v,0)),0);
-    const karnShoTotal = CENTRES.reduce((s,c)=>s+(Object.values(CENTRE_DATA[c].shoonya||{}).reduce((a,v)=>a+v,0)),0);
-    const karnSamTotal = CENTRES.reduce((s,c)=>s+(Object.values(CENTRE_DATA[c].samyama).reduce((a,v)=>a+v,0)),0);
-    const ieYoY = karnIEPrev>0?((karnIECY-karnIEPrev)/karnIEPrev*100).toFixed(1):null;
-    const topCY = [...CENTRES].sort((a,b)=>(CENTRE_DATA[b].ie[CY]||0)-(CENTRE_DATA[a].ie[CY]||0))[0];
-    const topCYVal = CENTRE_DATA[topCY].ie[CY]||0;
-    const totalUpcomingIE = CENTRES.reduce((s,c)=>s+(IE_UPCOMING[c]||[]).length,0);
-    const totalUpcomingHa = CENTRES.reduce((s,c)=>s+(HATHA_UPCOMING[c]||[]).length,0);
-
-    const kpi=(label,val,sub,col='var(--navy)')=>`
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 15px">
-        <div>
-          <div style="font-size:.52rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">${label}</div>
-          <div style="font-size:1.1rem;font-weight:800;color:${col}">${val}</div>
-          <div style="font-size:.6rem;color:var(--muted);margin-top:1px">${sub}</div>
-        </div>
-      </div>`;
-
+    document.getElementById('ovSubtitle').textContent = `Showing IE, BSP, Shoonya and Samyama totals across all ${CENTRES.length} centres · Green badge = % of IE participants · ${CY} YTD in brackets`;
+    // Insights (extra cards + comparison chart) now live on the Karnataka Insights tab
     document.getElementById('ovKpiStrip').style.display='none';
-
-    // ── 2026 Progress vs 2025 card ─────────────────────────────
-    const progRows = [...CENTRES]
-      .map(c=>({c, cy:CENTRE_DATA[c].ie[CY]||0, py:CENTRE_DATA[c].ie[prevYear]||0}))
-      .sort((a,b)=>b.cy-a.cy);
-    const maxCY = Math.max(...progRows.map(x=>x.cy),1);
-    document.getElementById('ovProgressCard').innerHTML=`
-      <div class="card-t" style="margin-bottom:4px">${CY} YTD vs ${prevYear} — IE Participants</div>
-      <div style="font-size:.6rem;color:var(--muted);margin-bottom:12px">Bar = ${CY} YTD · dot = ${prevYear} full year</div>
-      ${progRows.map((x,i)=>{
-        const pct = (x.cy/maxCY*100).toFixed(1);
-        const dotPct = x.py>0?(Math.min(x.py,maxCY)/maxCY*100).toFixed(1):null;
-        const yoy = x.py>0?((x.cy-x.py)/x.py*100).toFixed(1):null;
-        const yoyCol = yoy===null?'var(--muted)':Number(yoy)>=0?'#1a6b3a':'#9b2020';
-        const medals=['🥇','🥈','🥉'];
-        return `<div style="margin-bottom:9px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-            <span style="font-size:.68rem;font-weight:600;color:var(--navy)">${medals[i]||''}${x.c}</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              ${yoy!==null?`<span style="font-size:.6rem;font-weight:700;color:${yoyCol}">${Number(yoy)>=0?'+':''}${yoy}%</span>`:''}
-              <span style="font-size:.7rem;font-weight:700;color:var(--navy)">${x.cy.toLocaleString()}</span>
-            </div>
-          </div>
-          <div style="background:#f0ebe0;border-radius:4px;height:7px;overflow:visible;position:relative">
-            <div style="width:${pct}%;background:#1e4080;height:100%;border-radius:4px"></div>
-            ${dotPct?`<div style="position:absolute;top:-2px;left:calc(${dotPct}% - 3px);width:6px;height:11px;background:#c8922a;border-radius:2px;border:1.5px solid #fff"></div>`:''}
-          </div>
-        </div>`;
-      }).join('')}`;
-
-    // ── Growth Leaderboard card ────────────────────────────────
-    const growthRows = [...CENTRES]
-      .map(c=>{
-        const py=CENTRE_DATA[c].ie[prevYear]||0, cy=CENTRE_DATA[c].ie[CY]||0;
-        const rate=py>0?((cy-py)/py*100):null;
-        // 3-yr avg momentum
-        const fy=Object.keys(CENTRE_DATA[c].ie).filter(y=>y!==CY).sort();
-        const slice=fy.slice(-4),rates=[];
-        for(let i=1;i<slice.length;i++){const p=CENTRE_DATA[c].ie[slice[i-1]]||0,v=CENTRE_DATA[c].ie[slice[i]]||0;if(p>0)rates.push((v-p)/p*100);}
-        const mom=rates.length?rates.reduce((s,r)=>s+r,0)/rates.length:null;
-        return {c,cy,py,rate,mom};
-      })
-      .sort((a,b)=>(b.rate??-999)-(a.rate??-999));
-    document.getElementById('ovGrowthCard').innerHTML=`
-      <div class="card-t" style="margin-bottom:4px">Growth Leaderboard — IE ${CY} YTD vs ${prevYear}</div>
-      <div style="font-size:.6rem;color:var(--muted);margin-bottom:12px">Ranked by YoY growth · 3-yr trend shown</div>
-      <div style="display:grid;grid-template-columns:1fr auto auto;gap:4px 12px;align-items:center">
-        <span style="font-size:.55rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Centre</span>
-        <span style="font-size:.55rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;text-align:right">YoY</span>
-        <span style="font-size:.55rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;text-align:right">3-Yr Trend</span>
-        ${growthRows.map((x,i)=>{
-          const yoyCol=x.rate===null?'var(--muted)':x.rate>=0?'#1a6b3a':'#9b2020';
-          const momCol=x.mom===null?'var(--muted)':x.mom>=0?'#1a6b3a':'#9b2020';
-          const rankEmoji=['🥇','🥈','🥉'][i]||`<span style="font-size:.6rem;color:var(--muted)">#${i+1}</span>`;
-          return `
-            <span style="font-size:.68rem;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:4px">${rankEmoji} ${x.c}</span>
-            <span style="font-size:.72rem;font-weight:800;color:${yoyCol};text-align:right">${x.rate!==null?(x.rate>=0?'+':'')+x.rate.toFixed(1)+'%':'—'}</span>
-            <span style="font-size:.68rem;font-weight:600;color:${momCol};text-align:right">${x.mom!==null?(x.mom>=0?'↑':'↓')+Math.abs(x.mom).toFixed(1)+'%':'—'}</span>`;
-        }).join('')}
-      </div>`;
-
-    document.getElementById('ovExtraCards').style.display='block';
+    document.getElementById('coordOvChartWrap').style.display='none';
   }
   // Pre-compute two IE rankings: all-time total vs current year (CY)
   const _rankBy=(keyFn)=>Object.fromEntries(
@@ -7887,18 +8002,18 @@ function buildOverview(){
         <div class="ov-stats-grid">
           <div class="ov-stat-cell" onclick="switchCentreToTab('${c}','bsp',event)">
             <div class="ov-stat-name">BSP</div>
-            <div class="ov-stat-num">${bspT.toLocaleString()}</div>
-            <div class="ov-stat-pct">${pct(bspT,ieT)} of IE · ${CY}: ${bspY}</div>
+            <div class="ov-stat-num">${bspT.toLocaleString()} <span style="font-size:.7em;color:var(--muted);font-weight:600">[${bspY}]</span></div>
+            <div class="ov-stat-pct">${pct(bspT,ieT)} of IE</div>
           </div>
           <div class="ov-stat-cell" onclick="switchCentreToTab('${c}','shoonya',event)">
             <div class="ov-stat-name">Shoonya</div>
-            <div class="ov-stat-num">${shoT.toLocaleString()}</div>
-            <div class="ov-stat-pct">${pct(shoT,ieT)} of IE · ${CY}: ${shoY}</div>
+            <div class="ov-stat-num">${shoT.toLocaleString()} <span style="font-size:.7em;color:var(--muted);font-weight:600">[${shoY}]</span></div>
+            <div class="ov-stat-pct">${pct(shoT,ieT)} of IE</div>
           </div>
           <div class="ov-stat-cell" onclick="switchCentreToTab('${c}','samyama',event)">
             <div class="ov-stat-name">Samyama</div>
-            <div class="ov-stat-num">${samT.toLocaleString()}</div>
-            <div class="ov-stat-pct">${pct(samT,ieT)} of IE · ${CY}: ${samY}</div>
+            <div class="ov-stat-num">${samT.toLocaleString()} <span style="font-size:.7em;color:var(--muted);font-weight:600">[${samY}]</span></div>
+            <div class="ov-stat-pct">${pct(samT,ieT)} of IE</div>
           </div>
         </div>
       </div>
@@ -7919,15 +8034,13 @@ function buildOverview(){
     </div>`;
   }).join('');
 
-  // Chart — multi-centre comparison for admin; single-centre year-over-year for coordinator
-  const recentYears=['2021','2022','2023','2024','2025','2026'];
-  const colors=['#1e4080','#7a1a1a','#1a6b3a','#4a2800','#2d1a5c','#1a4a6b','#4a3800'];
-  const chartEl=document.getElementById('compareChart');
-
+  // Coordinator: single-centre IE year-over-year chart in overview
   if(overviewCentre){
-    // Coordinator: single-centre IE year-over-year bar chart
     const c=overviewCentre;
     const allYears=Object.keys(CENTRE_DATA[c].ie).sort();
+    const chartEl=document.getElementById('coordOvChart');
+    document.getElementById('coordOvChartWrap').style.display='';
+    document.getElementById('ovChartTitle').textContent='IE Participants — '+c+' (Year-over-Year)';
     if(!coordChart){
       coordChart=new Chart(chartEl,{
         type:'bar',
@@ -7943,31 +8056,10 @@ function buildOverview(){
     coordChart.data.datasets[0].label='Inner Engineering — '+c;
     coordChart.data.datasets[0].data=allYears.map(y=>CENTRE_DATA[c].ie[y]||0);
     coordChart.update();
-    // Hide compare chart, show coord chart
-    if(compareChart){ compareChart.destroy(); compareChart=null; }
   } else {
-    // Admin: multi-centre comparison chart
+    // Admin: chart lives on Karnataka Insights tab
+    document.getElementById('coordOvChartWrap').style.display='none';
     if(coordChart){ coordChart.destroy(); coordChart=null; }
-    if(!compareChart){
-      compareChart=new Chart(chartEl,{
-        type:'bar',
-        data:{labels:recentYears,datasets:[]},
-        options:{responsive:true,maintainAspectRatio:false,animation:{duration:280},
-          plugins:{legend:{display:true,labels:{color:'#2c2c2c',font:{size:10}}},
-            tooltip:{backgroundColor:'#fff',borderColor:'#e8dfc8',borderWidth:1,titleColor:'#1e2a45',bodyColor:'#2c2c2c',padding:10}},
-          scales:{x:{grid:{display:false},ticks:{color:'#7a7060',font:{size:10}}},
-                  y:{grid:{color:'#f0ebe0'},ticks:{color:'#7a7060',font:{size:9}},beginAtZero:true}}}
-      });
-    }
-    compareChart.data.labels=recentYears;
-    compareChart.data.datasets=CENTRES.map((c,i)=>({
-      label:c,
-      data:recentYears.map(y=>CENTRE_DATA[c].ie[y]||0),
-      backgroundColor:colors[i]+'99',
-      hoverBackgroundColor:colors[i],
-      borderRadius:3,borderSkipped:false
-    }));
-    compareChart.update();
   }
 }
 
