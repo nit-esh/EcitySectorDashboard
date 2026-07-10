@@ -121,8 +121,13 @@ CENTRE_KEY_MAP = {
     'kanakapura':    'Kanakapura Road',
     'girinagar':     'Girinagar',
     'hassan':        'Hassan',
-    'tumkur':        'Tumkur',
-    'udupi':         'Udupi',
+    'chikkaballapura': 'Chikkaballapura',
+    'chikballapur':    'Chikkaballapura',
+    'mandya':          'Mandya',
+    'shivamogga':      'Shivamogga',
+    'shimoga':         'Shivamogga',
+    'tumkur':          'Tumkur',
+    'udupi':           'Udupi',
 }
 
 # Maps normalised prog key → CENTRE_DATA / MONTHLY_DATA sub-key
