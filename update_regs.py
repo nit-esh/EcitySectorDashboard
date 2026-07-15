@@ -203,7 +203,7 @@ end tell
 # ── Detect and parse CRM "Total row" xlsx format ─────────────────────────────
 # Format: Row1=labels, Row2=years, Row3="Count" headers, Row4="Total" with annual counts
 # Row5+: detail rows — either "Month Year" (EC-style) or "Year" (other centres)
-def try_parse_crm_xlsx(xlsx_path, regs, cd_updates, monthly_updates, source_label):
+def try_parse_crm_xlsx(xlsx_path, regs, cd_updates, monthly_updates, source_label, file_timestamps=None):
     """Returns True if file matches CRM format and was parsed; False to fall back."""
     if not HAS_OPENPYXL:
         return False
@@ -240,6 +240,12 @@ def try_parse_crm_xlsx(xlsx_path, regs, cd_updates, monthly_updates, source_labe
         print(f"  ⚠ CRM format detected but couldn't infer centre ({parent_folder!r}) "
               f"or programme ({fname!r}) — skipping")
         return True  # still CRM format, just not updatable
+
+    # Record per-centre file timestamp (keep the latest mtime if multiple files per centre)
+    if file_timestamps is not None:
+        mtime = os.path.getmtime(xlsx_path)
+        if html_centre not in file_timestamps or mtime > file_timestamps[html_centre]:
+            file_timestamps[html_centre] = mtime
 
     # Build col_index → year map for quick lookup
     col_to_year = {i: yr for i, yr in year_cols}
@@ -486,11 +492,13 @@ def monthly_data_to_js(md):
     lines.append('};')
     return '\n'.join(lines)
 
-# ── Inject LIVE_REGS, CENTRE_DATA, and MONTHLY_DATA into HTML ────────────────
+# ── Inject LIVE_REGS, CENTRE_DATA, MONTHLY_DATA, and CENTRE_TIMESTAMPS into HTML ─
 LIVE_START = "/* __LIVE_REGS_START__ */"
 LIVE_END   = "/* __LIVE_REGS_END__ */"
+TS_START   = "/* __CENTRE_TIMESTAMPS_START__ */"
+TS_END     = "/* __CENTRE_TIMESTAMPS_END__ */"
 
-def inject_html(html, regs, centre_data, monthly_data, latest_mtime):
+def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timestamps=None):
     # 1. LIVE_REGS block
     dt          = datetime.datetime.fromtimestamp(latest_mtime)
     updated_str = dt.strftime('%d %b %Y, %I:%M %p')
@@ -525,6 +533,21 @@ def inject_html(html, regs, centre_data, monthly_data, latest_mtime):
     else:
         print(f"  ⚠ MONTHLY_DATA markers not found — skipping")
 
+    # 4. CENTRE_TIMESTAMPS block
+    if file_timestamps is not None and TS_START in html:
+        # Convert mtime floats → human-readable date strings
+        ts_dict = {
+            centre: datetime.datetime.fromtimestamp(mtime).strftime('%d %b %Y')
+            for centre, mtime in file_timestamps.items()
+        }
+        ts_json  = json.dumps(ts_dict, indent=2, ensure_ascii=False)
+        ts_block = f"{TS_START}\nconst CENTRE_DATA_TIMESTAMPS = {ts_json};\n{TS_END}"
+        html = re.sub(re.escape(TS_START) + r'.*?' + re.escape(TS_END),
+                      ts_block, html, flags=re.DOTALL)
+        print(f"  ✓ Updated CENTRE_DATA_TIMESTAMPS: {ts_dict}")
+    elif TS_START not in html:
+        print(f"  ⚠ CENTRE_TIMESTAMPS markers not found — skipping")
+
     with open(HTML, 'w', encoding='utf-8') as f:
         f.write(html)
 
@@ -553,6 +576,7 @@ if __name__ == '__main__':
     regs            = {}   # merged LIVE_REGS
     cd_updates      = {}   # CENTRE_DATA changes to apply
     monthly_updates = {}   # MONTHLY_DATA changes to apply
+    file_timestamps = {}   # per-centre XLS file mtimes (html_centre → mtime float)
     tmp_files       = []
     latest_mtime    = max(os.path.getmtime(f) for f in files)
 
@@ -562,7 +586,7 @@ if __name__ == '__main__':
 
         # Try CRM "Total row" format first (xlsx only — no CSV export needed)
         if ext in ('.xlsx', '.xls') and HAS_OPENPYXL:
-            if try_parse_crm_xlsx(xlsx, regs, cd_updates, monthly_updates, label):
+            if try_parse_crm_xlsx(xlsx, regs, cd_updates, monthly_updates, label, file_timestamps):
                 continue   # handled — skip CSV export path
 
         # Standard batch-level format (Numbers files + non-CRM xlsx)
@@ -637,7 +661,8 @@ if __name__ == '__main__':
         regs,
         centre_data if cd_updates else None,
         monthly_data if monthly_updates else None,
-        latest_mtime
+        latest_mtime,
+        file_timestamps if file_timestamps else None
     )
 
     # Cleanup
