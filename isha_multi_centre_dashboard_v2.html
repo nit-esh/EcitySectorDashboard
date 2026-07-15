@@ -14,13 +14,114 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f7f3ec;--surface:#fff;--border:#e4d9c4;--navy:#1a2640;--gold:#f0c955;--saffron:#c85d14;
+  --bg:#f7f3ec;--surface:#fff;--surface-2:#faf8f4;--surface-3:#f5f2eb;
+  --border:#e4d9c4;--navy:#1a2640;--gold:#f0c955;--saffron:#c85d14;
   --text:#262626;--muted:#7a7060;--green:#1a6b3a;--red:#b83232;
   --shadow-sm:0 1px 3px rgba(0,0,0,.07),0 2px 8px rgba(0,0,0,.04);
   --shadow-md:0 2px 6px rgba(0,0,0,.07),0 6px 20px rgba(0,0,0,.06);
   --shadow-lg:0 8px 24px rgba(0,0,0,.1),0 2px 6px rgba(0,0,0,.06);
   --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
 }
+/* ── Dark theme — clean neutral dark, like the screenshot ── */
+[data-theme="dark"]{
+  --bg:#111113;        /* deep near-black page background */
+  --surface:#222226;   /* card surface — clearly elevated, good contrast vs bg */
+  --surface-2:#2c2c31; /* secondary surface — alt rows */
+  --surface-3:#38383e; /* tertiary — table thead, group bands */
+  --border:#48484f;    /* visible but not harsh border */
+  --navy:#ffffff;      /* headings & big numbers → pure white, crisp */
+  --text:#e8e8ec;      /* body text — bright off-white, very readable */
+  --muted:#a8a8b3;     /* secondary labels — medium light gray */
+  --green:#4ade80;     /* vivid green */
+  --red:#f87171;       /* clear red */
+  --gold:#f0c955;
+  --saffron:#f97316;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.7),0 2px 12px rgba(0,0,0,.5);
+  --shadow-md:0 4px 16px rgba(0,0,0,.65),0 8px 32px rgba(0,0,0,.55);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.75),0 4px 16px rgba(0,0,0,.6);
+}
+[data-theme="dark"] header{background:linear-gradient(160deg,#09090b 0%,#101014 45%,#18181b 100%)!important}
+[data-theme="dark"] .centre-bar{background:#09090b!important}
+[data-theme="dark"] .tabs-wrap{background:#101014!important}
+[data-theme="dark"] .tab{color:rgba(244,244,245,.3)!important}
+[data-theme="dark"] .tab:hover{color:rgba(244,244,245,.72)!important}
+[data-theme="dark"] .tab.active{color:#f4f4f5!important}
+/* Cards get a subtle top-highlight in dark mode so they lift off the background */
+[data-theme="dark"] .card,
+[data-theme="dark"] .ov-card,
+[data-theme="dark"] .kpi,
+[data-theme="dark"] .ins-kpi-card,
+[data-theme="dark"] .ins-spark-item{
+  box-shadow:0 0 0 1px rgba(255,255,255,.06),var(--shadow-sm)!important}
+[data-theme="dark"] .ov-stat-cell{background:var(--surface-2)!important;border-color:var(--border)!important}
+[data-theme="dark"] .ov-stat-cell:hover{background:var(--surface-3)!important}
+[data-theme="dark"] .ov-pill.none{background:var(--surface-2)!important;border-color:var(--border)!important;color:var(--muted)!important}
+[data-theme="dark"] .ins-table th{background:var(--surface-3)!important;color:var(--muted)!important}
+[data-theme="dark"] .ins-table td{color:var(--text)!important}
+[data-theme="dark"] .ins-table tr:hover td{background:var(--surface-2)!important}
+[data-theme="dark"] .ann-tbl th{background:var(--surface-3)!important;color:var(--muted)!important}
+[data-theme="dark"] .ann-tbl td{color:var(--text)!important}
+[data-theme="dark"] .reg-badge{background:#14532d!important;border-color:#16a34a!important;color:#4ade80!important}
+[data-theme="dark"] .reg-badge.zero{background:var(--surface-2)!important;border-color:var(--border)!important;color:var(--muted)!important}
+[data-theme="dark"] .hatha-card{background:var(--surface)!important;border-color:var(--border)!important}
+[data-theme="dark"] .hatha-card-name{color:var(--navy)!important}
+[data-theme="dark"] .hatha-card-loc,[data-theme="dark"] .hatha-card-date{color:var(--muted)!important}
+[data-theme="dark"] .ins-chip{background:var(--surface-2)!important;border-color:var(--border)!important;color:var(--muted)!important}
+[data-theme="dark"] .ins-chip-act{background:rgba(237,233,227,.15)!important;color:var(--navy)!important;border-color:rgba(237,233,227,.25)!important}
+[data-theme="dark"] .ov-card{background:var(--surface)!important;border-color:var(--border)!important}
+[data-theme="dark"] .kpi{background:var(--surface)!important;border-color:var(--border)!important}
+[data-theme="dark"] .ins-kpi-card{background:var(--surface)!important;border-color:var(--border)!important}
+[data-theme="dark"] .ins-spark-item{background:var(--surface)!important;border-color:var(--border)!important}
+[data-theme="dark"] .card{background:var(--surface)!important;border-color:var(--border)!important}
+[data-theme="dark"] .um-modal{background:var(--surface)!important;border-color:var(--border)!important}
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea{background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--border)!important}
+/* Key Insights callout cards */
+[data-theme="dark"] .ins-callout{
+  background:linear-gradient(135deg,var(--surface),var(--surface-2))!important;
+  border-color:var(--border)!important;
+  border-left-color:var(--saffron)!important;
+  color:var(--text)!important;
+  box-shadow:none!important}
+[data-theme="dark"] .ins-callout strong{color:var(--gold)!important}
+/* Table header bg (hardcoded #faf8f4) */
+[data-theme="dark"] .ins-table th{background:var(--surface-3)!important;color:var(--muted)!important;border-color:var(--border)!important}
+[data-theme="dark"] .ann-tbl th{background:var(--surface-3)!important;border-color:var(--border)!important}
+/* Health matrix alternating rows (hardcoded #fdfaf4) */
+[data-theme="dark"] .ins-table tr:nth-child(even) td,
+[data-theme="dark"] .ins-table tr[style*="fdfaf4"] td,
+[data-theme="dark"] tr[style*="fdfaf4"] td{background:var(--surface-2)!important}
+[data-theme="dark"] .ins-table tr[style*="fdfaf4"]{background:var(--surface-2)!important}
+/* Section title accent bar */
+[data-theme="dark"] .ins-sec-hdr::before{opacity:.8}
+/* ins-kpi-card shimmer overlay — hide in dark (looks odd) */
+[data-theme="dark"] .ins-kpi-card::after{display:none}
+[data-theme="dark"] .ins-kpi-card{color:var(--text)!important}
+[data-theme="dark"] .ins-kpi-val{color:var(--navy)!important}
+[data-theme="dark"] .ins-kpi-label{color:var(--muted)!important}
+[data-theme="dark"] .ins-kpi-sub{color:var(--muted)!important}
+/* Confirmed count badges (inline styled) */
+[data-theme="dark"] span[style*="eef7ee"]{background:#14532d!important;color:#4ade80!important}
+[data-theme="dark"] span[style*="f5f5f5"]{background:var(--surface-3)!important;color:var(--muted)!important}
+/* Charts — slight desaturation so they don't feel neon */
+[data-theme="dark"] canvas{filter:brightness(.9) saturate(.85)}
+/* Inline-styled table row alternating backgrounds (hardcoded in JS) */
+[data-theme="dark"] tr[style*="#fff"]{background:var(--surface)!important}
+[data-theme="dark"] tr[style*="faf8f5"]{background:var(--surface-2)!important}
+[data-theme="dark"] tr[style*="fdfaf4"]{background:var(--surface-2)!important}
+/* Inline border colours on those rows */
+[data-theme="dark"] tr[style*="f0ebe0"]{border-color:var(--border)!important}
+/* Progress bar track background */
+[data-theme="dark"] div[style*="background:#f0ebe0"]{background:var(--surface-3)!important}
+/* ov-stat-cell hardcoded faf8f5 */
+[data-theme="dark"] [style*="faf8f5"]{background:var(--surface-2)!important}
+/* Inline green text for counts */
+[data-theme="dark"] [style*="color:#1a7a30"]{color:#4ade80!important}
+[data-theme="dark"] [style*="color:#1a6b3a"]{color:#4ade80!important}
+/* Inline red text for negatives */
+[data-theme="dark"] [style*="color:#9b2020"]{color:#f87171!important}
+[data-theme="dark"] [style*="color:#b83232"]{color:#f87171!important}
 body{font-family:'Inter',system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;font-feature-settings:'cv02','cv03','cv04','cv11'}
 
 header{background:linear-gradient(160deg,#131d30 0%,#1e2a45 45%,#253356 100%);padding:0 20px;border-bottom:1px solid rgba(255,255,255,.06)}
@@ -554,7 +655,7 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
       </div>
     </div>
     <div class="hdr-r">
-      <button class="mgmt-btn" id="manageUsersBtn" style="display:none" onclick="openUM()">
+<button class="mgmt-btn" id="manageUsersBtn" style="display:none" onclick="openUM()">
         <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
         Users
       </button>
@@ -3371,63 +3472,63 @@ async function fetchSheetRegistrations(){
 const LIVE_REGS = {
   "sadhguru sannidhi": {
     "angamardana|2026-07-25": 23,
-    "bhuta shuddhi|2026-07-19": 8,
+    "bhuta shuddhi|2026-07-19": 9,
     "jala neti|2026-07-19": 5,
     "samyama": 195,
     "shoonya intensive|2026-08-06": 88,
-    "shoonya intensive|2026-07-16": 67,
-    "shoonya intensive|2026-07-23": 88,
-    "upa yoga": 1461,
+    "shoonya intensive|2026-07-16": 39,
+    "shoonya intensive|2026-07-23": 91,
+    "upa yoga": 1477,
     "yogasanas|2026-07-26": 3,
-    "yogasanas|2026-07-18": 34,
-    "yogasanas|2026-07-17": 2
+    "yogasanas|2026-07-18": 35,
+    "yogasanas|2026-07-17": 3
   },
   "bg road": {
-    "inner engineering": 2
+    "inner engineering": 3
   },
   "electronic": {
-    "guru pooja": 34,
-    "inner engineering": 1
+    "guru pooja": 37,
+    "inner engineering": 2
   },
   "jayanagar": {
     "bhuta shuddhi": 2,
     "inner engineering": 3,
-    "isha janani": 13,
+    "isha janani": 15,
     "yogasanas": 5
   },
   "hsr": {
     "angamardana": 4,
     "bhastrika": 0,
     "surya kriya": 2,
-    "yogasanas": 8
+    "yogasanas": 2
   },
   "sarjapur": {
-    "inner engineering": 37
+    "inner engineering": 40
   },
   "malleswaram": {
     "angamardana": 0,
-    "bhuta shuddhi": 7,
-    "guru pooja": 9,
-    "inner engineering": 23,
-    "surya kriya": 10
+    "bhuta shuddhi": 8,
+    "guru pooja": 10,
+    "inner engineering": 24,
+    "surya kriya": 11
   },
   "marathahalli": {
-    "angamardana|2026-03-17": 2,
-    "bhuta shuddhi|2026-03-19": 10,
+    "angamardana|2026-03-17": 3,
+    "bhuta shuddhi|2026-03-19": 11,
     "bhuta shuddhi|2026-03-30": 0,
     "inner engineering": 10,
     "surya kriya": 1,
-    "yogasanas": 1
+    "yogasanas": 2
   },
   "mysuru": {
-    "angamardana": 7
+    "angamardana": 0
   },
   "vijayanagar": {
     "hatha children": 3,
     "inner engineering": 14
   },
   "kanakapura": {
-    "inner engineering": 12,
+    "inner engineering": 13,
     "surya kriya": 0,
     "bhuta shuddhi": 9,
     "yogasanas": 3
@@ -3436,7 +3537,7 @@ const LIVE_REGS = {
     "inner engineering": 2
   }
 };
-const LIVE_REGS_UPDATED = "15 Jul 2026, 12:36 AM";
+const LIVE_REGS_UPDATED = "16 Jul 2026, 01:31 AM";
 /* __LIVE_REGS_END__ */
 
 // ── Static Hatha Yoga registration counts (from programme coordinator sheet) ──
@@ -5782,6 +5883,7 @@ document.getElementById('reqSubmitBtn').onclick=async()=>{
   document.getElementById('reqSuccess').style.display='block';
 };
 
+// ── Theme toggle ────────────────────────────────────────────────────────────
 function toggleUserDropdown(){
   const dd=document.getElementById('userDropdown');
   dd.classList.toggle('open');
@@ -6482,6 +6584,7 @@ function loadRegCounts(centre){
 }
 
 let _regGroupBy  = 'date'; // 'date' | 'centre' | 'programme'
+let _regView     = 'tiles'; // 'tiles' | 'table'
 let _regCountRows = [];   // last rendered rows — used by export
 
 function _exportRegCountsCSV(filename){
@@ -6631,81 +6734,195 @@ function buildRegCounts(centre){
       ${togBtns.join('')}
     </div>`;
 
-  const thStyle = `text-align:left;padding:8px 10px;font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)`;
-  const groupHdr = (label, total, icon='') => `
-    <tr><td colspan="10" style="padding:10px 10px 5px;background:#f5f2eb;font-size:.7rem;font-weight:800;color:var(--navy);border-top:2px solid var(--border)">
-      ${icon} ${label}
-      ${total>0?`<span style="margin-left:8px;background:#eef7ee;color:#1a7a30;border-radius:10px;padding:1px 8px;font-size:.65rem;font-weight:700">${total} confirmed</span>`:''}
-    </td></tr>`;
+  // ── Programme colour helper ───────────────────────────────────────────────
+  const progColor = prog => {
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const p = (prog||'').toLowerCase();
+    if(p.includes('inner engineering')) return dark ? '#60a5fa' : '#1e4080';
+    if(p.includes('bhava spandana'))    return dark ? '#f87171' : '#7a1a1a';
+    if(p.includes('shoonya'))           return dark ? '#38bdf8' : '#1a4a5a';
+    if(p.includes('samyama'))           return dark ? '#34d399' : '#1a5a3a';
+    if(p.includes('angamardana'))       return dark ? '#fbbf24' : '#c8922a';
+    if(p.includes('surya kriya'))       return dark ? '#fb923c' : '#8b4513';
+    if(p.includes('satsang')||p.includes('sathsang')) return dark ? '#a78bfa' : '#5a2a6b';
+    return dark ? '#94a3b8' : '#555';
+  };
 
-  let tableRows = '';
+  // ── Tile renderers ────────────────────────────────────────────────────────
+  let tilesHtml = '';
 
-  if(_regGroupBy==='centre'){
-    // Group by centre
+  if(_regGroupBy === 'date'){
+    // Option A — one event card per programme, sorted by date
+    tilesHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px">
+      ${rows.map(r=>{
+        const dateStr = r.startDate
+          ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')
+          : '—';
+        const clr = progColor(r.progLabel);
+        return `<a href="${r.url||'#'}" target="_blank" rel="noopener" style="display:block;text-decoration:none">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 15px;border-left:3px solid ${clr};height:100%;box-sizing:border-box">
+            <div style="font-size:.58rem;font-weight:700;color:${clr};text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.progLabel}</div>
+            ${showCentreCol?`<div style="font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.centre}</div>`:''}
+            <div style="font-size:.6rem;color:var(--muted);margin-bottom:10px">${dateStr}</div>
+            <div style="font-size:1.7rem;font-weight:900;color:${r.confirmed===null?'#ccc':'var(--navy)'};line-height:1">${r.confirmed===null?'—':r.confirmed}</div>
+            <div style="font-size:.58rem;color:var(--muted);margin-top:2px">confirmed</div>
+          </div>
+        </a>`;
+      }).join('')}
+    </div>`;
+
+  } else if(_regGroupBy === 'centre'){
+    // Option B — one card per centre showing all programme totals
     const grouped = {};
-    for(const r of rows){
-      if(!grouped[r.centre]) grouped[r.centre]=[];
-      grouped[r.centre].push(r);
-    }
-    Object.keys(grouped).sort().forEach(ctr=>{
-      const cRows = grouped[ctr];
-      const cTotal = cRows.reduce((s,r)=>s+(r.confirmed||0),0);
-      tableRows += groupHdr(ctr, cTotal, '🏛');
-      cRows.forEach((r,i)=>{
-        const bg = i%2===0?'#fff':'#faf8f5';
-        tableRows += `<tr style="background:${bg};border-bottom:1px solid #f0ebe0">
-          <td style="padding:8px 10px;color:var(--navy);font-weight:600;max-width:200px">
-            <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none">${r.progLabel}</a>
-          </td>
-          <td style="padding:8px 10px;color:var(--muted);white-space:nowrap">${fmtDt(r.startDate)}${r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''}</td>
-          <td style="padding:8px 10px;text-align:center">${badge(r.confirmed,r.url)}</td>
-        </tr>`;
-      });
-    });
-
-  } else if(_regGroupBy==='programme'){
-    // Group by programme label
-    const grouped = {};
-    for(const r of rows){
-      if(!grouped[r.progLabel]) grouped[r.progLabel]=[];
-      grouped[r.progLabel].push(r);
-    }
-    Object.keys(grouped).sort().forEach(prog=>{
-      const pRows = grouped[prog];
-      const pTotal = pRows.reduce((s,r)=>s+(r.confirmed||0),0);
-      tableRows += groupHdr(prog, pTotal, '📋');
-      pRows.forEach((r,i)=>{
-        const bg = i%2===0?'#fff':'#faf8f5';
-        const centreCell = showCentreCol ? `<td style="padding:8px 10px;color:var(--navy);font-weight:600">${r.centre}</td>` : '';
-        tableRows += `<tr style="background:${bg};border-bottom:1px solid #f0ebe0">
-          ${centreCell}
-          <td style="padding:8px 10px;color:var(--muted);white-space:nowrap">${fmtDt(r.startDate)}${r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''}</td>
-          <td style="padding:8px 10px;text-align:center">${badge(r.confirmed,r.url)}</td>
-        </tr>`;
-      });
-    });
+    for(const r of rows){ if(!grouped[r.centre]) grouped[r.centre]=[]; grouped[r.centre].push(r); }
+    tilesHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">
+      ${Object.keys(grouped).sort().map(ctr=>{
+        const cRows = grouped[ctr];
+        const cTotal = cRows.reduce((s,r)=>s+(r.confirmed||0),0);
+        const byProg = {};
+        for(const r of cRows) byProg[r.progLabel]=(byProg[r.progLabel]||0)+(r.confirmed||0);
+        return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px">
+          <div style="font-size:.78rem;font-weight:800;color:var(--navy);margin-bottom:3px">${ctr}</div>
+          <div style="font-size:1.7rem;font-weight:900;color:var(--navy);line-height:1.1">${cTotal}</div>
+          <div style="font-size:.58rem;color:var(--muted);margin-bottom:10px">total confirmed</div>
+          <div style="border-top:1px solid var(--border);padding-top:9px">
+            ${Object.entries(byProg).map(([prog,cnt])=>`
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+                <div style="width:7px;height:7px;border-radius:50%;background:${progColor(prog)};flex-shrink:0"></div>
+                <div style="font-size:.62rem;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prog}</div>
+                <div style="font-size:.68rem;font-weight:700;color:var(--navy)">${cnt}</div>
+              </div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
 
   } else {
-    // Default: flat table sorted by date
-    rows.forEach((r,i)=>{
-      const bg = i%2===0?'#fff':'#faf8f5';
-      tableRows += `<tr style="background:${bg};border-bottom:1px solid #f0ebe0">
-        <td style="padding:8px 10px;color:var(--navy);font-weight:600;max-width:220px">
-          <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none">${r.programme}</a>
-        </td>
-        ${showCentreCol?`<td style="padding:8px 10px;color:var(--muted)">${r.centre}</td>`:''}
-        <td style="padding:8px 10px;color:var(--muted);white-space:nowrap">${fmtDt(r.startDate)}${r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''}</td>
-        <td style="padding:8px 10px;text-align:center">${badge(r.confirmed,r.url)}</td>
-      </tr>`;
-    });
+    // Option C — programme groups, each with mini-tiles per centre/date
+    const grouped = {};
+    for(const r of rows){ if(!grouped[r.progLabel]) grouped[r.progLabel]=[]; grouped[r.progLabel].push(r); }
+    tilesHtml = Object.keys(grouped).sort().map(prog=>{
+      const pRows = grouped[prog];
+      const pTotal = pRows.reduce((s,r)=>s+(r.confirmed||0),0);
+      const clr = progColor(prog);
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface-2);border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:9px;height:9px;border-radius:50%;background:${clr}"></div>
+            <span style="font-size:.78rem;font-weight:800;color:var(--navy)">${prog}</span>
+          </div>
+          <span style="background:#eef7ee;color:#1a7a30;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:20px">${pTotal} confirmed</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px">
+          ${pRows.map(r=>{
+            const dateStr = r.startDate
+              ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')
+              : '—';
+            return `<a href="${r.url||'#'}" target="_blank" rel="noopener" style="text-decoration:none">
+              <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;min-width:110px">
+                ${showCentreCol?`<div style="font-size:.65rem;font-weight:700;color:var(--navy);margin-bottom:1px;white-space:nowrap">${r.centre}</div>`:''}
+                <div style="font-size:.58rem;color:var(--muted);margin-bottom:7px;white-space:nowrap">${dateStr}</div>
+                <div style="font-size:1.5rem;font-weight:900;color:${r.confirmed===null?'#ccc':'var(--navy)'}">${r.confirmed===null?'—':r.confirmed}</div>
+                <div style="font-size:.55rem;color:var(--muted)">confirmed</div>
+              </div>
+            </a>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
   }
 
-  // Column headers vary by grouping
-  const colHdrs = _regGroupBy==='centre'
-    ? `<th style="${thStyle}">Programme</th><th style="${thStyle}">Date</th><th style="text-align:center;${thStyle}">Confirmed</th>`
-    : _regGroupBy==='programme'
-      ? `${showCentreCol?`<th style="${thStyle}">Centre</th>`:''}<th style="${thStyle}">Date</th><th style="text-align:center;${thStyle}">Confirmed</th>`
-      : `<th style="${thStyle}">Programme</th>${showCentreCol?`<th style="${thStyle}">Centre</th>`:''}<th style="${thStyle}">Date</th><th style="text-align:center;${thStyle}">Confirmed</th>`;
+  // ── Table view ────────────────────────────────────────────────────────────
+  const tblRows = [...rows];
+  if(_regGroupBy==='centre')       tblRows.sort((a,b)=>a.centre.localeCompare(b.centre)||new Date(a.startDate||0)-new Date(b.startDate||0));
+  else if(_regGroupBy==='programme') tblRows.sort((a,b)=>a.progLabel.localeCompare(b.progLabel)||new Date(a.startDate||0)-new Date(b.startDate||0));
+  // else 'date' — already sorted by date
+
+  const groupKey = r => _regGroupBy==='centre' ? r.centre : _regGroupBy==='programme' ? r.progLabel : null;
+
+  // Pre-compute group totals for header badges
+  const grpTotals = {}, grpCounts = {};
+  for(const r of tblRows){
+    const k = groupKey(r);
+    if(k){ grpTotals[k]=(grpTotals[k]||0)+(r.confirmed||0); grpCounts[k]=(grpCounts[k]||0)+1; }
+  }
+
+  let lastGrp = null; let dataRowIdx = 0; let grpIdx = 0;
+  const tblBodyRows = tblRows.map(r=>{
+    const grp = groupKey(r);
+    let grpHdr = '';
+    if(grp && grp !== lastGrp){
+      lastGrp = grp; dataRowIdx = 0;
+      const byProg = _regGroupBy==='programme';
+      const grpClr = byProg ? progColor(grp) : '#1a2640';
+      const cols = showCentreCol ? 4 : 3;
+      const total = grpTotals[grp]||0;
+      const cnt   = grpCounts[grp]||0;
+      const topBorder = grpIdx > 0 ? `border-top:3px solid ${grpClr};` : '';
+      grpIdx++;
+      grpHdr = `<tr><td colspan="${cols}" style="padding:0;${topBorder}">
+        <div style="display:flex;align-items:center;justify-content:space-between;
+                    padding:12px 16px 12px 0;
+                    background:${byProg ? grpClr+'1a' : 'rgba(26,38,64,.06)'};
+                    border-left:5px solid ${grpClr};
+                    border-bottom:1px solid ${grpClr}55">
+          <div style="display:flex;align-items:center;gap:11px;padding-left:14px">
+            <div style="width:10px;height:10px;border-radius:3px;background:${grpClr};flex-shrink:0"></div>
+            <span style="font-size:.88rem;font-weight:800;color:var(--navy);letter-spacing:.1px">${grp}</span>
+            <span style="font-size:.64rem;color:var(--muted);font-weight:500;padding:2px 8px;border-radius:10px;background:var(--surface-3);border:1px solid var(--border)">${cnt} programme${cnt!==1?'s':''}</span>
+          </div>
+          <div style="background:${grpClr};color:#fff;font-size:.7rem;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap">${total} confirmed</div>
+        </div>
+      </td></tr>`;
+    }
+    const rowBg = dataRowIdx%2===1 ? 'background:var(--surface-2);' : '';
+    const grpClrForRow = grp ? (_regGroupBy==='programme' ? progColor(grp) : '#1a2640') : 'transparent';
+    const leftBorder = grp ? `border-left:3px solid ${grpClrForRow}30;` : '';
+    dataRowIdx++;
+    return grpHdr + `<tr style="border-bottom:1px solid var(--border);${rowBg}${leftBorder}" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+      ${_regGroupBy!=='programme'?`<td style="padding:9px 12px 9px ${grp?'19px':'12px'}">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:7px;height:7px;border-radius:50%;background:${progColor(r.progLabel)};flex-shrink:0"></div>
+          <span style="font-weight:600;color:var(--navy)">${r.progLabel}</span>
+        </div>
+      </td>`:''}
+      ${(showCentreCol&&_regGroupBy!=='centre')?`<td style="padding:9px 12px 9px ${grp&&_regGroupBy==='programme'?'19px':'12px'};
+        ${_regGroupBy==='programme'
+          ? 'font-weight:700;color:var(--navy);font-size:.76rem'
+          : 'color:var(--text);font-size:.72rem'}">${r.centre}</td>`:''}
+      <td style="padding:9px 12px;color:var(--text);font-size:.72rem;white-space:nowrap">${r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''): '—'}</td>
+      <td style="padding:9px 12px;text-align:center">${badge(r.confirmed,r.url)}</td>
+    </tr>`;
+  });
+
+  const th = s => `<th style="padding:9px 12px;text-align:left;font-weight:700;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.5px">${s}</th>`;
+  const thC = s => `<th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.5px">${s}</th>`;
+  const tableHtml = `<div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
+    <table style="width:100%;border-collapse:collapse;font-size:.73rem">
+      <thead>
+        <tr style="background:var(--surface-3);border-bottom:2px solid var(--border)">
+          ${_regGroupBy!=='programme'?th('Programme'):''}
+          ${(showCentreCol&&_regGroupBy!=='centre')?th(_regGroupBy==='programme'?'Centre':'Centre'):''}
+          ${th('Date')}${thC('Confirmed')}
+        </tr>
+      </thead>
+      <tbody>${tblBodyRows.join('')}</tbody>
+    </table>
+  </div>`;
+
+  // ── View toggle (Tiles / Table) ───────────────────────────────────────────
+  const viewSeg = (val,label) => {
+    const active = _regView===val;
+    return `<button onclick="_regView='${val}';buildRegCounts('${centre||''}');"
+      style="padding:5px 12px;border:none;border-radius:6px;cursor:pointer;transition:all .18s;white-space:nowrap;
+             background:${active?'var(--surface)':'transparent'};
+             color:${active?'var(--navy)':'#888'};
+             font-size:.7rem;font-weight:${active?'800':'600'};
+             box-shadow:${active?'0 1px 4px rgba(0,0,0,.18)':''}">${label}</button>`;
+  };
+  const viewToggle = `<div style="display:inline-flex;align-items:center;background:var(--surface-3);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px">
+    ${viewSeg('tiles','⊞ Tiles')}${viewSeg('table','≡ Table')}
+  </div>`;
 
   el.innerHTML = `
     <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -6713,23 +6930,20 @@ function buildRegCounts(centre){
         <div style="font-size:1rem;font-weight:800;color:var(--navy)">${isAll?'All Centres':centre} — Registration Counts</div>
         <div style="font-size:.68rem;color:var(--muted);margin-top:2px">${rows.length} upcoming programmes · ${withCount} with count data${LIVE_REGS_UPDATED?` · <span style="color:#b07a10;font-weight:700">Last updated: ${LIVE_REGS_UPDATED}</span>`:''}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        ${viewToggle}
         ${togBtn()}
         <div style="background:#eef7ee;border:1px solid #b8ddb8;border-radius:20px;padding:5px 14px;font-size:.75rem;font-weight:800;color:#1a7a30">
           Total: ${totalConfirmed.toLocaleString()}
         </div>
         <button onclick="_exportRegCountsCSV('reg_counts_${(centre||'all').replace(/\s+/g,'_').toLowerCase()}.csv')"
           title="Export as CSV grouped by programme"
-          style="display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border:1px solid var(--border);border-radius:20px;background:#fff;color:var(--navy);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap">
+          style="display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--navy);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap">
           ↓ Export CSV
         </button>
       </div>
     </div>
-    <div style="overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:.72rem">
-      <thead><tr style="background:#f5f2eb">${colHdrs}</tr></thead>
-      <tbody>${tableRows}</tbody>
-    </table></div>`;
+    ${_regView==='tiles'?tilesHtml:tableHtml}`;
 }
 
 function buildAllUpcoming(centre){
@@ -7492,69 +7706,191 @@ function buildAdminRegCounts(){
       ${seg('centre','By Centre')}${seg('programme','By Programme')}${seg('date','By Date')}
     </div>`;
 
-  const thS = `text-align:left;padding:9px 12px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)`;
-  const groupHdr = (label,total,icon='')=>`
-    <tr><td colspan="10" style="padding:8px 12px 4px;background:#f5f2eb;font-size:.7rem;font-weight:800;color:var(--navy);border-top:2px solid var(--border)">
-      ${icon} ${label}
-      ${total>0?`<span style="margin-left:8px;background:#eef7ee;color:#1a7a30;border-radius:10px;padding:1px 8px;font-size:.65rem;font-weight:700">${total} confirmed</span>`:''}
-    </td></tr>`;
+  // ── Programme colour helper ───────────────────────────────────────────────
+  const progColor = prog => {
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const p = (prog||'').toLowerCase();
+    if(p.includes('inner engineering')) return dark ? '#60a5fa' : '#1e4080';
+    if(p.includes('bhava spandana'))    return dark ? '#f87171' : '#7a1a1a';
+    if(p.includes('shoonya'))           return dark ? '#38bdf8' : '#1a4a5a';
+    if(p.includes('samyama'))           return dark ? '#34d399' : '#1a5a3a';
+    if(p.includes('angamardana'))       return dark ? '#fbbf24' : '#c8922a';
+    if(p.includes('surya kriya'))       return dark ? '#fb923c' : '#8b4513';
+    if(p.includes('satsang')||p.includes('sathsang')) return dark ? '#a78bfa' : '#5a2a6b';
+    return dark ? '#94a3b8' : '#555';
+  };
 
-  let tableRows='', colHdrs='';
+  // ── Tile renderers ────────────────────────────────────────────────────────
+  let tilesHtml = '';
 
-  if(_regGroupBy==='programme'){
-    const grouped={};
-    for(const r of rows){ if(!grouped[r.progLabel]) grouped[r.progLabel]=[]; grouped[r.progLabel].push(r); }
-    colHdrs=`<th style="${thS}">Centre</th><th style="${thS}">Date</th><th style="text-align:center;${thS}">Confirmed</th>`;
-    Object.keys(grouped).sort().forEach(prog=>{
-      const pRows=grouped[prog];
-      const pTotal=pRows.reduce((s,r)=>s+(r.confirmed||0),0);
-      tableRows+=groupHdr(prog,pTotal,'📋');
-      pRows.forEach((r,i)=>{
-        const bg=i%2===0?'#fff':'#faf8f5';
-        const dateStr=r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''):'—';
-        tableRows+=`<tr style="background:${bg};border-top:1px solid #f0ebe0">
-          <td style="padding:7px 12px;color:var(--navy);font-weight:600">${r.centre}</td>
-          <td style="padding:7px 12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
-          <td style="padding:7px 12px;text-align:center">${badge(r.confirmed,r.url)}</td>
-        </tr>`;
-      });
-    });
+  if(_regGroupBy === 'date'){
+    // Option A — one event card per programme, sorted by date
+    tilesHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px">
+      ${rows.map(r=>{
+        const dateStr = r.startDate
+          ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')
+          : '—';
+        const clr = progColor(r.progLabel);
+        return `<a href="${r.url||'#'}" target="_blank" rel="noopener" style="display:block;text-decoration:none">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 15px;border-left:3px solid ${clr};height:100%;box-sizing:border-box">
+            <div style="font-size:.58rem;font-weight:700;color:${clr};text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.progLabel}</div>
+            <div style="font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.centre}</div>
+            <div style="font-size:.6rem;color:var(--muted);margin-bottom:10px">${dateStr}</div>
+            <div style="font-size:1.7rem;font-weight:900;color:${r.confirmed===null?'#ccc':'var(--navy)'};line-height:1">${r.confirmed===null?'—':r.confirmed}</div>
+            <div style="font-size:.58rem;color:var(--muted);margin-top:2px">confirmed</div>
+          </div>
+        </a>`;
+      }).join('')}
+    </div>`;
 
-  } else if(_regGroupBy==='date'){
-    colHdrs=`<th style="${thS}">Programme</th><th style="${thS}">Centre</th><th style="${thS}">Date</th><th style="text-align:center;${thS}">Confirmed</th>`;
-    rows.forEach((r,i)=>{
-      const bg=i%2===0?'#fff':'#faf8f5';
-      const dateStr=r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''):'—';
-      tableRows+=`<tr style="background:${bg};border-top:1px solid #f0ebe0">
-        <td style="padding:7px 12px;color:var(--navy);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-          <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none" title="${r.programme}">${r.programme}</a>
-        </td>
-        <td style="padding:7px 12px;color:var(--muted)">${r.centre}</td>
-        <td style="padding:7px 12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
-        <td style="padding:7px 12px;text-align:center">${badge(r.confirmed,r.url)}</td>
-      </tr>`;
-    });
+  } else if(_regGroupBy === 'centre'){
+    // Option B — one card per centre showing all programme totals
+    tilesHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">
+      ${allCentres.map(ctr=>{
+        const cRows = rows.filter(r=>r.centre===ctr);
+        const cTotal = cRows.reduce((s,r)=>s+(r.confirmed||0),0);
+        const byProg = {};
+        for(const r of cRows) byProg[r.progLabel]=(byProg[r.progLabel]||0)+(r.confirmed||0);
+        return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px">
+          <div style="font-size:.78rem;font-weight:800;color:var(--navy);margin-bottom:3px">${ctr}</div>
+          <div style="font-size:1.7rem;font-weight:900;color:var(--navy);line-height:1.1">${cTotal}</div>
+          <div style="font-size:.58rem;color:var(--muted);margin-bottom:10px">total confirmed</div>
+          <div style="border-top:1px solid var(--border);padding-top:9px">
+            ${Object.entries(byProg).map(([prog,cnt])=>`
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+                <div style="width:7px;height:7px;border-radius:50%;background:${progColor(prog)};flex-shrink:0"></div>
+                <div style="font-size:.62rem;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prog}</div>
+                <div style="font-size:.68rem;font-weight:700;color:var(--navy)">${cnt}</div>
+              </div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
 
   } else {
-    // Default: By Centre
-    colHdrs=`<th style="${thS}">Programme</th><th style="${thS}">Date</th><th style="text-align:center;${thS}">Confirmed</th>`;
-    allCentres.forEach(centre=>{
-      const cRows=rows.filter(r=>r.centre===centre);
-      const cTotal=cRows.reduce((s,r)=>s+(r.confirmed||0),0);
-      tableRows+=groupHdr(centre,cTotal,'🏛');
-      cRows.forEach((r,i)=>{
-        const bg=i%2===0?'#fff':'#faf8f5';
-        const dateStr=r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''):'—';
-        tableRows+=`<tr style="background:${bg};border-top:1px solid #f0ebe0">
-          <td style="padding:7px 12px;color:var(--navy);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-            <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--navy);text-decoration:none" title="${r.programme}">${r.progLabel}</a>
-          </td>
-          <td style="padding:7px 12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
-          <td style="padding:7px 12px;text-align:center">${badge(r.confirmed,r.url)}</td>
-        </tr>`;
-      });
-    });
+    // Option C — programme groups with mini-tiles per centre
+    const grouped = {};
+    for(const r of rows){ if(!grouped[r.progLabel]) grouped[r.progLabel]=[]; grouped[r.progLabel].push(r); }
+    tilesHtml = Object.keys(grouped).sort().map(prog=>{
+      const pRows = grouped[prog];
+      const pTotal = pRows.reduce((s,r)=>s+(r.confirmed||0),0);
+      const clr = progColor(prog);
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface-2);border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:9px;height:9px;border-radius:50%;background:${clr}"></div>
+            <span style="font-size:.78rem;font-weight:800;color:var(--navy)">${prog}</span>
+          </div>
+          <span style="background:#eef7ee;color:#1a7a30;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:20px">${pTotal} confirmed</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px">
+          ${pRows.map(r=>{
+            const dateStr = r.startDate
+              ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')
+              : '—';
+            return `<a href="${r.url||'#'}" target="_blank" rel="noopener" style="text-decoration:none">
+              <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;min-width:110px">
+                <div style="font-size:.65rem;font-weight:700;color:var(--navy);margin-bottom:1px;white-space:nowrap">${r.centre}</div>
+                <div style="font-size:.58rem;color:var(--muted);margin-bottom:7px;white-space:nowrap">${dateStr}</div>
+                <div style="font-size:1.5rem;font-weight:900;color:${r.confirmed===null?'#ccc':'var(--navy)'}">${r.confirmed===null?'—':r.confirmed}</div>
+                <div style="font-size:.55rem;color:var(--muted)">confirmed</div>
+              </div>
+            </a>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
   }
+
+  // ── Table view ────────────────────────────────────────────────────────────
+  const tblRows = [...rows];
+  if(_regGroupBy==='centre')         tblRows.sort((a,b)=>a.centre.localeCompare(b.centre)||new Date(a.startDate||0)-new Date(b.startDate||0));
+  else if(_regGroupBy==='programme') tblRows.sort((a,b)=>a.progLabel.localeCompare(b.progLabel)||new Date(a.startDate||0)-new Date(b.startDate||0));
+
+  const groupKey = r => _regGroupBy==='centre' ? r.centre : _regGroupBy==='programme' ? r.progLabel : null;
+
+  // Pre-compute group totals for header badges
+  const grpTotals = {}, grpCounts = {};
+  for(const r of tblRows){
+    const k = groupKey(r);
+    if(k){ grpTotals[k]=(grpTotals[k]||0)+(r.confirmed||0); grpCounts[k]=(grpCounts[k]||0)+1; }
+  }
+
+  let lastGrp = null; let dataRowIdx = 0; let grpIdx = 0;
+  const tblBodyRows = tblRows.map(r=>{
+    const grp = groupKey(r);
+    let grpHdr = '';
+    if(grp && grp !== lastGrp){
+      lastGrp = grp; dataRowIdx = 0;
+      const byProg = _regGroupBy==='programme';
+      const grpClr = byProg ? progColor(grp) : '#1a2640';
+      const total = grpTotals[grp]||0;
+      const cnt   = grpCounts[grp]||0;
+      const topBorder = grpIdx > 0 ? `border-top:3px solid ${grpClr};` : '';
+      grpIdx++;
+      grpHdr = `<tr><td colspan="4" style="padding:0;${topBorder}">
+        <div style="display:flex;align-items:center;justify-content:space-between;
+                    padding:12px 16px 12px 0;
+                    background:${byProg ? grpClr+'1a' : 'rgba(26,38,64,.06)'};
+                    border-left:5px solid ${grpClr};
+                    border-bottom:1px solid ${grpClr}55">
+          <div style="display:flex;align-items:center;gap:11px;padding-left:14px">
+            <div style="width:10px;height:10px;border-radius:3px;background:${grpClr};flex-shrink:0"></div>
+            <span style="font-size:.88rem;font-weight:800;color:var(--navy);letter-spacing:.1px">${grp}</span>
+            <span style="font-size:.64rem;color:var(--muted);font-weight:500;padding:2px 8px;border-radius:10px;background:var(--surface-3);border:1px solid var(--border)">${cnt} programme${cnt!==1?'s':''}</span>
+          </div>
+          <div style="background:${grpClr};color:#fff;font-size:.7rem;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap">${total} confirmed</div>
+        </div>
+      </td></tr>`;
+    }
+    const rowBg = dataRowIdx%2===1 ? 'background:var(--surface-2);' : '';
+    const grpClrForRow = grp ? (_regGroupBy==='programme' ? progColor(grp) : '#1a2640') : 'transparent';
+    const leftBorder = grp ? `border-left:3px solid ${grpClrForRow}30;` : '';
+    dataRowIdx++;
+    return grpHdr + `<tr style="border-bottom:1px solid var(--border);${rowBg}${leftBorder}" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+      ${_regGroupBy!=='programme'?`<td style="padding:9px 12px 9px ${grp?'19px':'12px'}">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:7px;height:7px;border-radius:50%;background:${progColor(r.progLabel)};flex-shrink:0"></div>
+          <span style="font-weight:600;color:var(--navy)">${r.progLabel}</span>
+        </div>
+      </td>`:''}
+      ${_regGroupBy!=='centre'?`<td style="padding:9px 12px 9px ${grp&&_regGroupBy==='programme'?'19px':'12px'};
+        ${_regGroupBy==='programme'
+          ? 'font-weight:700;color:var(--navy);font-size:.76rem'
+          : 'color:var(--text);font-size:.72rem'}">${r.centre}</td>`:''}
+      <td style="padding:9px 12px;color:var(--text);font-size:.72rem;white-space:nowrap">${r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''): '—'}</td>
+      <td style="padding:9px 12px;text-align:center">${badge(r.confirmed,r.url)}</td>
+    </tr>`;
+  });
+
+  const th = s => `<th style="padding:9px 12px;text-align:left;font-weight:700;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.5px">${s}</th>`;
+  const thC = s => `<th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.5px">${s}</th>`;
+  const tableHtml = `<div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
+    <table style="width:100%;border-collapse:collapse;font-size:.73rem">
+      <thead>
+        <tr style="background:var(--surface-3);border-bottom:2px solid var(--border)">
+          ${_regGroupBy!=='programme'?th('Programme'):''}
+          ${_regGroupBy!=='centre'?th('Centre'):''}
+          ${th('Date')}${thC('Confirmed')}
+        </tr>
+      </thead>
+      <tbody>${tblBodyRows.join('')}</tbody>
+    </table>
+  </div>`;
+
+  // ── View toggle (Tiles / Table) ───────────────────────────────────────────
+  const viewSeg = (val,label) => {
+    const active = _regView===val;
+    return `<button onclick="_regView='${val}';buildAdminRegCounts();"
+      style="padding:5px 12px;border:none;border-radius:6px;cursor:pointer;transition:all .18s;white-space:nowrap;
+             background:${active?'var(--surface)':'transparent'};
+             color:${active?'var(--navy)':'#888'};
+             font-size:.7rem;font-weight:${active?'800':'600'};
+             box-shadow:${active?'0 1px 4px rgba(0,0,0,.18)':''}">${label}</button>`;
+  };
+  const viewToggle = `<div style="display:inline-flex;align-items:center;background:var(--surface-3);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px">
+    ${viewSeg('tiles','⊞ Tiles')}${viewSeg('table','≡ Table')}
+  </div>`;
 
   el.innerHTML=`
     <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -7562,23 +7898,20 @@ function buildAdminRegCounts(){
         <div style="font-size:1.05rem;font-weight:800;color:var(--navy)">Registration Counts — All Centres</div>
         <div style="font-size:.68rem;color:var(--muted);margin-top:2px">${allCentres.length} centres · ${totalProgs} upcoming programmes${LIVE_REGS_UPDATED?` · <span style="color:#b07a10;font-weight:700">Last updated: ${LIVE_REGS_UPDATED}</span>`:''}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        ${viewToggle}
         ${toggle}
         <div style="background:#eef7ee;border:1px solid #b8ddb8;border-radius:20px;padding:6px 16px;font-size:.78rem;font-weight:800;color:#1a7a30">
           Total: ${grandTotal.toLocaleString()}
         </div>
         <button onclick="_exportRegCountsCSV('reg_counts_all_centres.csv')"
           title="Export as CSV grouped by programme"
-          style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:#fff;color:var(--navy);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap">
+          style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--navy);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap">
           ↓ Export CSV
         </button>
       </div>
     </div>
-    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
-    <table style="width:100%;border-collapse:collapse;font-size:.72rem">
-      <thead><tr style="background:#f5f2eb;border-bottom:2px solid var(--border)">${colHdrs}</tr></thead>
-      <tbody>${tableRows}</tbody>
-    </table></div>`;
+    ${_regView==='tiles'?tilesHtml:tableHtml}`;
 }
 
 // ── Reg Counts sub-tab switcher ─────────────────────────────
