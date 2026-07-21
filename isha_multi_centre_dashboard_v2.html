@@ -704,6 +704,16 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
   <div id="progView">
     <!-- Stats panels (hidden when Hatha tab is active) -->
     <div id="progStats">
+      <!-- IE sub-tab toggle — only shown when IE tab is active -->
+      <div id="ieSubTabBar" style="display:none;margin-bottom:12px;border-bottom:2px solid var(--border);padding-bottom:0;display:none">
+        <button id="ieSubProg" onclick="switchIeSubTab('prog')"
+          style="padding:7px 18px;border:none;background:none;font-size:.75rem;font-weight:700;cursor:pointer;border-bottom:3px solid var(--navy);color:var(--navy);margin-bottom:-2px">Programme Data</button>
+        <button id="ieSubOnline" onclick="switchIeSubTab('online')"
+          style="padding:7px 18px;border:none;background:none;font-size:.75rem;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;color:var(--muted);margin-bottom:-2px">IE Online</button>
+      </div>
+
+      <!-- Programme data panel -->
+      <div id="ieProgPanel">
       <div id="heroBox" class="hero">
         <div class="hero-bg" id="heroBg"></div>
         <div class="hero-ov"></div>
@@ -818,6 +828,13 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
           <div id="ieUpcomingList"></div>
         </div>
       </div>
+
+      </div><!-- /ieProgPanel -->
+
+      <!-- IE Online panel -->
+      <div id="ieOnlinePanel" style="display:none">
+        <div id="ieoOnlineCentreSection"></div>
+      </div>
     </div>
 
     <!-- Hatha Yoga tab view (shown only when Hatha tab is active) -->
@@ -860,6 +877,7 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
       <button id="ovNavOverview" class="ov-nav-btn active" onclick="showOvPage('overview')">Overview</button>
       <button id="ovNavInsights" class="ov-nav-btn" onclick="showOvPage('insights')">Karnataka Insights</button>
       <button id="ovNavRegCounts" class="ov-nav-btn" onclick="showOvPage('regcounts')">Reg Counts</button>
+      <button id="ovNavIeOnline" class="ov-nav-btn" onclick="showOvPage('ieonline')">IE Online</button>
     </div>
     <div id="ovOverviewPage">
     <div style="margin-bottom:14px">
@@ -888,6 +906,27 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
       </div>
       <div id="ovRegCountsContent"></div>
       <div id="ovRegAnalyticsContent" style="display:none"></div>
+    </div>
+
+    <!-- IE Online page -->
+    <div id="ovIeOnlinePage" style="display:none">
+      <div style="margin-bottom:14px">
+        <div style="font-size:1.1rem;font-weight:800;color:var(--navy);margin-bottom:3px">IE Online — Karnataka Region</div>
+        <div style="font-size:.68rem;color:var(--muted)">Inner Engineering Online enrolments and step-wise completion across all Karnataka centres</div>
+      </div>
+      <div id="ieoYearPills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+      <div id="ieoKpiStrip" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px"></div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-t">Step-wise Progress — All Karnataka</div>
+        <div id="ieoFunnel"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="card-t" style="margin-bottom:0">Centre-wise Breakdown</div>
+          <div style="font-size:.65rem;color:var(--muted)">Click column header to sort</div>
+        </div>
+        <div id="ieoTableWrap" style="overflow-x:auto"></div>
+      </div>
     </div>
 
     <!-- Karnataka Insights page -->
@@ -974,10 +1013,10 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
         <h4>Add New User</h4>
         <div class="um-grid">
           <div class="um-field"><label>Email Address</label><input type="email" id="umEmail" placeholder="user@example.com"/></div>
-          <div class="um-field"><label>Password</label><input type="text" id="umPassword" placeholder="Set a password"/></div>
+          <div class="um-field"><label>Password <span style="font-weight:400;color:#888;font-size:.75em">(leave blank → Google Sign-In only)</span></label><input type="text" id="umPassword" placeholder="Leave blank for Google Sign-In only"/></div>
           <div class="um-field">
             <label>Role</label>
-            <select id="umRole">
+            <select id="umRole" onchange="(function(){const isAdmin=this.value==='admin';const c=document.getElementById('umCentre');c.disabled=isAdmin;if(isAdmin){c.value='all';}else if(c.value==='all'){const first=Array.from(c.options).find(o=>o.value!=='all');if(first)c.value=first.value;}}).call(this)">
               <option value="coordinator">Coordinator</option>
               <option value="admin">Admin</option>
             </select>
@@ -1014,7 +1053,7 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
             </select>
           </div>
         </div>
-        <button class="um-save" onclick="umAddUser()">Add User</button>
+        <button class="um-save" id="umAddBtn" onclick="umAddUser()" disabled>Add User</button>
         <div class="um-msg" id="umMsg"></div>
       </div>
     </div>
@@ -3235,22 +3274,21 @@ const PROG_CONFIG = {
 };
 
 // ════════════════════════════════════════════════════════════
-//  ROLES — email → { role, password, centre }
+//  ROLES — email → { role, passwordHash, centre }
+//  Passwords are stored as SHA-256 hashes only — never plain text.
 //  centre: 'all' for admins, or exact centre name for coordinators
 // ════════════════════════════════════════════════════════════
 const ROLES = {
-  'niteshkumar.7659@gmail.com':      { role:'admin',       password:'Isha@Admin2024',  centre:'all' },
-  'admin@ishafoundation.org':        { role:'admin',       password:'Isha@Admin2024',  centre:'all' },
-  'ecadmin@isha.ec':                 { role:'admin',       password:'IshaDash@2026',   centre:'all' },
+  'niteshkumar.7659@gmail.com':      { role:'admin',       passwordHash:'76704344b128221353c315affe1138f2f5245bc244abf296f4917d21689763fb', centre:'all' },
   // Centre coordinators — replace with real email addresses
-  'ec@isha.ec':                      { role:'coordinator', password:'Isha@EC2026',    centre:'Electronic City' },
-  'banaswadi@isha.ec':               { role:'coordinator', password:'Isha@Bana2026',   centre:'Banaswadi' },
-  'hebbal@isha.ec':                  { role:'coordinator', password:'Isha@Hebb2026',   centre:'Hebbal' },
-  'jayanagar@isha.ec':               { role:'coordinator', password:'Isha@Jaya2026',   centre:'IP - Jayanagar' },
-  'malleswaram@isha.ec':            { role:'coordinator', password:'Isha@Mall2026',   centre:'IP - Malleswaram' },
-  'marathahalli@isha.ec':            { role:'coordinator', password:'Isha@Mara2026',   centre:'IP - Marathahalli' },
-  'vijayanagar@isha.ec':             { role:'coordinator', password:'Isha@Vija2026',   centre:'IP - Vijayanagar' },
-  'indiranagar@isha.ec':             { role:'coordinator', password:'Isha@Indi2026',   centre:'Indiranagar' },
+  'ec@isha.ec':                      { role:'coordinator', passwordHash:'a3fa6aad0c6779f48efbf941e387594da6789b9afb774f1c0b3879142d7db759', centre:'Electronic City' },
+  'banaswadi@isha.ec':               { role:'coordinator', passwordHash:'5485ebd5305bbbd52c925250ff5cbf5a40797bb2a65e8433f46938db86be8a6c', centre:'Banaswadi' },
+  'hebbal@isha.ec':                  { role:'coordinator', passwordHash:'071eeb7b0674f2adb41b852d0d71243c6d2b13a9a50ac22055125916044a5bc8', centre:'Hebbal' },
+  'jayanagar@isha.ec':               { role:'coordinator', passwordHash:'fc952a17c09071d57e1a847b499c939c8b2cedae37e926ec755f0d5d650e7855', centre:'IP - Jayanagar' },
+  'malleswaram@isha.ec':             { role:'coordinator', passwordHash:'25f3aa278869709c4b43b9bb1b6a81669c315f57e6a34db8fc5c60445da3a8fc', centre:'IP - Malleswaram' },
+  'marathahalli@isha.ec':            { role:'coordinator', passwordHash:'c40bee78178893471e14af59c564c051bab41016d6d53ba60e0788054527fd91', centre:'IP - Marathahalli' },
+  'vijayanagar@isha.ec':             { role:'coordinator', passwordHash:'49c3ad52dd5321b8c3dba1f8a0003e3edc71ebfe6dc5655d8c8d825703fe3cf3', centre:'IP - Vijayanagar' },
+  'indiranagar@isha.ec':             { role:'coordinator', passwordHash:'6be464ce0d47c0ba0ab7235bbbeaec8c7c7afa5a3f4f2977dc2134d756f12481', centre:'Indiranagar' },
 };
 
 // Upcoming programs — pre-fetched by update_regs.py, overridden by live browser fetch if available
@@ -3438,91 +3476,126 @@ const LIVE_REGS = {
     "shoonya intensive|2026-08-06": 96,
     "shoonya intensive|2026-07-23": 93,
     "upa yoga": 1514,
-    "yogasanas|2026-07-26": 4
+    "yogasanas|2026-07-26": 3
+  },
+  "girinagar": {
+    "satsang": 0
   },
   "ballari": {
     "guru purnima|2026-07-29": 2
   },
   "banaswadi": {
-    "guru purnima|2026-07-29": 0
+    "guru purnima|2026-07-29": 2,
+    "satsang": 0
   },
   "bg road": {
-    "inner engineering": 5
+    "inner engineering": 5,
+    "satsang": 0
   },
   "belagavi": {
     "guru purnima|2026-07-29": 0
   },
   "electronic": {
     "guru purnima|2026-07-29": 3,
-    "inner engineering": 3
+    "inner engineering": 3,
+    "satsang": 0
+  },
+  "begur": {
+    "satsang": 0
+  },
+  "hebbal": {
+    "satsang": 0
+  },
+  "yelahanka": {
+    "satsang": 0,
+    "guru purnima|2026-07-29": 8
   },
   "hubbali": {
-    "guru purnima|2026-07-29": 2
+    "guru purnima|2026-07-29": 2,
+    "satsang": 0
   },
   "indiranagar": {
-    "guru purnima|2026-07-29": 3
+    "guru purnima|2026-07-29": 5,
+    "satsang": 0
+  },
+  "budigere cross": {
+    "satsang": 0,
+    "guru purnima|2026-07-29": 12,
+    "inner engineering": 3
   },
   "jayanagar": {
-    "bhuta shuddhi": 2,
-    "guru purnima|2026-07-29": 6,
-    "inner engineering": 4,
+    "bhuta shuddhi": 3,
+    "guru purnima|2026-07-29": 7,
+    "inner engineering": 5,
     "isha janani": 17,
+    "satsang": 0,
     "yogasanas": 9
   },
   "hsr": {
     "angamardana": 5,
     "bhastrika": 0,
-    "guru purnima|2026-07-29": 3,
+    "guru purnima|2026-07-29": 4,
     "surya kriya": 0,
     "yogasanas": 0
   },
   "sarjapur": {
-    "guru purnima|2026-07-29": 2
+    "guru purnima|2026-07-29": 3,
+    "satsang": 0
+  },
+  "koramangala": {
+    "satsang": 0
   },
   "malleswaram": {
     "angamardana": 0,
     "bhuta shuddhi": 0,
-    "guru pooja": 14,
-    "guru purnima|2026-07-29": 6,
-    "inner engineering": 32,
+    "guru pooja": 16,
+    "guru purnima|2026-07-29": 8,
+    "inner engineering": 36,
+    "satsang": 0,
+    "shanmukhi": 0,
     "yogasanas": 0
   },
   "mangalore": {
-    "guru purnima|2026-07-29": 0
+    "guru purnima|2026-07-29": 2,
+    "satsang": 0
   },
   "marathahalli": {
     "angamardana|2026-03-17": 2,
     "bhuta shuddhi|2026-03-30": 0,
-    "guru purnima|2026-07-29": 5,
+    "guru purnima|2026-07-29": 7,
     "inner engineering": 17,
+    "satsang": 0,
     "surya kriya": 1,
     "yogasanas": 4
   },
   "mysuru": {
-    "guru purnima|2026-07-29": 11
+    "guru purnima|2026-07-29": 11,
+    "satsang": 0
   },
   "vijayanagar": {
     "angamardana": 0,
-    "guru purnima|2026-07-29": 6,
+    "guru purnima|2026-07-29": 9,
     "hatha children": 1,
-    "inner engineering": 22,
+    "inner engineering": 25,
+    "satsang": 0,
     "surya kriya": 0
   },
+  "chikkaballapur": {
+    "satsang": 0
+  },
   "kanakapura": {
-    "guru purnima|2026-07-29": 9,
-    "inner engineering": 20,
-    "yogasanas": 2
-  },
-  "budigere cross": {
-    "guru purnima|2026-07-29": 10,
-    "inner engineering": 3
-  },
-  "yelahanka": {
-    "guru purnima|2026-07-29": 7
+    "guru purnima|2026-07-29": 14,
+    "inner engineering": 19,
+    "satsang": 0,
+    "yogasanas": 3
   }
 };
-const LIVE_REGS_UPDATED = "21 Jul 2026, 11:20 AM";
+const LIVE_REGS_UPDATED = "21 Jul 2026, 10:13 PM";
 /* __LIVE_REGS_END__ */
+
+/* __IE_ONLINE_START__ */
+const IE_ONLINE_DATA = {"Ballari": {"years": {"2023": {"s": [0, 0, 0, 0, 1, 0], "cc": 17, "st": 1, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "November 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 9, "st": 0, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 1, 0], "cc": 6, "st": 1, "ns": 0}}}, "2024": {"s": [9, 7, 5, 3, 2, 10], "cc": 38, "st": 11, "ns": 0, "months": {"January 2024": {"s": [1, 0, 2, 0, 1, 2], "cc": 5, "st": 3, "ns": 0}, "February 2024": {"s": [0, 2, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "March 2024": {"s": [3, 2, 0, 2, 0, 2], "cc": 4, "st": 0, "ns": 0}, "April 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 3, "st": 1, "ns": 0}, "May 2024": {"s": [0, 2, 0, 0, 0, 1], "cc": 4, "st": 0, "ns": 0}, "June 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 1, "ns": 0}, "July 2024": {"s": [1, 1, 1, 0, 0, 0], "cc": 7, "st": 3, "ns": 0}, "August 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "September 2024": {"s": [1, 0, 0, 0, 1, 0], "cc": 5, "st": 0, "ns": 0}, "October 2024": {"s": [1, 0, 1, 1, 0, 1], "cc": 0, "st": 1, "ns": 0}, "November 2024": {"s": [1, 0, 1, 0, 0, 2], "cc": 5, "st": 1, "ns": 0}}}, "2025": {"s": [4, 6, 2, 3, 0, 8], "cc": 54, "st": 3, "ns": 1, "months": {"February 2025": {"s": [1, 0, 1, 0, 0, 0], "cc": 10, "st": 1, "ns": 0}, "March 2025": {"s": [0, 2, 0, 0, 0, 1], "cc": 7, "st": 0, "ns": 0}, "April 2025": {"s": [0, 0, 0, 1, 0, 0], "cc": 1, "st": 1, "ns": 0}, "May 2025": {"s": [0, 2, 1, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}, "June 2025": {"s": [1, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "July 2025": {"s": [0, 0, 0, 1, 0, 0], "cc": 3, "st": 0, "ns": 0}, "August 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 8, "st": 0, "ns": 0}, "November 2025": {"s": [0, 1, 0, 1, 0, 2], "cc": 8, "st": 0, "ns": 0}, "December 2025": {"s": [2, 0, 0, 0, 0, 4], "cc": 9, "st": 1, "ns": 1}}}, "2026": {"s": [4, 3, 8, 0, 4, 16], "cc": 121, "st": 13, "ns": 0, "months": {"January 2026": {"s": [0, 0, 0, 0, 1, 3], "cc": 13, "st": 2, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 6, "st": 1, "ns": 0}, "March 2026": {"s": [1, 0, 1, 0, 1, 3], "cc": 36, "st": 2, "ns": 0}, "April 2026": {"s": [1, 0, 4, 0, 1, 3], "cc": 53, "st": 5, "ns": 0}, "May 2026": {"s": [0, 0, 0, 0, 1, 1], "cc": 5, "st": 1, "ns": 0}, "June 2026": {"s": [1, 2, 1, 0, 0, 2], "cc": 6, "st": 1, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "August 2026": {"s": [1, 0, 2, 0, 0, 3], "cc": 0, "st": 0, "ns": 0}, "September 2026": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [2, 2, 0, 0, 0, 0], "cc": 0, "st": 18, "ns": 360, "months": {"None": {"s": [2, 2, 0, 0, 0, 0], "cc": 0, "st": 18, "ns": 360}}}}}, "Banaswadi": {"years": {"2023": {"s": [15, 12, 4, 2, 5, 4], "cc": 51, "st": 15, "ns": 0, "months": {"October 2023": {"s": [2, 1, 2, 0, 1, 0], "cc": 10, "st": 1, "ns": 0}, "November 2023": {"s": [6, 5, 1, 0, 3, 3], "cc": 14, "st": 6, "ns": 0}, "December 2023": {"s": [7, 6, 1, 2, 1, 1], "cc": 27, "st": 8, "ns": 0}}}, "2024": {"s": [61, 75, 29, 13, 16, 24], "cc": 238, "st": 90, "ns": 0, "months": {"January 2024": {"s": [5, 3, 5, 3, 2, 1], "cc": 25, "st": 6, "ns": 0}, "February 2024": {"s": [8, 15, 4, 1, 3, 2], "cc": 18, "st": 15, "ns": 0}, "March 2024": {"s": [9, 9, 1, 1, 1, 2], "cc": 17, "st": 19, "ns": 0}, "April 2024": {"s": [4, 11, 2, 3, 0, 0], "cc": 23, "st": 9, "ns": 0}, "May 2024": {"s": [6, 2, 5, 0, 1, 1], "cc": 21, "st": 3, "ns": 0}, "June 2024": {"s": [3, 4, 3, 0, 4, 1], "cc": 15, "st": 8, "ns": 0}, "July 2024": {"s": [6, 11, 2, 1, 0, 3], "cc": 24, "st": 9, "ns": 0}, "August 2024": {"s": [5, 3, 1, 1, 1, 3], "cc": 21, "st": 4, "ns": 0}, "September 2024": {"s": [4, 5, 3, 0, 2, 6], "cc": 27, "st": 4, "ns": 0}, "October 2024": {"s": [4, 5, 1, 1, 2, 3], "cc": 14, "st": 4, "ns": 0}, "November 2024": {"s": [3, 4, 1, 2, 0, 1], "cc": 17, "st": 4, "ns": 0}, "December 2024": {"s": [4, 3, 1, 0, 0, 1], "cc": 16, "st": 5, "ns": 0}}}, "2025": {"s": [34, 35, 13, 8, 10, 47], "cc": 381, "st": 66, "ns": 4, "months": {"January 2025": {"s": [1, 2, 0, 0, 1, 2], "cc": 22, "st": 5, "ns": 0}, "February 2025": {"s": [3, 2, 1, 0, 1, 1], "cc": 26, "st": 10, "ns": 0}, "March 2025": {"s": [2, 6, 2, 1, 1, 3], "cc": 37, "st": 2, "ns": 0}, "April 2025": {"s": [2, 6, 2, 0, 1, 2], "cc": 10, "st": 7, "ns": 0}, "May 2025": {"s": [4, 4, 1, 3, 1, 1], "cc": 19, "st": 7, "ns": 0}, "June 2025": {"s": [5, 1, 0, 0, 1, 1], "cc": 16, "st": 3, "ns": 0}, "July 2025": {"s": [3, 1, 0, 0, 0, 1], "cc": 25, "st": 5, "ns": 0}, "August 2025": {"s": [3, 3, 3, 0, 0, 6], "cc": 9, "st": 4, "ns": 0}, "September 2025": {"s": [1, 4, 0, 0, 0, 1], "cc": 17, "st": 3, "ns": 0}, "October 2025": {"s": [3, 0, 1, 0, 0, 3], "cc": 10, "st": 6, "ns": 0}, "November 2025": {"s": [3, 3, 1, 1, 1, 8], "cc": 127, "st": 9, "ns": 3}, "December 2025": {"s": [4, 3, 2, 3, 3, 18], "cc": 63, "st": 5, "ns": 1}}}, "2026": {"s": [45, 38, 30, 16, 10, 93], "cc": 642, "st": 82, "ns": 0, "months": {"January 2026": {"s": [7, 6, 1, 1, 1, 7], "cc": 60, "st": 11, "ns": 0}, "February 2026": {"s": [1, 4, 2, 1, 1, 1], "cc": 55, "st": 4, "ns": 0}, "March 2026": {"s": [2, 7, 2, 0, 1, 10], "cc": 228, "st": 15, "ns": 0}, "April 2026": {"s": [14, 7, 6, 6, 3, 38], "cc": 239, "st": 26, "ns": 0}, "May 2026": {"s": [3, 9, 7, 1, 3, 13], "cc": 24, "st": 5, "ns": 0}, "June 2026": {"s": [7, 3, 3, 2, 0, 12], "cc": 21, "st": 6, "ns": 0}, "July 2026": {"s": [2, 0, 4, 3, 0, 10], "cc": 15, "st": 6, "ns": 0}, "August 2026": {"s": [8, 2, 5, 2, 1, 2], "cc": 0, "st": 8, "ns": 0}, "September 2026": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [1, 0, 1, 1, 0, 4], "cc": 0, "st": 127, "ns": 1276, "months": {"None": {"s": [1, 0, 1, 1, 0, 4], "cc": 0, "st": 127, "ns": 1276}}}}}, "Bannerghatta Road": {"years": {"2023": {"s": [8, 16, 8, 8, 2, 16], "cc": 92, "st": 18, "ns": 0, "months": {"October 2023": {"s": [0, 3, 0, 1, 0, 1], "cc": 29, "st": 2, "ns": 0}, "November 2023": {"s": [3, 11, 5, 4, 0, 9], "cc": 33, "st": 9, "ns": 0}, "December 2023": {"s": [5, 2, 3, 3, 2, 6], "cc": 30, "st": 7, "ns": 0}}}, "2024": {"s": [75, 90, 35, 16, 19, 55], "cc": 362, "st": 146, "ns": 0, "months": {"January 2024": {"s": [10, 9, 4, 1, 2, 4], "cc": 43, "st": 12, "ns": 0}, "February 2024": {"s": [9, 15, 5, 0, 3, 4], "cc": 35, "st": 22, "ns": 0}, "March 2024": {"s": [12, 16, 8, 1, 1, 7], "cc": 37, "st": 33, "ns": 0}, "April 2024": {"s": [4, 7, 0, 0, 1, 5], "cc": 25, "st": 14, "ns": 0}, "May 2024": {"s": [5, 6, 1, 3, 1, 4], "cc": 37, "st": 12, "ns": 0}, "June 2024": {"s": [1, 2, 2, 1, 3, 8], "cc": 28, "st": 12, "ns": 0}, "July 2024": {"s": [5, 11, 4, 3, 0, 8], "cc": 36, "st": 12, "ns": 0}, "August 2024": {"s": [7, 5, 1, 2, 0, 4], "cc": 21, "st": 6, "ns": 0}, "September 2024": {"s": [6, 8, 0, 3, 4, 2], "cc": 32, "st": 13, "ns": 0}, "October 2024": {"s": [6, 0, 4, 1, 2, 4], "cc": 21, "st": 2, "ns": 0}, "November 2024": {"s": [5, 10, 6, 1, 1, 4], "cc": 29, "st": 7, "ns": 0}, "December 2024": {"s": [5, 1, 0, 0, 1, 1], "cc": 18, "st": 1, "ns": 0}}}, "2025": {"s": [42, 50, 24, 19, 11, 80], "cc": 599, "st": 75, "ns": 5, "months": {"January 2025": {"s": [3, 4, 2, 0, 2, 5], "cc": 19, "st": 3, "ns": 0}, "February 2025": {"s": [4, 6, 8, 3, 3, 5], "cc": 54, "st": 11, "ns": 0}, "March 2025": {"s": [7, 8, 1, 1, 0, 12], "cc": 59, "st": 3, "ns": 0}, "April 2025": {"s": [4, 1, 1, 0, 1, 4], "cc": 22, "st": 6, "ns": 0}, "May 2025": {"s": [5, 7, 1, 1, 0, 2], "cc": 31, "st": 6, "ns": 0}, "June 2025": {"s": [4, 2, 0, 2, 0, 4], "cc": 26, "st": 2, "ns": 0}, "July 2025": {"s": [1, 4, 1, 2, 1, 7], "cc": 30, "st": 8, "ns": 0}, "August 2025": {"s": [2, 2, 0, 0, 0, 5], "cc": 16, "st": 6, "ns": 0}, "September 2025": {"s": [1, 1, 3, 1, 0, 5], "cc": 25, "st": 2, "ns": 0}, "October 2025": {"s": [1, 2, 1, 3, 0, 3], "cc": 14, "st": 4, "ns": 0}, "November 2025": {"s": [6, 4, 4, 2, 3, 15], "cc": 209, "st": 12, "ns": 0}, "December 2025": {"s": [4, 9, 2, 4, 1, 13], "cc": 94, "st": 12, "ns": 5}}}, "2026": {"s": [58, 47, 29, 21, 19, 109], "cc": 905, "st": 125, "ns": 0, "months": {"January 2026": {"s": [4, 3, 4, 3, 0, 17], "cc": 91, "st": 15, "ns": 0}, "February 2026": {"s": [4, 3, 3, 0, 3, 3], "cc": 64, "st": 6, "ns": 0}, "March 2026": {"s": [7, 9, 2, 2, 3, 9], "cc": 344, "st": 22, "ns": 0}, "April 2026": {"s": [17, 11, 8, 11, 3, 49], "cc": 323, "st": 33, "ns": 0}, "May 2026": {"s": [11, 8, 4, 0, 1, 7], "cc": 31, "st": 12, "ns": 0}, "June 2026": {"s": [5, 10, 2, 1, 4, 12], "cc": 37, "st": 16, "ns": 0}, "July 2026": {"s": [3, 1, 2, 1, 2, 2], "cc": 15, "st": 5, "ns": 0}, "August 2026": {"s": [5, 2, 4, 3, 3, 9], "cc": 0, "st": 16, "ns": 0}, "September 2026": {"s": [2, 0, 0, 0, 0, 1], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [6, 2, 1, 0, 1, 3], "cc": 0, "st": 160, "ns": 1776, "months": {"None": {"s": [6, 2, 1, 0, 1, 3], "cc": 0, "st": 160, "ns": 1776}}}}}, "Belagavi": {"years": {"2023": {"s": [4, 9, 3, 1, 3, 2], "cc": 23, "st": 1, "ns": 0, "months": {"October 2023": {"s": [1, 1, 0, 0, 1, 0], "cc": 5, "st": 0, "ns": 0}, "November 2023": {"s": [3, 5, 2, 1, 2, 2], "cc": 15, "st": 1, "ns": 0}, "December 2023": {"s": [0, 3, 1, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}}}, "2024": {"s": [17, 29, 17, 11, 5, 19], "cc": 152, "st": 43, "ns": 0, "months": {"January 2024": {"s": [2, 4, 1, 2, 0, 2], "cc": 26, "st": 3, "ns": 0}, "February 2024": {"s": [1, 2, 2, 0, 0, 2], "cc": 6, "st": 2, "ns": 0}, "March 2024": {"s": [4, 6, 3, 0, 0, 3], "cc": 25, "st": 13, "ns": 0}, "April 2024": {"s": [1, 3, 0, 0, 0, 2], "cc": 8, "st": 4, "ns": 0}, "May 2024": {"s": [1, 4, 3, 1, 0, 2], "cc": 14, "st": 2, "ns": 0}, "June 2024": {"s": [0, 2, 1, 0, 0, 0], "cc": 5, "st": 0, "ns": 0}, "July 2024": {"s": [2, 4, 2, 2, 2, 2], "cc": 19, "st": 10, "ns": 0}, "August 2024": {"s": [0, 1, 1, 2, 0, 2], "cc": 7, "st": 0, "ns": 0}, "September 2024": {"s": [2, 1, 2, 1, 2, 2], "cc": 22, "st": 4, "ns": 0}, "October 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 6, "st": 2, "ns": 0}, "November 2024": {"s": [3, 1, 1, 2, 1, 2], "cc": 9, "st": 2, "ns": 0}, "December 2024": {"s": [1, 1, 1, 1, 0, 0], "cc": 5, "st": 1, "ns": 0}}}, "2025": {"s": [16, 15, 9, 4, 5, 27], "cc": 137, "st": 12, "ns": 0, "months": {"January 2025": {"s": [1, 2, 1, 0, 1, 3], "cc": 11, "st": 2, "ns": 0}, "February 2025": {"s": [3, 2, 3, 1, 0, 1], "cc": 12, "st": 1, "ns": 0}, "March 2025": {"s": [5, 4, 4, 0, 0, 7], "cc": 25, "st": 0, "ns": 0}, "April 2025": {"s": [0, 1, 1, 0, 0, 0], "cc": 3, "st": 2, "ns": 0}, "May 2025": {"s": [2, 0, 0, 0, 0, 2], "cc": 18, "st": 1, "ns": 0}, "June 2025": {"s": [1, 0, 0, 0, 1, 4], "cc": 8, "st": 1, "ns": 0}, "July 2025": {"s": [0, 1, 0, 1, 0, 2], "cc": 9, "st": 1, "ns": 0}, "August 2025": {"s": [0, 1, 0, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}, "September 2025": {"s": [2, 0, 0, 1, 0, 1], "cc": 10, "st": 1, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 7, "st": 2, "ns": 0}, "November 2025": {"s": [1, 3, 0, 1, 3, 5], "cc": 22, "st": 0, "ns": 0}, "December 2025": {"s": [1, 1, 0, 0, 0, 1], "cc": 9, "st": 1, "ns": 0}}}, "2026": {"s": [17, 22, 11, 4, 7, 42], "cc": 306, "st": 37, "ns": 0, "months": {"January 2026": {"s": [1, 3, 1, 0, 1, 4], "cc": 30, "st": 8, "ns": 0}, "February 2026": {"s": [0, 2, 1, 0, 1, 1], "cc": 28, "st": 4, "ns": 0}, "March 2026": {"s": [5, 3, 0, 2, 0, 5], "cc": 99, "st": 5, "ns": 0}, "April 2026": {"s": [4, 7, 4, 0, 0, 15], "cc": 124, "st": 14, "ns": 0}, "May 2026": {"s": [1, 1, 1, 0, 2, 4], "cc": 12, "st": 2, "ns": 0}, "June 2026": {"s": [2, 2, 3, 0, 0, 8], "cc": 12, "st": 1, "ns": 0}, "July 2026": {"s": [1, 1, 0, 2, 1, 1], "cc": 1, "st": 1, "ns": 0}, "August 2026": {"s": [3, 3, 1, 0, 2, 4], "cc": 0, "st": 2, "ns": 0}}}, "None": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 48, "ns": 985, "months": {"None": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 48, "ns": 985}}}}}, "Electronic City": {"years": {"2023": {"s": [12, 15, 8, 1, 4, 14], "cc": 86, "st": 17, "ns": 0, "months": {"October 2023": {"s": [3, 0, 0, 0, 1, 2], "cc": 16, "st": 0, "ns": 0}, "November 2023": {"s": [5, 8, 5, 1, 1, 8], "cc": 39, "st": 10, "ns": 0}, "December 2023": {"s": [4, 7, 3, 0, 2, 4], "cc": 31, "st": 7, "ns": 0}}}, "2024": {"s": [99, 131, 38, 13, 20, 53], "cc": 377, "st": 173, "ns": 0, "months": {"January 2024": {"s": [10, 15, 1, 2, 2, 6], "cc": 37, "st": 16, "ns": 0}, "February 2024": {"s": [9, 16, 3, 1, 2, 4], "cc": 37, "st": 21, "ns": 0}, "March 2024": {"s": [16, 17, 5, 0, 3, 5], "cc": 35, "st": 27, "ns": 0}, "April 2024": {"s": [12, 11, 3, 2, 2, 3], "cc": 30, "st": 14, "ns": 0}, "May 2024": {"s": [7, 5, 1, 3, 2, 7], "cc": 27, "st": 15, "ns": 0}, "June 2024": {"s": [3, 7, 2, 0, 2, 3], "cc": 31, "st": 8, "ns": 0}, "July 2024": {"s": [17, 10, 6, 1, 2, 2], "cc": 46, "st": 17, "ns": 0}, "August 2024": {"s": [8, 10, 4, 1, 0, 3], "cc": 30, "st": 17, "ns": 0}, "September 2024": {"s": [8, 16, 5, 1, 2, 7], "cc": 37, "st": 12, "ns": 0}, "October 2024": {"s": [2, 10, 3, 0, 2, 3], "cc": 22, "st": 12, "ns": 0}, "November 2024": {"s": [6, 8, 4, 1, 1, 4], "cc": 24, "st": 7, "ns": 0}, "December 2024": {"s": [1, 6, 1, 1, 0, 6], "cc": 21, "st": 7, "ns": 0}}}, "2025": {"s": [48, 49, 32, 21, 20, 77], "cc": 720, "st": 84, "ns": 3, "months": {"January 2025": {"s": [1, 0, 5, 0, 0, 3], "cc": 10, "st": 4, "ns": 0}, "February 2025": {"s": [6, 8, 1, 0, 1, 3], "cc": 50, "st": 11, "ns": 0}, "March 2025": {"s": [4, 2, 5, 2, 2, 7], "cc": 56, "st": 6, "ns": 0}, "April 2025": {"s": [2, 5, 1, 0, 3, 3], "cc": 17, "st": 9, "ns": 0}, "May 2025": {"s": [3, 7, 2, 2, 1, 3], "cc": 28, "st": 6, "ns": 0}, "June 2025": {"s": [5, 1, 1, 1, 0, 7], "cc": 24, "st": 3, "ns": 0}, "July 2025": {"s": [3, 6, 4, 3, 1, 4], "cc": 25, "st": 6, "ns": 0}, "August 2025": {"s": [3, 1, 2, 1, 2, 2], "cc": 21, "st": 1, "ns": 0}, "September 2025": {"s": [3, 4, 1, 1, 0, 2], "cc": 31, "st": 5, "ns": 0}, "October 2025": {"s": [2, 4, 1, 2, 0, 2], "cc": 19, "st": 2, "ns": 0}, "November 2025": {"s": [9, 5, 4, 4, 7, 21], "cc": 257, "st": 16, "ns": 1}, "December 2025": {"s": [7, 6, 5, 5, 3, 20], "cc": 182, "st": 15, "ns": 2}}}, "2026": {"s": [63, 69, 42, 20, 20, 115], "cc": 895, "st": 130, "ns": 0, "months": {"January 2026": {"s": [2, 6, 3, 1, 1, 8], "cc": 79, "st": 5, "ns": 0}, "February 2026": {"s": [10, 2, 5, 0, 0, 7], "cc": 85, "st": 10, "ns": 0}, "March 2026": {"s": [5, 16, 4, 3, 6, 11], "cc": 328, "st": 30, "ns": 0}, "April 2026": {"s": [21, 14, 10, 4, 4, 37], "cc": 298, "st": 40, "ns": 0}, "May 2026": {"s": [12, 4, 6, 3, 3, 20], "cc": 37, "st": 12, "ns": 0}, "June 2026": {"s": [6, 11, 5, 4, 3, 14], "cc": 49, "st": 12, "ns": 0}, "July 2026": {"s": [4, 5, 2, 1, 1, 8], "cc": 19, "st": 7, "ns": 0}, "August 2026": {"s": [3, 10, 5, 4, 1, 7], "cc": 0, "st": 12, "ns": 0}, "September 2026": {"s": [0, 1, 2, 0, 1, 3], "cc": 0, "st": 2, "ns": 0}}}, "None": {"s": [4, 2, 0, 0, 0, 4], "cc": 0, "st": 156, "ns": 1906, "months": {"None": {"s": [4, 2, 0, 0, 0, 4], "cc": 0, "st": 156, "ns": 1906}}}}}, "Hebbal": {"years": {"2023": {"s": [22, 27, 11, 6, 15, 16], "cc": 114, "st": 24, "ns": 0, "months": {"October 2023": {"s": [0, 2, 3, 0, 2, 0], "cc": 17, "st": 5, "ns": 0}, "November 2023": {"s": [14, 14, 4, 4, 9, 11], "cc": 60, "st": 11, "ns": 0}, "December 2023": {"s": [8, 11, 4, 2, 4, 5], "cc": 37, "st": 8, "ns": 0}}}, "2024": {"s": [108, 126, 62, 19, 17, 74], "cc": 479, "st": 175, "ns": 0, "months": {"January 2024": {"s": [13, 14, 5, 4, 1, 7], "cc": 72, "st": 15, "ns": 0}, "February 2024": {"s": [10, 15, 5, 1, 3, 9], "cc": 54, "st": 24, "ns": 0}, "March 2024": {"s": [14, 24, 6, 2, 2, 5], "cc": 57, "st": 35, "ns": 0}, "April 2024": {"s": [8, 5, 7, 1, 1, 5], "cc": 39, "st": 8, "ns": 0}, "May 2024": {"s": [13, 8, 6, 1, 3, 7], "cc": 27, "st": 17, "ns": 0}, "June 2024": {"s": [9, 9, 8, 4, 1, 6], "cc": 34, "st": 11, "ns": 0}, "July 2024": {"s": [10, 12, 11, 1, 3, 8], "cc": 48, "st": 22, "ns": 0}, "August 2024": {"s": [7, 12, 3, 1, 1, 5], "cc": 36, "st": 10, "ns": 0}, "September 2024": {"s": [7, 7, 7, 1, 0, 12], "cc": 34, "st": 12, "ns": 0}, "October 2024": {"s": [3, 2, 0, 2, 0, 5], "cc": 26, "st": 7, "ns": 0}, "November 2024": {"s": [10, 12, 4, 0, 2, 5], "cc": 25, "st": 10, "ns": 0}, "December 2024": {"s": [4, 6, 0, 1, 0, 0], "cc": 27, "st": 4, "ns": 0}}}, "2025": {"s": [71, 75, 39, 21, 15, 131], "cc": 906, "st": 112, "ns": 2, "months": {"January 2025": {"s": [5, 3, 1, 2, 2, 8], "cc": 23, "st": 11, "ns": 0}, "February 2025": {"s": [8, 9, 5, 3, 0, 7], "cc": 65, "st": 21, "ns": 0}, "March 2025": {"s": [8, 11, 4, 0, 0, 8], "cc": 76, "st": 5, "ns": 0}, "April 2025": {"s": [8, 7, 1, 3, 1, 10], "cc": 27, "st": 6, "ns": 0}, "May 2025": {"s": [3, 4, 5, 2, 2, 4], "cc": 33, "st": 7, "ns": 0}, "June 2025": {"s": [2, 3, 2, 0, 0, 10], "cc": 26, "st": 5, "ns": 0}, "July 2025": {"s": [3, 0, 3, 0, 2, 7], "cc": 33, "st": 7, "ns": 0}, "August 2025": {"s": [4, 8, 2, 0, 0, 4], "cc": 21, "st": 3, "ns": 0}, "September 2025": {"s": [4, 2, 2, 0, 0, 2], "cc": 16, "st": 6, "ns": 0}, "October 2025": {"s": [4, 3, 1, 1, 3, 6], "cc": 18, "st": 7, "ns": 0}, "November 2025": {"s": [17, 10, 9, 4, 0, 31], "cc": 345, "st": 13, "ns": 0}, "December 2025": {"s": [5, 15, 4, 6, 5, 34], "cc": 223, "st": 21, "ns": 2}}}, "2026": {"s": [104, 60, 46, 26, 21, 147], "cc": 1209, "st": 155, "ns": 1, "months": {"January 2026": {"s": [14, 6, 7, 3, 2, 11], "cc": 111, "st": 25, "ns": 0}, "February 2026": {"s": [3, 2, 1, 1, 0, 4], "cc": 107, "st": 14, "ns": 0}, "March 2026": {"s": [11, 6, 7, 0, 1, 22], "cc": 462, "st": 20, "ns": 0}, "April 2026": {"s": [26, 20, 11, 6, 5, 61], "cc": 425, "st": 46, "ns": 1}, "May 2026": {"s": [12, 9, 3, 2, 3, 17], "cc": 46, "st": 14, "ns": 0}, "June 2026": {"s": [11, 3, 3, 4, 4, 12], "cc": 42, "st": 11, "ns": 0}, "July 2026": {"s": [10, 4, 2, 4, 2, 7], "cc": 16, "st": 6, "ns": 0}, "August 2026": {"s": [15, 10, 12, 6, 3, 12], "cc": 0, "st": 17, "ns": 0}, "September 2026": {"s": [2, 0, 0, 0, 1, 1], "cc": 0, "st": 2, "ns": 0}}}, "None": {"s": [4, 2, 0, 1, 1, 1], "cc": 0, "st": 221, "ns": 2375, "months": {"None": {"s": [4, 2, 0, 1, 1, 1], "cc": 0, "st": 221, "ns": 2375}}}}}, "Hubballi": {"years": {"2023": {"s": [1, 2, 4, 2, 5, 4], "cc": 33, "st": 7, "ns": 0, "months": {"October 2023": {"s": [0, 1, 1, 0, 2, 0], "cc": 12, "st": 0, "ns": 0}, "November 2023": {"s": [0, 0, 2, 1, 3, 3], "cc": 12, "st": 5, "ns": 0}, "December 2023": {"s": [1, 1, 1, 1, 0, 1], "cc": 9, "st": 2, "ns": 0}}}, "2024": {"s": [22, 33, 11, 10, 6, 26], "cc": 128, "st": 47, "ns": 0, "months": {"January 2024": {"s": [4, 4, 0, 0, 1, 3], "cc": 19, "st": 3, "ns": 0}, "February 2024": {"s": [1, 0, 0, 1, 0, 2], "cc": 7, "st": 0, "ns": 0}, "March 2024": {"s": [6, 5, 1, 2, 0, 3], "cc": 18, "st": 6, "ns": 0}, "April 2024": {"s": [1, 1, 0, 0, 0, 1], "cc": 3, "st": 3, "ns": 0}, "May 2024": {"s": [2, 2, 2, 0, 0, 2], "cc": 10, "st": 7, "ns": 0}, "June 2024": {"s": [0, 2, 0, 0, 1, 1], "cc": 6, "st": 1, "ns": 0}, "July 2024": {"s": [2, 6, 0, 1, 2, 4], "cc": 23, "st": 21, "ns": 0}, "August 2024": {"s": [0, 2, 1, 1, 0, 0], "cc": 4, "st": 1, "ns": 0}, "September 2024": {"s": [2, 5, 3, 2, 1, 3], "cc": 15, "st": 1, "ns": 0}, "October 2024": {"s": [0, 2, 0, 1, 0, 2], "cc": 4, "st": 1, "ns": 0}, "November 2024": {"s": [3, 4, 4, 2, 1, 4], "cc": 16, "st": 2, "ns": 0}, "December 2024": {"s": [1, 0, 0, 0, 0, 1], "cc": 3, "st": 1, "ns": 0}}}, "2025": {"s": [9, 13, 4, 5, 6, 23], "cc": 116, "st": 14, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 2], "cc": 6, "st": 0, "ns": 0}, "February 2025": {"s": [3, 3, 1, 1, 2, 1], "cc": 15, "st": 1, "ns": 0}, "March 2025": {"s": [2, 3, 1, 0, 0, 4], "cc": 15, "st": 4, "ns": 0}, "April 2025": {"s": [0, 1, 0, 1, 0, 0], "cc": 4, "st": 0, "ns": 0}, "May 2025": {"s": [0, 1, 0, 1, 2, 2], "cc": 4, "st": 1, "ns": 0}, "June 2025": {"s": [0, 0, 1, 0, 0, 2], "cc": 3, "st": 0, "ns": 0}, "July 2025": {"s": [1, 0, 0, 2, 0, 0], "cc": 15, "st": 2, "ns": 0}, "August 2025": {"s": [0, 1, 0, 0, 1, 0], "cc": 6, "st": 0, "ns": 0}, "September 2025": {"s": [1, 1, 0, 0, 0, 1], "cc": 7, "st": 2, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "November 2025": {"s": [1, 3, 1, 0, 0, 7], "cc": 23, "st": 3, "ns": 0}, "December 2025": {"s": [1, 0, 0, 0, 1, 3], "cc": 16, "st": 1, "ns": 0}}}, "2026": {"s": [18, 10, 4, 5, 7, 35], "cc": 250, "st": 45, "ns": 0, "months": {"January 2026": {"s": [4, 2, 0, 0, 0, 3], "cc": 24, "st": 3, "ns": 0}, "February 2026": {"s": [1, 0, 0, 0, 0, 0], "cc": 20, "st": 3, "ns": 0}, "March 2026": {"s": [3, 0, 2, 1, 0, 3], "cc": 106, "st": 8, "ns": 0}, "April 2026": {"s": [4, 4, 1, 1, 3, 19], "cc": 79, "st": 19, "ns": 0}, "May 2026": {"s": [2, 0, 1, 1, 0, 1], "cc": 8, "st": 3, "ns": 0}, "June 2026": {"s": [3, 3, 0, 1, 1, 3], "cc": 9, "st": 2, "ns": 0}, "July 2026": {"s": [0, 0, 0, 1, 1, 3], "cc": 4, "st": 1, "ns": 0}, "August 2026": {"s": [1, 1, 0, 0, 2, 3], "cc": 0, "st": 6, "ns": 0}}}, "None": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 36, "ns": 708, "months": {"None": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 36, "ns": 708}}}}}, "Indiranagar": {"years": {"2023": {"s": [12, 9, 3, 1, 3, 8], "cc": 48, "st": 11, "ns": 0, "months": {"October 2023": {"s": [2, 0, 1, 1, 1, 1], "cc": 13, "st": 2, "ns": 0}, "November 2023": {"s": [6, 6, 1, 0, 1, 4], "cc": 20, "st": 6, "ns": 0}, "December 2023": {"s": [4, 3, 1, 0, 1, 3], "cc": 15, "st": 3, "ns": 0}}}, "2024": {"s": [60, 65, 31, 10, 12, 35], "cc": 191, "st": 74, "ns": 0, "months": {"January 2024": {"s": [4, 5, 3, 1, 2, 1], "cc": 26, "st": 5, "ns": 0}, "February 2024": {"s": [6, 7, 5, 0, 0, 4], "cc": 19, "st": 12, "ns": 0}, "March 2024": {"s": [14, 15, 2, 2, 1, 3], "cc": 16, "st": 12, "ns": 0}, "April 2024": {"s": [3, 8, 3, 0, 2, 4], "cc": 16, "st": 7, "ns": 0}, "May 2024": {"s": [6, 4, 3, 1, 0, 4], "cc": 14, "st": 7, "ns": 0}, "June 2024": {"s": [9, 2, 0, 2, 2, 4], "cc": 18, "st": 5, "ns": 0}, "July 2024": {"s": [7, 4, 5, 2, 2, 2], "cc": 11, "st": 11, "ns": 0}, "August 2024": {"s": [5, 5, 3, 0, 0, 3], "cc": 19, "st": 4, "ns": 0}, "September 2024": {"s": [2, 3, 3, 0, 1, 2], "cc": 20, "st": 2, "ns": 0}, "October 2024": {"s": [0, 3, 1, 0, 0, 3], "cc": 16, "st": 3, "ns": 0}, "November 2024": {"s": [3, 2, 2, 0, 0, 1], "cc": 10, "st": 4, "ns": 0}, "December 2024": {"s": [1, 7, 1, 2, 2, 4], "cc": 6, "st": 2, "ns": 0}}}, "2025": {"s": [28, 33, 19, 8, 10, 33], "cc": 252, "st": 42, "ns": 1, "months": {"January 2025": {"s": [1, 1, 1, 0, 1, 4], "cc": 18, "st": 3, "ns": 0}, "February 2025": {"s": [7, 7, 2, 1, 0, 1], "cc": 19, "st": 7, "ns": 0}, "March 2025": {"s": [5, 3, 3, 1, 1, 1], "cc": 27, "st": 6, "ns": 0}, "April 2025": {"s": [4, 5, 4, 1, 1, 1], "cc": 13, "st": 2, "ns": 0}, "May 2025": {"s": [1, 1, 1, 0, 0, 3], "cc": 7, "st": 5, "ns": 0}, "June 2025": {"s": [2, 3, 1, 0, 3, 1], "cc": 13, "st": 1, "ns": 0}, "July 2025": {"s": [2, 1, 0, 1, 0, 1], "cc": 7, "st": 1, "ns": 0}, "August 2025": {"s": [1, 3, 1, 0, 0, 2], "cc": 17, "st": 2, "ns": 0}, "September 2025": {"s": [1, 1, 0, 2, 0, 1], "cc": 11, "st": 1, "ns": 0}, "October 2025": {"s": [3, 1, 0, 0, 2, 3], "cc": 8, "st": 3, "ns": 0}, "November 2025": {"s": [0, 1, 4, 0, 2, 6], "cc": 66, "st": 5, "ns": 1}, "December 2025": {"s": [1, 6, 2, 2, 0, 9], "cc": 46, "st": 6, "ns": 0}}}, "2026": {"s": [44, 44, 15, 6, 4, 71], "cc": 437, "st": 84, "ns": 1, "months": {"January 2026": {"s": [6, 3, 2, 1, 0, 7], "cc": 37, "st": 10, "ns": 0}, "February 2026": {"s": [0, 2, 0, 1, 1, 3], "cc": 47, "st": 7, "ns": 0}, "March 2026": {"s": [5, 10, 3, 0, 0, 6], "cc": 149, "st": 16, "ns": 1}, "April 2026": {"s": [9, 9, 1, 2, 1, 29], "cc": 164, "st": 21, "ns": 0}, "May 2026": {"s": [7, 6, 2, 1, 1, 15], "cc": 11, "st": 9, "ns": 0}, "June 2026": {"s": [8, 6, 5, 0, 1, 3], "cc": 24, "st": 12, "ns": 0}, "July 2026": {"s": [3, 1, 1, 1, 0, 2], "cc": 5, "st": 2, "ns": 0}, "August 2026": {"s": [4, 7, 1, 0, 0, 5], "cc": 0, "st": 7, "ns": 0}, "September 2026": {"s": [2, 0, 0, 0, 0, 1], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [2, 0, 0, 0, 1, 4], "cc": 0, "st": 94, "ns": 1043, "months": {"None": {"s": [2, 0, 0, 0, 1, 4], "cc": 0, "st": 94, "ns": 1043}}}}}, "Jayanagar": {"years": {"2023": {"s": [5, 5, 4, 8, 1, 9], "cc": 37, "st": 8, "ns": 0, "months": {"October 2023": {"s": [1, 0, 0, 0, 1, 1], "cc": 9, "st": 2, "ns": 0}, "November 2023": {"s": [2, 5, 2, 6, 0, 5], "cc": 15, "st": 4, "ns": 0}, "December 2023": {"s": [2, 0, 2, 2, 0, 3], "cc": 13, "st": 2, "ns": 0}}}, "2024": {"s": [24, 28, 15, 9, 7, 16], "cc": 88, "st": 56, "ns": 0, "months": {"January 2024": {"s": [3, 4, 1, 1, 0, 1], "cc": 16, "st": 5, "ns": 0}, "February 2024": {"s": [5, 3, 1, 0, 1, 0], "cc": 10, "st": 7, "ns": 0}, "March 2024": {"s": [3, 5, 3, 1, 0, 0], "cc": 10, "st": 8, "ns": 0}, "April 2024": {"s": [2, 3, 1, 0, 0, 0], "cc": 4, "st": 4, "ns": 0}, "May 2024": {"s": [4, 1, 1, 0, 0, 3], "cc": 6, "st": 1, "ns": 0}, "June 2024": {"s": [0, 3, 1, 2, 0, 1], "cc": 6, "st": 6, "ns": 0}, "July 2024": {"s": [1, 1, 2, 3, 2, 2], "cc": 9, "st": 13, "ns": 0}, "August 2024": {"s": [1, 1, 2, 1, 1, 1], "cc": 7, "st": 2, "ns": 0}, "September 2024": {"s": [2, 5, 1, 0, 0, 5], "cc": 9, "st": 3, "ns": 0}, "October 2024": {"s": [1, 0, 0, 0, 2, 0], "cc": 1, "st": 1, "ns": 0}, "November 2024": {"s": [1, 2, 1, 1, 0, 3], "cc": 9, "st": 3, "ns": 0}, "December 2024": {"s": [1, 0, 1, 0, 1, 0], "cc": 1, "st": 3, "ns": 0}}}, "2025": {"s": [22, 16, 14, 10, 5, 26], "cc": 186, "st": 32, "ns": 3, "months": {"January 2025": {"s": [2, 1, 2, 0, 0, 1], "cc": 2, "st": 1, "ns": 0}, "February 2025": {"s": [3, 3, 2, 0, 1, 2], "cc": 11, "st": 3, "ns": 0}, "March 2025": {"s": [1, 4, 1, 3, 1, 2], "cc": 23, "st": 3, "ns": 0}, "April 2025": {"s": [1, 1, 1, 0, 0, 1], "cc": 5, "st": 1, "ns": 0}, "May 2025": {"s": [2, 1, 0, 0, 0, 1], "cc": 7, "st": 2, "ns": 0}, "June 2025": {"s": [1, 0, 0, 1, 0, 0], "cc": 5, "st": 0, "ns": 0}, "July 2025": {"s": [1, 1, 2, 1, 0, 4], "cc": 10, "st": 4, "ns": 0}, "August 2025": {"s": [2, 1, 0, 0, 0, 1], "cc": 3, "st": 1, "ns": 0}, "September 2025": {"s": [0, 0, 0, 1, 0, 1], "cc": 5, "st": 3, "ns": 0}, "October 2025": {"s": [4, 2, 0, 2, 0, 0], "cc": 6, "st": 5, "ns": 0}, "November 2025": {"s": [1, 0, 3, 0, 1, 2], "cc": 65, "st": 2, "ns": 0}, "December 2025": {"s": [4, 2, 3, 2, 2, 11], "cc": 44, "st": 7, "ns": 3}}}, "2026": {"s": [22, 22, 13, 8, 5, 31], "cc": 294, "st": 36, "ns": 0, "months": {"January 2026": {"s": [3, 1, 1, 1, 0, 1], "cc": 19, "st": 4, "ns": 0}, "February 2026": {"s": [1, 1, 0, 1, 0, 2], "cc": 34, "st": 2, "ns": 0}, "March 2026": {"s": [1, 2, 1, 2, 0, 5], "cc": 103, "st": 4, "ns": 0}, "April 2026": {"s": [7, 9, 3, 3, 2, 16], "cc": 110, "st": 15, "ns": 0}, "May 2026": {"s": [1, 2, 3, 0, 2, 2], "cc": 13, "st": 5, "ns": 0}, "June 2026": {"s": [4, 3, 1, 0, 1, 3], "cc": 11, "st": 4, "ns": 0}, "July 2026": {"s": [0, 0, 1, 1, 0, 1], "cc": 4, "st": 1, "ns": 0}, "August 2026": {"s": [5, 4, 3, 0, 0, 1], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [0, 1, 1, 0, 0, 1], "cc": 0, "st": 61, "ns": 671, "months": {"None": {"s": [0, 1, 1, 0, 0, 1], "cc": 0, "st": 61, "ns": 671}}}}}, "Koramangala": {"years": {"2023": {"s": [18, 19, 5, 2, 4, 15], "cc": 104, "st": 30, "ns": 0, "months": {"October 2023": {"s": [0, 2, 0, 0, 0, 3], "cc": 17, "st": 1, "ns": 0}, "November 2023": {"s": [10, 8, 2, 2, 2, 7], "cc": 49, "st": 12, "ns": 0}, "December 2023": {"s": [8, 9, 3, 0, 2, 5], "cc": 38, "st": 17, "ns": 0}}}, "2024": {"s": [119, 133, 64, 28, 23, 38], "cc": 410, "st": 177, "ns": 0, "months": {"January 2024": {"s": [9, 16, 5, 2, 4, 7], "cc": 63, "st": 13, "ns": 0}, "February 2024": {"s": [17, 18, 3, 7, 3, 6], "cc": 50, "st": 32, "ns": 0}, "March 2024": {"s": [21, 14, 7, 1, 4, 2], "cc": 41, "st": 23, "ns": 0}, "April 2024": {"s": [10, 15, 6, 4, 2, 1], "cc": 43, "st": 15, "ns": 0}, "May 2024": {"s": [5, 14, 7, 2, 0, 1], "cc": 26, "st": 22, "ns": 0}, "June 2024": {"s": [10, 8, 6, 2, 3, 3], "cc": 23, "st": 12, "ns": 0}, "July 2024": {"s": [16, 7, 7, 1, 1, 5], "cc": 45, "st": 14, "ns": 0}, "August 2024": {"s": [7, 9, 3, 4, 0, 3], "cc": 27, "st": 8, "ns": 0}, "September 2024": {"s": [10, 11, 6, 2, 3, 5], "cc": 37, "st": 13, "ns": 0}, "October 2024": {"s": [1, 8, 4, 1, 0, 2], "cc": 17, "st": 11, "ns": 0}, "November 2024": {"s": [6, 4, 6, 1, 2, 1], "cc": 16, "st": 9, "ns": 0}, "December 2024": {"s": [7, 9, 4, 1, 1, 2], "cc": 22, "st": 5, "ns": 0}}}, "2025": {"s": [64, 82, 38, 11, 13, 80], "cc": 656, "st": 106, "ns": 2, "months": {"January 2025": {"s": [7, 3, 5, 0, 0, 6], "cc": 31, "st": 5, "ns": 0}, "February 2025": {"s": [5, 15, 6, 1, 1, 5], "cc": 47, "st": 13, "ns": 0}, "March 2025": {"s": [7, 11, 7, 1, 1, 9], "cc": 77, "st": 12, "ns": 0}, "April 2025": {"s": [7, 10, 3, 2, 1, 6], "cc": 32, "st": 10, "ns": 0}, "May 2025": {"s": [0, 9, 2, 0, 0, 3], "cc": 26, "st": 10, "ns": 0}, "June 2025": {"s": [5, 2, 4, 1, 3, 6], "cc": 30, "st": 4, "ns": 0}, "July 2025": {"s": [3, 3, 2, 0, 0, 5], "cc": 30, "st": 8, "ns": 0}, "August 2025": {"s": [2, 6, 0, 3, 2, 4], "cc": 19, "st": 9, "ns": 0}, "September 2025": {"s": [4, 5, 2, 0, 0, 1], "cc": 21, "st": 5, "ns": 0}, "October 2025": {"s": [5, 1, 1, 1, 2, 5], "cc": 16, "st": 5, "ns": 0}, "November 2025": {"s": [9, 7, 3, 1, 1, 11], "cc": 192, "st": 10, "ns": 1}, "December 2025": {"s": [10, 10, 3, 1, 2, 19], "cc": 135, "st": 15, "ns": 1}}}, "2026": {"s": [79, 75, 29, 33, 26, 114], "cc": 812, "st": 159, "ns": 0, "months": {"January 2026": {"s": [4, 13, 0, 4, 3, 8], "cc": 80, "st": 16, "ns": 0}, "February 2026": {"s": [6, 2, 4, 2, 3, 9], "cc": 88, "st": 8, "ns": 0}, "March 2026": {"s": [8, 17, 2, 3, 1, 17], "cc": 260, "st": 28, "ns": 0}, "April 2026": {"s": [26, 17, 12, 6, 8, 42], "cc": 297, "st": 47, "ns": 0}, "May 2026": {"s": [9, 13, 6, 4, 1, 14], "cc": 41, "st": 20, "ns": 0}, "June 2026": {"s": [12, 5, 3, 5, 3, 9], "cc": 32, "st": 17, "ns": 0}, "July 2026": {"s": [6, 4, 0, 5, 5, 10], "cc": 14, "st": 13, "ns": 0}, "August 2026": {"s": [6, 4, 2, 3, 2, 4], "cc": 0, "st": 8, "ns": 0}, "September 2026": {"s": [2, 0, 0, 1, 0, 1], "cc": 0, "st": 2, "ns": 0}}}, "None": {"s": [3, 1, 1, 2, 2, 3], "cc": 0, "st": 202, "ns": 1820, "months": {"None": {"s": [3, 1, 1, 2, 2, 3], "cc": 0, "st": 202, "ns": 1820}}}}}, "Malleswaram": {"years": {"2023": {"s": [11, 12, 10, 5, 2, 3], "cc": 64, "st": 15, "ns": 0, "months": {"October 2023": {"s": [2, 3, 1, 0, 0, 0], "cc": 13, "st": 2, "ns": 0}, "November 2023": {"s": [4, 5, 4, 2, 2, 2], "cc": 31, "st": 10, "ns": 0}, "December 2023": {"s": [5, 4, 5, 3, 0, 1], "cc": 20, "st": 3, "ns": 0}}}, "2024": {"s": [85, 83, 39, 16, 20, 39], "cc": 226, "st": 103, "ns": 0, "months": {"January 2024": {"s": [10, 6, 3, 2, 1, 4], "cc": 31, "st": 11, "ns": 0}, "February 2024": {"s": [4, 9, 2, 0, 2, 7], "cc": 17, "st": 12, "ns": 0}, "March 2024": {"s": [16, 15, 8, 1, 3, 1], "cc": 33, "st": 21, "ns": 0}, "April 2024": {"s": [4, 5, 2, 1, 0, 2], "cc": 10, "st": 4, "ns": 0}, "May 2024": {"s": [5, 10, 1, 1, 1, 1], "cc": 24, "st": 8, "ns": 0}, "June 2024": {"s": [9, 7, 1, 5, 1, 1], "cc": 25, "st": 5, "ns": 0}, "July 2024": {"s": [6, 7, 5, 1, 5, 7], "cc": 25, "st": 19, "ns": 0}, "August 2024": {"s": [7, 8, 4, 2, 0, 2], "cc": 6, "st": 2, "ns": 0}, "September 2024": {"s": [9, 8, 4, 0, 3, 5], "cc": 21, "st": 7, "ns": 0}, "October 2024": {"s": [1, 1, 3, 1, 0, 4], "cc": 11, "st": 2, "ns": 0}, "November 2024": {"s": [8, 7, 4, 2, 4, 5], "cc": 9, "st": 10, "ns": 0}, "December 2024": {"s": [6, 0, 2, 0, 0, 0], "cc": 14, "st": 2, "ns": 0}}}, "2025": {"s": [42, 46, 18, 6, 7, 55], "cc": 399, "st": 75, "ns": 1, "months": {"January 2025": {"s": [3, 3, 1, 0, 0, 1], "cc": 14, "st": 4, "ns": 0}, "February 2025": {"s": [6, 9, 4, 0, 0, 4], "cc": 45, "st": 13, "ns": 0}, "March 2025": {"s": [4, 5, 3, 0, 1, 5], "cc": 44, "st": 9, "ns": 0}, "April 2025": {"s": [2, 2, 2, 1, 0, 0], "cc": 10, "st": 3, "ns": 0}, "May 2025": {"s": [5, 5, 0, 0, 1, 7], "cc": 21, "st": 11, "ns": 0}, "June 2025": {"s": [1, 3, 1, 1, 0, 2], "cc": 5, "st": 3, "ns": 0}, "July 2025": {"s": [4, 5, 1, 0, 0, 7], "cc": 22, "st": 3, "ns": 0}, "August 2025": {"s": [0, 2, 0, 0, 1, 2], "cc": 9, "st": 2, "ns": 0}, "September 2025": {"s": [5, 2, 0, 1, 1, 2], "cc": 18, "st": 6, "ns": 0}, "October 2025": {"s": [0, 0, 2, 0, 1, 1], "cc": 11, "st": 1, "ns": 0}, "November 2025": {"s": [5, 3, 2, 0, 2, 11], "cc": 147, "st": 14, "ns": 1}, "December 2025": {"s": [7, 7, 2, 3, 0, 13], "cc": 53, "st": 6, "ns": 0}}}, "2026": {"s": [53, 52, 22, 15, 15, 103], "cc": 707, "st": 110, "ns": 0, "months": {"January 2026": {"s": [6, 8, 2, 0, 1, 8], "cc": 74, "st": 9, "ns": 0}, "February 2026": {"s": [0, 6, 0, 1, 0, 6], "cc": 58, "st": 4, "ns": 0}, "March 2026": {"s": [3, 9, 4, 3, 4, 8], "cc": 261, "st": 24, "ns": 0}, "April 2026": {"s": [18, 10, 9, 3, 5, 36], "cc": 259, "st": 33, "ns": 0}, "May 2026": {"s": [5, 2, 1, 3, 2, 13], "cc": 27, "st": 6, "ns": 0}, "June 2026": {"s": [9, 5, 3, 4, 1, 13], "cc": 21, "st": 13, "ns": 0}, "July 2026": {"s": [2, 3, 0, 0, 1, 9], "cc": 7, "st": 8, "ns": 0}, "August 2026": {"s": [9, 8, 3, 1, 1, 9], "cc": 0, "st": 12, "ns": 0}, "September 2026": {"s": [1, 1, 0, 0, 0, 1], "cc": 0, "st": 0, "ns": 0}, "October 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [2, 1, 1, 0, 1, 1], "cc": 0, "st": 143, "ns": 1735, "months": {"None": {"s": [2, 1, 1, 0, 1, 1], "cc": 0, "st": 143, "ns": 1735}}}}}, "Mangalore": {"years": {"2023": {"s": [2, 6, 3, 0, 1, 2], "cc": 36, "st": 8, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 12, "st": 0, "ns": 0}, "November 2023": {"s": [1, 3, 1, 0, 1, 2], "cc": 22, "st": 6, "ns": 0}, "December 2023": {"s": [1, 3, 2, 0, 0, 0], "cc": 2, "st": 2, "ns": 0}}}, "2024": {"s": [22, 26, 13, 10, 17, 24], "cc": 154, "st": 46, "ns": 0, "months": {"January 2024": {"s": [2, 5, 2, 0, 2, 4], "cc": 20, "st": 7, "ns": 0}, "February 2024": {"s": [2, 3, 2, 0, 2, 3], "cc": 8, "st": 7, "ns": 0}, "March 2024": {"s": [8, 5, 3, 2, 2, 1], "cc": 25, "st": 8, "ns": 0}, "April 2024": {"s": [4, 0, 0, 1, 1, 0], "cc": 4, "st": 0, "ns": 0}, "May 2024": {"s": [1, 3, 0, 1, 3, 0], "cc": 14, "st": 1, "ns": 0}, "June 2024": {"s": [0, 1, 1, 1, 1, 1], "cc": 10, "st": 3, "ns": 0}, "July 2024": {"s": [2, 3, 1, 0, 1, 4], "cc": 19, "st": 6, "ns": 0}, "August 2024": {"s": [0, 0, 0, 1, 1, 0], "cc": 9, "st": 1, "ns": 0}, "September 2024": {"s": [1, 2, 2, 2, 1, 6], "cc": 20, "st": 5, "ns": 0}, "October 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 5, "st": 1, "ns": 0}, "November 2024": {"s": [2, 2, 1, 2, 2, 2], "cc": 15, "st": 4, "ns": 0}, "December 2024": {"s": [0, 2, 1, 0, 1, 2], "cc": 5, "st": 3, "ns": 0}}}, "2025": {"s": [9, 14, 15, 5, 7, 26], "cc": 161, "st": 25, "ns": 1, "months": {"January 2025": {"s": [0, 1, 1, 0, 0, 0], "cc": 9, "st": 2, "ns": 0}, "February 2025": {"s": [2, 4, 0, 1, 2, 1], "cc": 16, "st": 6, "ns": 0}, "March 2025": {"s": [2, 3, 3, 0, 0, 3], "cc": 20, "st": 2, "ns": 0}, "April 2025": {"s": [0, 0, 2, 0, 1, 2], "cc": 4, "st": 1, "ns": 0}, "May 2025": {"s": [1, 0, 1, 1, 1, 1], "cc": 8, "st": 2, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 2], "cc": 4, "st": 0, "ns": 0}, "July 2025": {"s": [0, 1, 2, 2, 1, 2], "cc": 8, "st": 4, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 1, 0], "cc": 4, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 1, 1, 0, 7], "cc": 7, "st": 2, "ns": 0}, "October 2025": {"s": [1, 0, 0, 0, 0, 0], "cc": 8, "st": 0, "ns": 0}, "November 2025": {"s": [3, 2, 4, 0, 1, 6], "cc": 64, "st": 6, "ns": 1}, "December 2025": {"s": [0, 3, 1, 0, 0, 2], "cc": 9, "st": 0, "ns": 0}}}, "2026": {"s": [18, 22, 9, 8, 5, 44], "cc": 327, "st": 33, "ns": 0, "months": {"January 2026": {"s": [0, 0, 1, 1, 0, 3], "cc": 35, "st": 2, "ns": 0}, "February 2026": {"s": [0, 3, 0, 0, 0, 0], "cc": 19, "st": 0, "ns": 0}, "March 2026": {"s": [2, 5, 0, 2, 0, 9], "cc": 129, "st": 7, "ns": 0}, "April 2026": {"s": [7, 4, 2, 2, 1, 15], "cc": 123, "st": 16, "ns": 0}, "May 2026": {"s": [2, 1, 0, 1, 1, 4], "cc": 12, "st": 1, "ns": 0}, "June 2026": {"s": [4, 1, 3, 0, 0, 2], "cc": 9, "st": 3, "ns": 0}, "July 2026": {"s": [0, 3, 0, 1, 1, 3], "cc": 0, "st": 3, "ns": 0}, "August 2026": {"s": [3, 5, 3, 1, 2, 8], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [1, 0, 0, 0, 0, 1], "cc": 0, "st": 37, "ns": 740, "months": {"None": {"s": [1, 0, 0, 0, 0, 1], "cc": 0, "st": 37, "ns": 740}}}}}, "Marathahalli": {"years": {"2023": {"s": [22, 26, 9, 7, 7, 17], "cc": 103, "st": 22, "ns": 0, "months": {"October 2023": {"s": [2, 3, 1, 0, 1, 3], "cc": 19, "st": 2, "ns": 0}, "November 2023": {"s": [8, 14, 6, 2, 3, 7], "cc": 49, "st": 12, "ns": 0}, "December 2023": {"s": [12, 9, 2, 5, 3, 7], "cc": 35, "st": 8, "ns": 0}}}, "2024": {"s": [116, 121, 52, 16, 19, 54], "cc": 381, "st": 178, "ns": 0, "months": {"January 2024": {"s": [10, 12, 5, 2, 1, 4], "cc": 40, "st": 10, "ns": 0}, "February 2024": {"s": [16, 17, 13, 1, 4, 5], "cc": 48, "st": 28, "ns": 0}, "March 2024": {"s": [22, 15, 5, 2, 2, 5], "cc": 40, "st": 36, "ns": 0}, "April 2024": {"s": [17, 6, 5, 0, 3, 0], "cc": 35, "st": 21, "ns": 0}, "May 2024": {"s": [8, 7, 1, 2, 0, 6], "cc": 25, "st": 13, "ns": 0}, "June 2024": {"s": [9, 11, 5, 2, 1, 4], "cc": 40, "st": 13, "ns": 0}, "July 2024": {"s": [9, 13, 3, 0, 2, 8], "cc": 29, "st": 16, "ns": 0}, "August 2024": {"s": [5, 11, 6, 0, 2, 3], "cc": 29, "st": 12, "ns": 0}, "September 2024": {"s": [6, 8, 3, 0, 2, 8], "cc": 33, "st": 9, "ns": 0}, "October 2024": {"s": [6, 4, 1, 3, 0, 3], "cc": 24, "st": 6, "ns": 0}, "November 2024": {"s": [5, 9, 1, 2, 2, 3], "cc": 15, "st": 7, "ns": 0}, "December 2024": {"s": [3, 8, 4, 2, 0, 5], "cc": 23, "st": 7, "ns": 0}}}, "2025": {"s": [51, 71, 40, 20, 14, 70], "cc": 554, "st": 93, "ns": 1, "months": {"January 2025": {"s": [2, 3, 2, 1, 0, 2], "cc": 37, "st": 6, "ns": 0}, "February 2025": {"s": [4, 10, 5, 2, 3, 8], "cc": 42, "st": 20, "ns": 0}, "March 2025": {"s": [8, 8, 5, 7, 0, 5], "cc": 59, "st": 13, "ns": 0}, "April 2025": {"s": [9, 7, 4, 0, 1, 1], "cc": 31, "st": 9, "ns": 0}, "May 2025": {"s": [2, 6, 5, 0, 2, 7], "cc": 30, "st": 3, "ns": 0}, "June 2025": {"s": [4, 6, 2, 0, 1, 4], "cc": 26, "st": 4, "ns": 0}, "July 2025": {"s": [2, 7, 3, 0, 2, 3], "cc": 25, "st": 5, "ns": 0}, "August 2025": {"s": [2, 5, 0, 1, 0, 5], "cc": 21, "st": 5, "ns": 0}, "September 2025": {"s": [6, 5, 3, 2, 1, 3], "cc": 27, "st": 2, "ns": 0}, "October 2025": {"s": [4, 3, 1, 3, 0, 4], "cc": 20, "st": 10, "ns": 0}, "November 2025": {"s": [3, 4, 4, 3, 2, 16], "cc": 172, "st": 6, "ns": 0}, "December 2025": {"s": [5, 7, 6, 1, 2, 12], "cc": 64, "st": 10, "ns": 1}}}, "2026": {"s": [68, 60, 36, 32, 16, 98], "cc": 1032, "st": 166, "ns": 0, "months": {"January 2026": {"s": [5, 5, 3, 1, 1, 6], "cc": 80, "st": 13, "ns": 0}, "February 2026": {"s": [3, 1, 0, 1, 1, 4], "cc": 91, "st": 13, "ns": 0}, "March 2026": {"s": [7, 8, 6, 4, 0, 14], "cc": 364, "st": 42, "ns": 0}, "April 2026": {"s": [12, 15, 11, 9, 4, 26], "cc": 396, "st": 53, "ns": 0}, "May 2026": {"s": [12, 7, 3, 3, 0, 20], "cc": 46, "st": 7, "ns": 0}, "June 2026": {"s": [12, 7, 4, 4, 5, 13], "cc": 34, "st": 17, "ns": 0}, "July 2026": {"s": [4, 7, 2, 5, 2, 9], "cc": 21, "st": 8, "ns": 0}, "August 2026": {"s": [11, 9, 7, 4, 3, 4], "cc": 0, "st": 9, "ns": 0}, "September 2026": {"s": [2, 1, 0, 1, 0, 2], "cc": 0, "st": 4, "ns": 0}}}, "None": {"s": [4, 2, 1, 0, 1, 3], "cc": 0, "st": 165, "ns": 1746, "months": {"None": {"s": [4, 2, 1, 0, 1, 3], "cc": 0, "st": 165, "ns": 1746}}}}}, "Mysore": {"years": {"2023": {"s": [5, 8, 3, 5, 1, 9], "cc": 40, "st": 8, "ns": 0, "months": {"October 2023": {"s": [2, 1, 0, 1, 0, 0], "cc": 10, "st": 1, "ns": 0}, "November 2023": {"s": [2, 4, 2, 4, 1, 6], "cc": 23, "st": 4, "ns": 0}, "December 2023": {"s": [1, 3, 1, 0, 0, 3], "cc": 7, "st": 3, "ns": 0}}}, "2024": {"s": [35, 46, 20, 12, 14, 29], "cc": 189, "st": 70, "ns": 0, "months": {"January 2024": {"s": [1, 9, 1, 2, 4, 4], "cc": 31, "st": 7, "ns": 0}, "February 2024": {"s": [3, 2, 5, 1, 1, 1], "cc": 9, "st": 6, "ns": 0}, "March 2024": {"s": [6, 12, 2, 3, 4, 2], "cc": 35, "st": 11, "ns": 0}, "April 2024": {"s": [0, 1, 0, 0, 0, 1], "cc": 6, "st": 7, "ns": 0}, "May 2024": {"s": [2, 3, 0, 2, 1, 3], "cc": 19, "st": 4, "ns": 0}, "June 2024": {"s": [0, 2, 3, 1, 0, 0], "cc": 8, "st": 0, "ns": 0}, "July 2024": {"s": [9, 5, 2, 1, 0, 4], "cc": 26, "st": 11, "ns": 0}, "August 2024": {"s": [2, 1, 1, 1, 1, 3], "cc": 6, "st": 5, "ns": 0}, "September 2024": {"s": [8, 3, 1, 0, 2, 5], "cc": 26, "st": 6, "ns": 0}, "October 2024": {"s": [0, 1, 1, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}, "November 2024": {"s": [3, 7, 3, 1, 1, 6], "cc": 10, "st": 9, "ns": 0}, "December 2024": {"s": [1, 0, 1, 0, 0, 0], "cc": 7, "st": 4, "ns": 0}}}, "2025": {"s": [27, 25, 14, 16, 10, 32], "cc": 416, "st": 49, "ns": 5, "months": {"January 2025": {"s": [0, 2, 1, 1, 1, 1], "cc": 8, "st": 1, "ns": 0}, "February 2025": {"s": [5, 1, 3, 1, 3, 0], "cc": 36, "st": 10, "ns": 0}, "March 2025": {"s": [8, 5, 1, 1, 1, 1], "cc": 37, "st": 5, "ns": 0}, "April 2025": {"s": [0, 2, 0, 0, 0, 2], "cc": 7, "st": 2, "ns": 0}, "May 2025": {"s": [1, 1, 1, 2, 0, 1], "cc": 21, "st": 4, "ns": 0}, "June 2025": {"s": [1, 0, 3, 0, 0, 1], "cc": 2, "st": 2, "ns": 0}, "July 2025": {"s": [1, 0, 1, 0, 1, 1], "cc": 14, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 1, 0], "cc": 8, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 0, 1, 0, 1], "cc": 27, "st": 5, "ns": 0}, "October 2025": {"s": [2, 2, 0, 1, 0, 0], "cc": 4, "st": 3, "ns": 0}, "November 2025": {"s": [6, 7, 3, 6, 3, 10], "cc": 172, "st": 10, "ns": 3}, "December 2025": {"s": [3, 5, 1, 3, 0, 14], "cc": 80, "st": 7, "ns": 2}}}, "2026": {"s": [34, 36, 20, 18, 7, 85], "cc": 443, "st": 80, "ns": 0, "months": {"January 2026": {"s": [2, 3, 2, 1, 0, 5], "cc": 36, "st": 8, "ns": 0}, "February 2026": {"s": [1, 0, 0, 0, 0, 4], "cc": 23, "st": 2, "ns": 0}, "March 2026": {"s": [4, 4, 1, 4, 2, 13], "cc": 165, "st": 24, "ns": 0}, "April 2026": {"s": [10, 7, 7, 7, 2, 32], "cc": 179, "st": 21, "ns": 0}, "May 2026": {"s": [0, 4, 1, 3, 0, 9], "cc": 16, "st": 6, "ns": 0}, "June 2026": {"s": [6, 5, 2, 2, 1, 9], "cc": 19, "st": 7, "ns": 0}, "July 2026": {"s": [3, 4, 1, 0, 1, 3], "cc": 5, "st": 2, "ns": 0}, "August 2026": {"s": [8, 9, 5, 1, 1, 10], "cc": 0, "st": 10, "ns": 0}, "September 2026": {"s": [0, 0, 1, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [2, 1, 2, 0, 0, 1], "cc": 0, "st": 76, "ns": 1313, "months": {"None": {"s": [2, 1, 2, 0, 0, 1], "cc": 0, "st": 76, "ns": 1313}}}}}, "Shivamogga": {"years": {"2023": {"s": [2, 2, 2, 1, 0, 3], "cc": 12, "st": 2, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 4, "st": 1, "ns": 0}, "November 2023": {"s": [2, 0, 2, 1, 0, 3], "cc": 6, "st": 1, "ns": 0}, "December 2023": {"s": [0, 2, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}}}, "2024": {"s": [15, 13, 16, 7, 6, 17], "cc": 93, "st": 34, "ns": 0, "months": {"January 2024": {"s": [1, 1, 3, 0, 0, 1], "cc": 9, "st": 5, "ns": 0}, "February 2024": {"s": [1, 1, 0, 0, 1, 0], "cc": 3, "st": 0, "ns": 0}, "March 2024": {"s": [5, 1, 3, 2, 3, 2], "cc": 18, "st": 5, "ns": 0}, "April 2024": {"s": [1, 0, 1, 0, 0, 1], "cc": 3, "st": 2, "ns": 0}, "May 2024": {"s": [1, 0, 1, 2, 0, 2], "cc": 16, "st": 1, "ns": 0}, "June 2024": {"s": [1, 0, 0, 1, 0, 0], "cc": 3, "st": 1, "ns": 0}, "July 2024": {"s": [0, 3, 2, 1, 0, 3], "cc": 18, "st": 8, "ns": 0}, "August 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 3, "st": 3, "ns": 0}, "September 2024": {"s": [1, 2, 2, 0, 2, 2], "cc": 10, "st": 3, "ns": 0}, "October 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "November 2024": {"s": [0, 5, 4, 1, 0, 6], "cc": 7, "st": 5, "ns": 0}, "December 2024": {"s": [2, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}}}, "2025": {"s": [12, 10, 4, 6, 1, 19], "cc": 89, "st": 12, "ns": 0, "months": {"January 2025": {"s": [1, 0, 1, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "February 2025": {"s": [2, 2, 1, 1, 0, 3], "cc": 13, "st": 4, "ns": 0}, "March 2025": {"s": [4, 3, 0, 2, 0, 1], "cc": 15, "st": 0, "ns": 0}, "April 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "May 2025": {"s": [0, 1, 0, 1, 0, 2], "cc": 6, "st": 3, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "July 2025": {"s": [0, 1, 0, 0, 0, 3], "cc": 7, "st": 1, "ns": 0}, "August 2025": {"s": [2, 0, 0, 1, 0, 0], "cc": 0, "st": 0, "ns": 0}, "September 2025": {"s": [2, 0, 0, 1, 0, 3], "cc": 9, "st": 3, "ns": 0}, "October 2025": {"s": [0, 1, 0, 0, 1, 0], "cc": 2, "st": 0, "ns": 0}, "November 2025": {"s": [0, 2, 2, 0, 0, 1], "cc": 23, "st": 1, "ns": 0}, "December 2025": {"s": [1, 0, 0, 0, 0, 4], "cc": 9, "st": 0, "ns": 0}}}, "2026": {"s": [19, 17, 6, 5, 5, 31], "cc": 170, "st": 27, "ns": 0, "months": {"January 2026": {"s": [0, 3, 1, 0, 0, 5], "cc": 16, "st": 5, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 5, "st": 0, "ns": 0}, "March 2026": {"s": [4, 1, 1, 0, 0, 8], "cc": 59, "st": 5, "ns": 0}, "April 2026": {"s": [8, 3, 0, 1, 3, 8], "cc": 62, "st": 7, "ns": 0}, "May 2026": {"s": [0, 1, 1, 0, 0, 1], "cc": 13, "st": 2, "ns": 0}, "June 2026": {"s": [1, 2, 1, 1, 1, 4], "cc": 13, "st": 1, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "August 2026": {"s": [6, 7, 2, 3, 1, 3], "cc": 0, "st": 7, "ns": 0}}}, "None": {"s": [0, 1, 0, 0, 0, 1], "cc": 0, "st": 19, "ns": 535, "months": {"None": {"s": [0, 1, 0, 0, 0, 1], "cc": 0, "st": 19, "ns": 535}}}}}, "Vijayanagar": {"years": {"2023": {"s": [10, 14, 8, 3, 4, 21], "cc": 85, "st": 21, "ns": 0, "months": {"October 2023": {"s": [0, 2, 1, 0, 2, 7], "cc": 9, "st": 1, "ns": 0}, "November 2023": {"s": [9, 7, 4, 2, 2, 10], "cc": 52, "st": 12, "ns": 0}, "December 2023": {"s": [1, 5, 3, 1, 0, 4], "cc": 24, "st": 8, "ns": 0}}}, "2024": {"s": [100, 111, 41, 31, 24, 86], "cc": 414, "st": 134, "ns": 0, "months": {"January 2024": {"s": [12, 15, 5, 1, 4, 8], "cc": 54, "st": 18, "ns": 0}, "February 2024": {"s": [5, 6, 0, 1, 2, 6], "cc": 29, "st": 15, "ns": 0}, "March 2024": {"s": [24, 20, 7, 6, 5, 8], "cc": 62, "st": 33, "ns": 0}, "April 2024": {"s": [3, 5, 1, 0, 0, 0], "cc": 21, "st": 7, "ns": 0}, "May 2024": {"s": [9, 15, 4, 1, 3, 8], "cc": 43, "st": 11, "ns": 0}, "June 2024": {"s": [2, 9, 1, 0, 0, 5], "cc": 15, "st": 7, "ns": 0}, "July 2024": {"s": [10, 7, 5, 4, 6, 10], "cc": 59, "st": 11, "ns": 0}, "August 2024": {"s": [7, 4, 1, 3, 0, 4], "cc": 26, "st": 9, "ns": 0}, "September 2024": {"s": [10, 8, 9, 4, 2, 16], "cc": 55, "st": 11, "ns": 0}, "October 2024": {"s": [7, 4, 2, 4, 1, 7], "cc": 11, "st": 4, "ns": 0}, "November 2024": {"s": [10, 15, 5, 4, 0, 10], "cc": 34, "st": 5, "ns": 0}, "December 2024": {"s": [1, 3, 1, 3, 1, 4], "cc": 5, "st": 3, "ns": 0}}}, "2025": {"s": [64, 68, 25, 17, 18, 111], "cc": 670, "st": 92, "ns": 2, "months": {"January 2025": {"s": [2, 1, 0, 1, 0, 6], "cc": 13, "st": 3, "ns": 0}, "February 2025": {"s": [6, 12, 2, 1, 1, 12], "cc": 66, "st": 18, "ns": 0}, "March 2025": {"s": [9, 8, 6, 3, 4, 10], "cc": 72, "st": 11, "ns": 0}, "April 2025": {"s": [2, 6, 3, 1, 1, 3], "cc": 14, "st": 3, "ns": 0}, "May 2025": {"s": [6, 6, 2, 1, 2, 5], "cc": 35, "st": 14, "ns": 0}, "June 2025": {"s": [1, 2, 0, 0, 0, 5], "cc": 15, "st": 2, "ns": 0}, "July 2025": {"s": [9, 5, 1, 2, 3, 7], "cc": 38, "st": 5, "ns": 0}, "August 2025": {"s": [3, 2, 2, 0, 1, 2], "cc": 11, "st": 4, "ns": 0}, "September 2025": {"s": [4, 7, 2, 2, 0, 11], "cc": 23, "st": 6, "ns": 0}, "October 2025": {"s": [3, 2, 2, 3, 1, 1], "cc": 5, "st": 2, "ns": 0}, "November 2025": {"s": [10, 11, 1, 3, 3, 30], "cc": 294, "st": 13, "ns": 2}, "December 2025": {"s": [9, 6, 4, 0, 2, 19], "cc": 84, "st": 11, "ns": 0}}}, "2026": {"s": [73, 60, 30, 26, 27, 146], "cc": 1096, "st": 157, "ns": 1, "months": {"January 2026": {"s": [7, 6, 3, 3, 4, 11], "cc": 96, "st": 18, "ns": 0}, "February 2026": {"s": [0, 2, 1, 0, 1, 2], "cc": 62, "st": 4, "ns": 0}, "March 2026": {"s": [7, 17, 10, 3, 9, 19], "cc": 426, "st": 33, "ns": 0}, "April 2026": {"s": [23, 12, 5, 7, 4, 53], "cc": 428, "st": 61, "ns": 1}, "May 2026": {"s": [6, 5, 1, 4, 2, 18], "cc": 28, "st": 7, "ns": 0}, "June 2026": {"s": [11, 4, 4, 5, 5, 24], "cc": 40, "st": 16, "ns": 0}, "July 2026": {"s": [5, 5, 1, 1, 1, 6], "cc": 16, "st": 3, "ns": 0}, "August 2026": {"s": [14, 9, 5, 3, 1, 13], "cc": 0, "st": 15, "ns": 0}}}, "None": {"s": [4, 5, 3, 0, 0, 9], "cc": 0, "st": 182, "ns": 2536, "months": {"None": {"s": [4, 5, 3, 0, 0, 9], "cc": 0, "st": 182, "ns": 2536}}}}}, "Whitefield": {"years": {"2023": {"s": [2, 5, 5, 3, 1, 4], "cc": 37, "st": 7, "ns": 0, "months": {"October 2023": {"s": [1, 0, 0, 0, 0, 1], "cc": 11, "st": 0, "ns": 0}, "November 2023": {"s": [1, 3, 1, 3, 1, 2], "cc": 15, "st": 3, "ns": 0}, "December 2023": {"s": [0, 2, 4, 0, 0, 1], "cc": 11, "st": 4, "ns": 0}}}, "2024": {"s": [30, 47, 19, 7, 12, 24], "cc": 144, "st": 67, "ns": 0, "months": {"January 2024": {"s": [2, 4, 1, 1, 2, 1], "cc": 11, "st": 9, "ns": 0}, "February 2024": {"s": [6, 5, 3, 1, 1, 0], "cc": 20, "st": 10, "ns": 0}, "March 2024": {"s": [4, 6, 2, 1, 2, 4], "cc": 23, "st": 9, "ns": 0}, "April 2024": {"s": [7, 1, 2, 0, 1, 0], "cc": 22, "st": 9, "ns": 0}, "May 2024": {"s": [2, 2, 1, 0, 0, 2], "cc": 10, "st": 3, "ns": 0}, "June 2024": {"s": [3, 4, 2, 0, 0, 3], "cc": 11, "st": 6, "ns": 0}, "July 2024": {"s": [2, 5, 0, 1, 3, 1], "cc": 10, "st": 3, "ns": 0}, "August 2024": {"s": [1, 7, 3, 0, 1, 0], "cc": 8, "st": 5, "ns": 0}, "September 2024": {"s": [0, 4, 0, 2, 2, 7], "cc": 7, "st": 4, "ns": 0}, "October 2024": {"s": [1, 2, 4, 1, 0, 2], "cc": 9, "st": 5, "ns": 0}, "November 2024": {"s": [0, 4, 1, 0, 0, 3], "cc": 7, "st": 2, "ns": 0}, "December 2024": {"s": [2, 3, 0, 0, 0, 1], "cc": 6, "st": 2, "ns": 0}}}, "2025": {"s": [26, 20, 8, 5, 3, 23], "cc": 196, "st": 38, "ns": 1, "months": {"January 2025": {"s": [0, 2, 2, 1, 0, 0], "cc": 8, "st": 4, "ns": 0}, "February 2025": {"s": [6, 1, 1, 1, 0, 2], "cc": 18, "st": 4, "ns": 0}, "March 2025": {"s": [2, 3, 0, 0, 1, 1], "cc": 21, "st": 4, "ns": 0}, "April 2025": {"s": [1, 2, 1, 1, 0, 2], "cc": 5, "st": 1, "ns": 0}, "May 2025": {"s": [5, 0, 0, 0, 0, 0], "cc": 8, "st": 5, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 3], "cc": 11, "st": 3, "ns": 0}, "July 2025": {"s": [0, 2, 1, 1, 0, 1], "cc": 11, "st": 3, "ns": 0}, "August 2025": {"s": [3, 1, 1, 1, 1, 0], "cc": 13, "st": 1, "ns": 0}, "September 2025": {"s": [2, 2, 1, 0, 0, 1], "cc": 4, "st": 1, "ns": 0}, "October 2025": {"s": [2, 1, 0, 0, 0, 2], "cc": 10, "st": 4, "ns": 0}, "November 2025": {"s": [1, 4, 1, 0, 0, 4], "cc": 54, "st": 5, "ns": 1}, "December 2025": {"s": [4, 2, 0, 0, 1, 7], "cc": 33, "st": 3, "ns": 0}}}, "2026": {"s": [24, 24, 16, 11, 11, 40], "cc": 371, "st": 53, "ns": 0, "months": {"January 2026": {"s": [1, 1, 0, 0, 0, 2], "cc": 27, "st": 7, "ns": 0}, "February 2026": {"s": [0, 2, 0, 2, 2, 0], "cc": 42, "st": 3, "ns": 0}, "March 2026": {"s": [5, 3, 2, 1, 0, 9], "cc": 123, "st": 14, "ns": 0}, "April 2026": {"s": [4, 7, 3, 5, 1, 16], "cc": 129, "st": 14, "ns": 0}, "May 2026": {"s": [3, 2, 4, 1, 3, 4], "cc": 29, "st": 2, "ns": 0}, "June 2026": {"s": [8, 2, 4, 2, 2, 3], "cc": 9, "st": 3, "ns": 0}, "July 2026": {"s": [0, 1, 2, 0, 0, 3], "cc": 12, "st": 1, "ns": 0}, "August 2026": {"s": [3, 6, 0, 0, 3, 3], "cc": 0, "st": 6, "ns": 0}, "September 2026": {"s": [0, 0, 1, 0, 0, 0], "cc": 0, "st": 3, "ns": 0}}}, "None": {"s": [1, 1, 1, 0, 0, 0], "cc": 0, "st": 73, "ns": 577, "months": {"None": {"s": [1, 1, 1, 0, 0, 0], "cc": 0, "st": 73, "ns": 577}}}}}, "Mandya": {"years": {"2023": {"s": [1, 1, 0, 0, 0, 1], "cc": 5, "st": 0, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2023": {"s": [1, 1, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}}}, "2024": {"s": [6, 13, 3, 6, 2, 9], "cc": 28, "st": 9, "ns": 0, "months": {"January 2024": {"s": [0, 3, 0, 0, 0, 3], "cc": 5, "st": 2, "ns": 0}, "February 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "March 2024": {"s": [4, 5, 1, 2, 1, 2], "cc": 6, "st": 4, "ns": 0}, "April 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "May 2024": {"s": [0, 2, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "June 2024": {"s": [0, 0, 0, 0, 1, 0], "cc": 0, "st": 0, "ns": 0}, "July 2024": {"s": [1, 0, 0, 1, 0, 2], "cc": 2, "st": 1, "ns": 0}, "August 2024": {"s": [0, 0, 1, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "September 2024": {"s": [0, 0, 1, 1, 0, 1], "cc": 7, "st": 2, "ns": 0}, "October 2024": {"s": [0, 1, 0, 0, 0, 1], "cc": 0, "st": 0, "ns": 0}, "November 2024": {"s": [1, 2, 0, 2, 0, 0], "cc": 2, "st": 0, "ns": 0}, "December 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2025": {"s": [4, 1, 1, 2, 0, 14], "cc": 44, "st": 5, "ns": 0, "months": {"February 2025": {"s": [1, 1, 0, 0, 0, 1], "cc": 7, "st": 0, "ns": 0}, "March 2025": {"s": [1, 0, 1, 0, 0, 2], "cc": 2, "st": 3, "ns": 0}, "May 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "July 2025": {"s": [0, 0, 0, 0, 0, 3], "cc": 3, "st": 1, "ns": 0}, "September 2025": {"s": [1, 0, 0, 1, 0, 3], "cc": 2, "st": 0, "ns": 0}, "November 2025": {"s": [0, 0, 0, 1, 0, 0], "cc": 20, "st": 0, "ns": 0}, "December 2025": {"s": [1, 0, 0, 0, 0, 5], "cc": 8, "st": 1, "ns": 0}}}, "2026": {"s": [6, 7, 5, 3, 4, 15], "cc": 98, "st": 12, "ns": 0, "months": {"January 2026": {"s": [1, 1, 2, 0, 0, 0], "cc": 8, "st": 2, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "March 2026": {"s": [1, 2, 0, 0, 1, 1], "cc": 27, "st": 4, "ns": 0}, "April 2026": {"s": [1, 0, 0, 0, 2, 5], "cc": 49, "st": 2, "ns": 0}, "May 2026": {"s": [0, 0, 1, 0, 0, 5], "cc": 3, "st": 1, "ns": 0}, "June 2026": {"s": [2, 3, 1, 3, 1, 1], "cc": 8, "st": 0, "ns": 0}, "August 2026": {"s": [1, 1, 1, 0, 0, 3], "cc": 0, "st": 2, "ns": 0}}}, "None": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 10, "ns": 317, "months": {"None": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 10, "ns": 317}}}}}, "Tumkur": {"years": {"2023": {"s": [1, 4, 0, 0, 1, 2], "cc": 8, "st": 2, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2023": {"s": [1, 3, 0, 0, 0, 0], "cc": 6, "st": 2, "ns": 0}, "December 2023": {"s": [0, 1, 0, 0, 1, 2], "cc": 1, "st": 0, "ns": 0}}}, "2024": {"s": [13, 12, 15, 6, 2, 18], "cc": 76, "st": 22, "ns": 0, "months": {"January 2024": {"s": [1, 1, 2, 0, 1, 2], "cc": 7, "st": 3, "ns": 0}, "February 2024": {"s": [2, 2, 1, 1, 0, 1], "cc": 1, "st": 0, "ns": 0}, "March 2024": {"s": [0, 1, 2, 1, 0, 2], "cc": 13, "st": 3, "ns": 0}, "April 2024": {"s": [2, 0, 1, 0, 0, 0], "cc": 4, "st": 1, "ns": 0}, "May 2024": {"s": [2, 1, 1, 1, 0, 3], "cc": 11, "st": 3, "ns": 0}, "June 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "July 2024": {"s": [1, 3, 1, 2, 1, 0], "cc": 11, "st": 5, "ns": 0}, "August 2024": {"s": [0, 0, 2, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}, "September 2024": {"s": [2, 3, 2, 1, 0, 4], "cc": 11, "st": 3, "ns": 0}, "October 2024": {"s": [0, 0, 1, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2024": {"s": [1, 1, 2, 0, 0, 5], "cc": 11, "st": 3, "ns": 0}, "December 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}}}, "2025": {"s": [7, 22, 2, 3, 1, 21], "cc": 94, "st": 13, "ns": 1, "months": {"January 2025": {"s": [0, 0, 0, 1, 0, 0], "cc": 0, "st": 0, "ns": 0}, "February 2025": {"s": [1, 2, 1, 0, 0, 1], "cc": 14, "st": 3, "ns": 0}, "March 2025": {"s": [0, 5, 0, 0, 1, 2], "cc": 10, "st": 0, "ns": 0}, "April 2025": {"s": [0, 2, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "May 2025": {"s": [0, 1, 0, 1, 0, 2], "cc": 8, "st": 2, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 4], "cc": 3, "st": 0, "ns": 0}, "July 2025": {"s": [2, 2, 0, 1, 0, 3], "cc": 8, "st": 0, "ns": 0}, "August 2025": {"s": [1, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "September 2025": {"s": [1, 3, 0, 0, 0, 2], "cc": 8, "st": 2, "ns": 0}, "October 2025": {"s": [0, 1, 1, 0, 0, 0], "cc": 5, "st": 2, "ns": 0}, "November 2025": {"s": [1, 3, 0, 0, 0, 3], "cc": 24, "st": 3, "ns": 0}, "December 2025": {"s": [1, 3, 0, 0, 0, 2], "cc": 10, "st": 1, "ns": 1}}}, "2026": {"s": [18, 15, 11, 2, 9, 29], "cc": 192, "st": 31, "ns": 0, "months": {"January 2026": {"s": [1, 0, 0, 0, 0, 1], "cc": 26, "st": 5, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 9, "st": 0, "ns": 0}, "March 2026": {"s": [2, 3, 3, 0, 1, 4], "cc": 65, "st": 7, "ns": 0}, "April 2026": {"s": [4, 4, 2, 1, 0, 7], "cc": 63, "st": 7, "ns": 0}, "May 2026": {"s": [2, 2, 1, 1, 1, 3], "cc": 6, "st": 3, "ns": 0}, "June 2026": {"s": [5, 3, 1, 0, 3, 9], "cc": 20, "st": 1, "ns": 0}, "July 2026": {"s": [2, 0, 1, 0, 2, 0], "cc": 3, "st": 1, "ns": 0}, "August 2026": {"s": [2, 3, 3, 0, 2, 5], "cc": 0, "st": 7, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 22, "ns": 752, "months": {"None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 22, "ns": 752}}}}}, "Chikmagalur": {"years": {"2023": {"s": [2, 0, 0, 2, 1, 1], "cc": 4, "st": 2, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "November 2023": {"s": [1, 0, 0, 1, 1, 0], "cc": 2, "st": 1, "ns": 0}, "December 2023": {"s": [1, 0, 0, 1, 0, 0], "cc": 1, "st": 1, "ns": 0}}}, "2024": {"s": [9, 9, 5, 1, 1, 9], "cc": 54, "st": 14, "ns": 0, "months": {"January 2024": {"s": [3, 0, 0, 1, 0, 2], "cc": 5, "st": 1, "ns": 0}, "February 2024": {"s": [1, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "March 2024": {"s": [1, 0, 0, 0, 1, 0], "cc": 4, "st": 4, "ns": 0}, "April 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 5, "st": 0, "ns": 0}, "May 2024": {"s": [0, 0, 2, 0, 0, 2], "cc": 5, "st": 3, "ns": 0}, "June 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2024": {"s": [0, 3, 0, 0, 0, 2], "cc": 10, "st": 3, "ns": 0}, "September 2024": {"s": [0, 1, 2, 0, 0, 0], "cc": 10, "st": 0, "ns": 0}, "October 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "November 2024": {"s": [2, 3, 1, 0, 0, 3], "cc": 9, "st": 2, "ns": 0}, "December 2024": {"s": [2, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}}}, "2025": {"s": [9, 2, 4, 1, 1, 10], "cc": 44, "st": 7, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 1, 0], "cc": 1, "st": 0, "ns": 0}, "February 2025": {"s": [1, 1, 1, 0, 0, 2], "cc": 4, "st": 3, "ns": 0}, "March 2025": {"s": [2, 0, 0, 1, 0, 2], "cc": 6, "st": 1, "ns": 0}, "May 2025": {"s": [0, 0, 1, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 1, "ns": 0}, "July 2025": {"s": [1, 0, 2, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 1, "ns": 0}, "September 2025": {"s": [1, 0, 0, 0, 0, 2], "cc": 3, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2025": {"s": [3, 1, 0, 0, 0, 1], "cc": 15, "st": 0, "ns": 0}, "December 2025": {"s": [1, 0, 0, 0, 0, 1], "cc": 4, "st": 0, "ns": 0}}}, "2026": {"s": [7, 4, 4, 0, 4, 20], "cc": 72, "st": 12, "ns": 0, "months": {"January 2026": {"s": [2, 0, 0, 0, 1, 3], "cc": 5, "st": 2, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 8, "st": 1, "ns": 0}, "March 2026": {"s": [1, 1, 0, 0, 1, 5], "cc": 26, "st": 2, "ns": 0}, "April 2026": {"s": [0, 2, 0, 0, 0, 4], "cc": 27, "st": 2, "ns": 0}, "May 2026": {"s": [0, 1, 1, 0, 0, 1], "cc": 3, "st": 2, "ns": 0}, "June 2026": {"s": [0, 0, 1, 0, 0, 3], "cc": 3, "st": 1, "ns": 0}, "July 2026": {"s": [3, 0, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "August 2026": {"s": [1, 0, 2, 0, 2, 3], "cc": 0, "st": 2, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 1], "cc": 0, "st": 6, "ns": 318, "months": {"None": {"s": [0, 0, 0, 0, 0, 1], "cc": 0, "st": 6, "ns": 318}}}}}, "Hassan": {"years": {"2023": {"s": [0, 0, 0, 0, 2, 0], "cc": 7, "st": 1, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2023": {"s": [0, 0, 0, 0, 1, 0], "cc": 4, "st": 1, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 1, 0], "cc": 2, "st": 0, "ns": 0}}}, "2024": {"s": [6, 15, 3, 3, 1, 7], "cc": 46, "st": 21, "ns": 0, "months": {"January 2024": {"s": [2, 1, 0, 1, 0, 0], "cc": 14, "st": 2, "ns": 0}, "February 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "March 2024": {"s": [0, 3, 1, 1, 0, 1], "cc": 6, "st": 5, "ns": 0}, "April 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "May 2024": {"s": [1, 2, 0, 1, 0, 1], "cc": 3, "st": 1, "ns": 0}, "June 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 3, "st": 3, "ns": 0}, "July 2024": {"s": [0, 1, 1, 0, 0, 1], "cc": 6, "st": 6, "ns": 0}, "August 2024": {"s": [0, 2, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "September 2024": {"s": [3, 0, 1, 0, 1, 2], "cc": 5, "st": 1, "ns": 0}, "October 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "November 2024": {"s": [0, 5, 0, 0, 0, 1], "cc": 3, "st": 2, "ns": 0}}}, "2025": {"s": [5, 7, 2, 5, 2, 12], "cc": 56, "st": 4, "ns": 1, "months": {"February 2025": {"s": [1, 1, 0, 0, 1, 2], "cc": 11, "st": 1, "ns": 0}, "March 2025": {"s": [0, 3, 1, 2, 0, 1], "cc": 9, "st": 0, "ns": 0}, "April 2025": {"s": [1, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "May 2025": {"s": [1, 0, 0, 0, 0, 1], "cc": 1, "st": 1, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "July 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "September 2025": {"s": [2, 0, 0, 0, 1, 3], "cc": 4, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2025": {"s": [0, 1, 1, 3, 0, 3], "cc": 18, "st": 0, "ns": 1}, "December 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}}}, "2026": {"s": [16, 8, 2, 1, 4, 13], "cc": 115, "st": 12, "ns": 0, "months": {"January 2026": {"s": [0, 0, 1, 0, 2, 1], "cc": 8, "st": 0, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 10, "st": 1, "ns": 0}, "March 2026": {"s": [3, 1, 0, 0, 0, 3], "cc": 48, "st": 4, "ns": 0}, "April 2026": {"s": [2, 5, 0, 0, 0, 2], "cc": 40, "st": 2, "ns": 0}, "May 2026": {"s": [0, 0, 0, 0, 0, 2], "cc": 2, "st": 0, "ns": 0}, "June 2026": {"s": [4, 0, 0, 0, 1, 2], "cc": 6, "st": 2, "ns": 0}, "July 2026": {"s": [2, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "August 2026": {"s": [5, 2, 1, 1, 1, 1], "cc": 0, "st": 3, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 10, "ns": 326, "months": {"None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 10, "ns": 326}}}}}, "Ramanagara": {"years": {"2023": {"s": [0, 0, 1, 0, 0, 0], "cc": 2, "st": 0, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2023": {"s": [0, 0, 1, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2024": {"s": [2, 5, 1, 0, 1, 4], "cc": 28, "st": 5, "ns": 0, "months": {"January 2024": {"s": [0, 0, 0, 0, 1, 1], "cc": 4, "st": 0, "ns": 0}, "March 2024": {"s": [0, 2, 0, 0, 0, 0], "cc": 5, "st": 2, "ns": 0}, "May 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 5, "st": 0, "ns": 0}, "June 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2024": {"s": [1, 1, 0, 0, 0, 0], "cc": 3, "st": 2, "ns": 0}, "August 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "September 2024": {"s": [1, 0, 0, 0, 0, 2], "cc": 4, "st": 1, "ns": 0}, "October 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "December 2024": {"s": [0, 0, 1, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2025": {"s": [1, 2, 0, 2, 0, 4], "cc": 33, "st": 5, "ns": 1, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "February 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "March 2025": {"s": [1, 0, 0, 1, 0, 0], "cc": 5, "st": 2, "ns": 0}, "April 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "May 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 4, "st": 2, "ns": 0}, "July 2025": {"s": [0, 0, 0, 0, 0, 2], "cc": 3, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 0, 1, 0, 0], "cc": 0, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "November 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 11, "st": 0, "ns": 0}, "December 2025": {"s": [0, 1, 0, 0, 0, 1], "cc": 3, "st": 1, "ns": 1}}}, "2026": {"s": [5, 5, 3, 0, 1, 7], "cc": 46, "st": 3, "ns": 0, "months": {"January 2026": {"s": [1, 2, 1, 0, 0, 0], "cc": 8, "st": 2, "ns": 0}, "February 2026": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "March 2026": {"s": [0, 0, 0, 0, 1, 1], "cc": 22, "st": 0, "ns": 0}, "April 2026": {"s": [3, 0, 1, 0, 0, 2], "cc": 13, "st": 1, "ns": 0}, "May 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "June 2026": {"s": [1, 2, 0, 0, 0, 1], "cc": 0, "st": 0, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "August 2026": {"s": [0, 0, 1, 0, 0, 2], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 7, "ns": 201, "months": {"None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 7, "ns": 201}}}}}, "Bangalore Rural": {"years": {"2023": {"s": [2, 1, 3, 0, 1, 7], "cc": 24, "st": 1, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "November 2023": {"s": [0, 1, 1, 0, 1, 4], "cc": 15, "st": 0, "ns": 0}, "December 2023": {"s": [2, 0, 2, 0, 0, 2], "cc": 7, "st": 1, "ns": 0}}}, "2024": {"s": [15, 20, 15, 6, 5, 13], "cc": 80, "st": 27, "ns": 0, "months": {"January 2024": {"s": [1, 2, 2, 2, 0, 1], "cc": 13, "st": 5, "ns": 0}, "February 2024": {"s": [1, 1, 0, 0, 0, 2], "cc": 11, "st": 3, "ns": 0}, "March 2024": {"s": [4, 5, 0, 1, 1, 4], "cc": 7, "st": 2, "ns": 0}, "April 2024": {"s": [1, 3, 0, 0, 0, 0], "cc": 10, "st": 1, "ns": 0}, "May 2024": {"s": [4, 1, 1, 0, 1, 2], "cc": 4, "st": 4, "ns": 0}, "June 2024": {"s": [0, 0, 0, 0, 2, 1], "cc": 1, "st": 2, "ns": 0}, "July 2024": {"s": [0, 3, 1, 1, 1, 0], "cc": 10, "st": 2, "ns": 0}, "August 2024": {"s": [1, 1, 0, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}, "September 2024": {"s": [1, 2, 4, 1, 0, 1], "cc": 9, "st": 5, "ns": 0}, "October 2024": {"s": [1, 0, 2, 1, 0, 0], "cc": 5, "st": 1, "ns": 0}, "November 2024": {"s": [1, 1, 5, 0, 0, 1], "cc": 3, "st": 1, "ns": 0}, "December 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 4, "st": 1, "ns": 0}}}, "2025": {"s": [13, 20, 8, 3, 6, 15], "cc": 146, "st": 14, "ns": 0, "months": {"January 2025": {"s": [1, 3, 1, 0, 1, 0], "cc": 4, "st": 0, "ns": 0}, "February 2025": {"s": [2, 2, 2, 0, 2, 1], "cc": 16, "st": 4, "ns": 0}, "March 2025": {"s": [3, 3, 1, 1, 0, 2], "cc": 19, "st": 2, "ns": 0}, "April 2025": {"s": [0, 1, 1, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "May 2025": {"s": [1, 0, 2, 0, 0, 3], "cc": 8, "st": 2, "ns": 0}, "June 2025": {"s": [0, 1, 0, 0, 2, 0], "cc": 0, "st": 1, "ns": 0}, "July 2025": {"s": [1, 2, 1, 0, 0, 0], "cc": 15, "st": 1, "ns": 0}, "August 2025": {"s": [2, 1, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 0, 0, 0, 3], "cc": 12, "st": 3, "ns": 0}, "October 2025": {"s": [1, 2, 0, 1, 0, 0], "cc": 3, "st": 0, "ns": 0}, "November 2025": {"s": [0, 2, 0, 0, 1, 2], "cc": 40, "st": 1, "ns": 0}, "December 2025": {"s": [2, 3, 0, 1, 0, 3], "cc": 24, "st": 0, "ns": 0}}}, "2026": {"s": [18, 19, 12, 4, 9, 43], "cc": 259, "st": 49, "ns": 0, "months": {"January 2026": {"s": [1, 4, 3, 0, 1, 2], "cc": 29, "st": 3, "ns": 0}, "February 2026": {"s": [1, 0, 0, 0, 1, 0], "cc": 17, "st": 0, "ns": 0}, "March 2026": {"s": [3, 1, 0, 1, 2, 2], "cc": 105, "st": 8, "ns": 0}, "April 2026": {"s": [4, 4, 2, 1, 2, 19], "cc": 84, "st": 22, "ns": 0}, "May 2026": {"s": [2, 4, 0, 0, 1, 7], "cc": 6, "st": 4, "ns": 0}, "June 2026": {"s": [2, 6, 3, 0, 1, 4], "cc": 13, "st": 5, "ns": 0}, "July 2026": {"s": [1, 0, 1, 0, 0, 1], "cc": 5, "st": 1, "ns": 0}, "August 2026": {"s": [4, 0, 3, 2, 1, 8], "cc": 0, "st": 6, "ns": 0}}}, "None": {"s": [0, 1, 0, 0, 1, 1], "cc": 0, "st": 20, "ns": 594, "months": {"None": {"s": [0, 1, 0, 0, 1, 1], "cc": 0, "st": 20, "ns": 594}}}}}, "Chikkaballapura": {"years": {"2023": {"s": [2, 0, 0, 2, 0, 2], "cc": 6, "st": 1, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "November 2023": {"s": [2, 0, 0, 1, 0, 0], "cc": 4, "st": 1, "ns": 0}, "December 2023": {"s": [0, 0, 0, 1, 0, 1], "cc": 1, "st": 0, "ns": 0}}}, "2024": {"s": [2, 8, 1, 1, 1, 5], "cc": 41, "st": 13, "ns": 0, "months": {"January 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 6, "st": 4, "ns": 0}, "February 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "March 2024": {"s": [1, 1, 1, 0, 1, 1], "cc": 3, "st": 2, "ns": 0}, "April 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 4, "st": 2, "ns": 0}, "May 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}, "June 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "July 2024": {"s": [1, 2, 0, 0, 0, 1], "cc": 9, "st": 4, "ns": 0}, "August 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "September 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 8, "st": 0, "ns": 0}, "October 2024": {"s": [0, 0, 0, 1, 0, 0], "cc": 0, "st": 0, "ns": 0}, "November 2024": {"s": [0, 0, 0, 0, 0, 2], "cc": 0, "st": 0, "ns": 0}, "December 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}}}, "2025": {"s": [5, 5, 5, 1, 1, 7], "cc": 55, "st": 7, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "February 2025": {"s": [1, 1, 0, 1, 0, 0], "cc": 6, "st": 3, "ns": 0}, "March 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 5, "st": 0, "ns": 0}, "April 2025": {"s": [1, 0, 1, 0, 1, 0], "cc": 1, "st": 1, "ns": 0}, "May 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}, "June 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2025": {"s": [0, 0, 1, 0, 0, 2], "cc": 2, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "October 2025": {"s": [0, 1, 1, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2025": {"s": [0, 2, 1, 0, 0, 0], "cc": 16, "st": 2, "ns": 0}, "December 2025": {"s": [3, 0, 1, 0, 0, 4], "cc": 13, "st": 0, "ns": 0}}}, "2026": {"s": [5, 7, 3, 0, 7, 20], "cc": 124, "st": 15, "ns": 1, "months": {"January 2026": {"s": [1, 0, 1, 0, 3, 1], "cc": 14, "st": 2, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}, "March 2026": {"s": [1, 0, 1, 0, 2, 5], "cc": 42, "st": 4, "ns": 1}, "April 2026": {"s": [1, 3, 0, 0, 1, 8], "cc": 49, "st": 2, "ns": 0}, "May 2026": {"s": [0, 1, 0, 0, 0, 4], "cc": 4, "st": 1, "ns": 0}, "June 2026": {"s": [0, 2, 0, 0, 1, 0], "cc": 6, "st": 1, "ns": 0}, "July 2026": {"s": [0, 1, 0, 0, 0, 0], "cc": 3, "st": 2, "ns": 0}, "August 2026": {"s": [2, 0, 1, 0, 0, 2], "cc": 0, "st": 3, "ns": 0}}}, "None": {"s": [0, 1, 0, 0, 0, 1], "cc": 0, "st": 14, "ns": 372, "months": {"None": {"s": [0, 1, 0, 0, 0, 1], "cc": 0, "st": 14, "ns": 372}}}}}, "Kalaburagi": {"years": {"2023": {"s": [1, 5, 1, 0, 0, 2], "cc": 9, "st": 1, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "November 2023": {"s": [1, 4, 1, 0, 0, 2], "cc": 6, "st": 0, "ns": 0}, "December 2023": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2024": {"s": [9, 16, 5, 2, 3, 8], "cc": 35, "st": 25, "ns": 0, "months": {"January 2024": {"s": [0, 0, 2, 1, 0, 2], "cc": 5, "st": 3, "ns": 0}, "February 2024": {"s": [2, 0, 0, 0, 1, 2], "cc": 3, "st": 2, "ns": 0}, "March 2024": {"s": [2, 3, 1, 0, 1, 0], "cc": 6, "st": 3, "ns": 0}, "April 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "May 2024": {"s": [0, 2, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "June 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "July 2024": {"s": [0, 2, 0, 1, 1, 1], "cc": 3, "st": 8, "ns": 0}, "August 2024": {"s": [0, 0, 1, 0, 0, 1], "cc": 3, "st": 1, "ns": 0}, "September 2024": {"s": [2, 5, 1, 0, 0, 1], "cc": 6, "st": 5, "ns": 0}, "October 2024": {"s": [1, 2, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "November 2024": {"s": [0, 2, 0, 0, 0, 1], "cc": 4, "st": 1, "ns": 0}}}, "2025": {"s": [2, 6, 4, 4, 3, 14], "cc": 42, "st": 3, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 1, 1], "cc": 1, "st": 1, "ns": 0}, "February 2025": {"s": [1, 2, 1, 2, 0, 4], "cc": 7, "st": 0, "ns": 0}, "March 2025": {"s": [0, 2, 0, 1, 1, 2], "cc": 3, "st": 0, "ns": 0}, "April 2025": {"s": [1, 0, 0, 0, 1, 1], "cc": 2, "st": 0, "ns": 0}, "May 2025": {"s": [0, 0, 1, 1, 0, 1], "cc": 2, "st": 0, "ns": 0}, "June 2025": {"s": [0, 0, 1, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "July 2025": {"s": [0, 0, 1, 0, 0, 1], "cc": 9, "st": 1, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "November 2025": {"s": [0, 1, 0, 0, 0, 1], "cc": 9, "st": 1, "ns": 0}, "December 2025": {"s": [0, 1, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}}}, "2026": {"s": [5, 18, 4, 2, 1, 15], "cc": 106, "st": 18, "ns": 0, "months": {"January 2026": {"s": [1, 0, 0, 0, 0, 1], "cc": 13, "st": 4, "ns": 0}, "February 2026": {"s": [2, 0, 0, 0, 0, 0], "cc": 6, "st": 1, "ns": 0}, "March 2026": {"s": [1, 6, 1, 0, 0, 2], "cc": 46, "st": 4, "ns": 0}, "April 2026": {"s": [0, 4, 2, 1, 0, 5], "cc": 27, "st": 5, "ns": 0}, "May 2026": {"s": [1, 1, 0, 0, 0, 2], "cc": 5, "st": 3, "ns": 0}, "June 2026": {"s": [0, 3, 0, 0, 0, 1], "cc": 8, "st": 0, "ns": 0}, "July 2026": {"s": [0, 0, 1, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "August 2026": {"s": [0, 4, 0, 1, 1, 4], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 1], "cc": 0, "st": 12, "ns": 381, "months": {"None": {"s": [0, 0, 0, 0, 0, 1], "cc": 0, "st": 12, "ns": 381}}}}}, "Uttara Kannada": {"years": {"2023": {"s": [2, 2, 1, 0, 2, 1], "cc": 12, "st": 2, "ns": 0, "months": {"October 2023": {"s": [0, 1, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "November 2023": {"s": [1, 1, 1, 0, 0, 0], "cc": 7, "st": 1, "ns": 0}, "December 2023": {"s": [1, 0, 0, 0, 2, 1], "cc": 3, "st": 1, "ns": 0}}}, "2024": {"s": [9, 14, 7, 3, 2, 12], "cc": 75, "st": 14, "ns": 0, "months": {"January 2024": {"s": [0, 0, 1, 2, 1, 1], "cc": 10, "st": 1, "ns": 0}, "February 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "March 2024": {"s": [1, 5, 1, 0, 1, 2], "cc": 13, "st": 1, "ns": 0}, "April 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "May 2024": {"s": [0, 1, 0, 0, 0, 1], "cc": 10, "st": 4, "ns": 0}, "June 2024": {"s": [0, 2, 2, 0, 0, 0], "cc": 5, "st": 1, "ns": 0}, "July 2024": {"s": [0, 1, 1, 0, 0, 3], "cc": 6, "st": 2, "ns": 0}, "August 2024": {"s": [1, 1, 1, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "September 2024": {"s": [2, 2, 1, 1, 0, 1], "cc": 12, "st": 2, "ns": 0}, "October 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2024": {"s": [3, 2, 0, 0, 0, 3], "cc": 12, "st": 1, "ns": 0}, "December 2024": {"s": [2, 0, 0, 0, 0, 1], "cc": 0, "st": 2, "ns": 0}}}, "2025": {"s": [7, 6, 7, 2, 1, 8], "cc": 60, "st": 8, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "February 2025": {"s": [1, 0, 0, 0, 0, 1], "cc": 7, "st": 2, "ns": 0}, "March 2025": {"s": [0, 1, 2, 0, 0, 3], "cc": 8, "st": 1, "ns": 0}, "April 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "May 2025": {"s": [0, 1, 0, 0, 0, 1], "cc": 4, "st": 1, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "July 2025": {"s": [3, 1, 1, 0, 1, 0], "cc": 9, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}, "September 2025": {"s": [0, 1, 2, 0, 0, 1], "cc": 0, "st": 1, "ns": 0}, "October 2025": {"s": [0, 0, 0, 1, 0, 0], "cc": 2, "st": 0, "ns": 0}, "November 2025": {"s": [2, 1, 1, 1, 0, 1], "cc": 11, "st": 1, "ns": 0}, "December 2025": {"s": [1, 0, 1, 0, 0, 0], "cc": 9, "st": 0, "ns": 0}}}, "2026": {"s": [6, 4, 7, 3, 2, 14], "cc": 121, "st": 18, "ns": 0, "months": {"January 2026": {"s": [0, 1, 0, 0, 1, 0], "cc": 8, "st": 1, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 7, "st": 0, "ns": 0}, "March 2026": {"s": [2, 0, 1, 0, 0, 5], "cc": 46, "st": 4, "ns": 0}, "April 2026": {"s": [3, 0, 4, 2, 0, 0], "cc": 42, "st": 3, "ns": 0}, "May 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 8, "st": 0, "ns": 0}, "June 2026": {"s": [1, 1, 0, 1, 1, 4], "cc": 7, "st": 3, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}, "August 2026": {"s": [0, 2, 2, 0, 0, 3], "cc": 0, "st": 7, "ns": 0}}}, "None": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 18, "ns": 297, "months": {"None": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 18, "ns": 297}}}}}, "Bidar": {"years": {"2023": {"s": [1, 1, 0, 0, 0, 3], "cc": 6, "st": 3, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "November 2023": {"s": [1, 1, 0, 0, 0, 3], "cc": 4, "st": 1, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}}}, "2024": {"s": [10, 6, 0, 1, 1, 7], "cc": 31, "st": 13, "ns": 0, "months": {"January 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 5, "st": 0, "ns": 0}, "February 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "March 2024": {"s": [1, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "May 2024": {"s": [1, 1, 0, 0, 0, 2], "cc": 2, "st": 1, "ns": 0}, "June 2024": {"s": [3, 0, 0, 0, 0, 0], "cc": 0, "st": 2, "ns": 0}, "July 2024": {"s": [1, 0, 0, 0, 1, 2], "cc": 5, "st": 6, "ns": 0}, "August 2024": {"s": [0, 1, 0, 0, 0, 1], "cc": 3, "st": 1, "ns": 0}, "September 2024": {"s": [1, 1, 0, 0, 0, 0], "cc": 6, "st": 2, "ns": 0}, "October 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "November 2024": {"s": [2, 3, 0, 1, 0, 0], "cc": 1, "st": 0, "ns": 0}, "December 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}}}, "2025": {"s": [3, 5, 0, 4, 3, 3], "cc": 34, "st": 7, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "February 2025": {"s": [0, 1, 0, 1, 0, 0], "cc": 2, "st": 2, "ns": 0}, "March 2025": {"s": [2, 1, 0, 1, 0, 0], "cc": 2, "st": 0, "ns": 0}, "April 2025": {"s": [0, 1, 0, 1, 0, 1], "cc": 2, "st": 0, "ns": 0}, "May 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2025": {"s": [0, 0, 0, 1, 1, 0], "cc": 6, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 1, 0], "cc": 0, "st": 2, "ns": 0}, "September 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "November 2025": {"s": [1, 1, 0, 0, 1, 0], "cc": 10, "st": 1, "ns": 0}, "December 2025": {"s": [0, 0, 0, 0, 0, 2], "cc": 3, "st": 0, "ns": 0}}}, "2026": {"s": [9, 6, 5, 4, 3, 17], "cc": 85, "st": 5, "ns": 0, "months": {"January 2026": {"s": [0, 3, 2, 0, 0, 0], "cc": 10, "st": 0, "ns": 0}, "February 2026": {"s": [1, 0, 0, 0, 0, 0], "cc": 7, "st": 0, "ns": 0}, "March 2026": {"s": [3, 1, 0, 1, 1, 4], "cc": 30, "st": 4, "ns": 0}, "April 2026": {"s": [3, 2, 1, 1, 0, 2], "cc": 33, "st": 1, "ns": 0}, "May 2026": {"s": [0, 0, 1, 1, 0, 2], "cc": 2, "st": 0, "ns": 0}, "June 2026": {"s": [1, 0, 1, 0, 1, 3], "cc": 1, "st": 0, "ns": 0}, "July 2026": {"s": [1, 0, 0, 0, 0, 2], "cc": 2, "st": 0, "ns": 0}, "August 2026": {"s": [0, 0, 0, 1, 1, 4], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 7, "ns": 294, "months": {"None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 7, "ns": 294}}}}}, "Vijayapura": {"years": {"2023": {"s": [1, 2, 0, 0, 0, 4], "cc": 6, "st": 1, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "November 2023": {"s": [1, 1, 0, 0, 0, 4], "cc": 3, "st": 1, "ns": 0}, "December 2023": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2024": {"s": [10, 5, 5, 2, 3, 11], "cc": 36, "st": 11, "ns": 0, "months": {"January 2024": {"s": [0, 0, 1, 0, 0, 0], "cc": 3, "st": 4, "ns": 0}, "February 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "March 2024": {"s": [3, 0, 2, 0, 0, 3], "cc": 6, "st": 1, "ns": 0}, "April 2024": {"s": [1, 0, 0, 0, 1, 0], "cc": 2, "st": 0, "ns": 0}, "May 2024": {"s": [0, 1, 1, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "June 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2024": {"s": [0, 0, 0, 0, 0, 3], "cc": 2, "st": 4, "ns": 0}, "August 2024": {"s": [0, 2, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "September 2024": {"s": [1, 1, 0, 1, 0, 1], "cc": 4, "st": 2, "ns": 0}, "October 2024": {"s": [1, 0, 1, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "November 2024": {"s": [1, 1, 0, 1, 2, 2], "cc": 6, "st": 0, "ns": 0}, "December 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2025": {"s": [7, 2, 5, 1, 0, 15], "cc": 33, "st": 5, "ns": 0, "months": {"February 2025": {"s": [1, 0, 0, 0, 0, 1], "cc": 5, "st": 2, "ns": 0}, "March 2025": {"s": [2, 1, 0, 0, 0, 2], "cc": 5, "st": 0, "ns": 0}, "April 2025": {"s": [0, 0, 1, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "May 2025": {"s": [1, 1, 1, 0, 0, 3], "cc": 3, "st": 0, "ns": 0}, "July 2025": {"s": [1, 0, 0, 0, 0, 0], "cc": 1, "st": 2, "ns": 0}, "August 2025": {"s": [1, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 1, 0, 0, 2], "cc": 4, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "November 2025": {"s": [1, 0, 2, 0, 0, 4], "cc": 5, "st": 1, "ns": 0}, "December 2025": {"s": [0, 0, 0, 1, 0, 2], "cc": 5, "st": 0, "ns": 0}}}, "2026": {"s": [5, 5, 4, 1, 2, 25], "cc": 97, "st": 7, "ns": 0, "months": {"January 2026": {"s": [0, 0, 0, 0, 1, 0], "cc": 14, "st": 0, "ns": 0}, "February 2026": {"s": [0, 0, 1, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "March 2026": {"s": [2, 0, 1, 0, 0, 4], "cc": 43, "st": 4, "ns": 0}, "April 2026": {"s": [2, 1, 0, 0, 0, 10], "cc": 31, "st": 2, "ns": 0}, "May 2026": {"s": [0, 1, 0, 0, 1, 3], "cc": 4, "st": 0, "ns": 0}, "June 2026": {"s": [0, 2, 0, 0, 0, 4], "cc": 2, "st": 0, "ns": 0}, "July 2026": {"s": [0, 0, 1, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "August 2026": {"s": [1, 1, 1, 1, 0, 2], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 15, "ns": 393, "months": {"None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 15, "ns": 393}}}}}, "Raichur": {"years": {"2023": {"s": [1, 0, 0, 1, 0, 1], "cc": 11, "st": 1, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "November 2023": {"s": [1, 0, 0, 1, 0, 0], "cc": 8, "st": 0, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 1, "ns": 0}}}, "2024": {"s": [9, 9, 4, 3, 3, 10], "cc": 42, "st": 18, "ns": 0, "months": {"January 2024": {"s": [0, 1, 1, 0, 0, 0], "cc": 4, "st": 1, "ns": 0}, "February 2024": {"s": [0, 0, 0, 0, 0, 2], "cc": 3, "st": 1, "ns": 0}, "March 2024": {"s": [1, 0, 2, 2, 0, 4], "cc": 10, "st": 5, "ns": 0}, "April 2024": {"s": [1, 0, 0, 0, 1, 0], "cc": 3, "st": 1, "ns": 0}, "May 2024": {"s": [1, 1, 0, 0, 0, 0], "cc": 5, "st": 2, "ns": 0}, "June 2024": {"s": [0, 2, 1, 0, 1, 1], "cc": 0, "st": 0, "ns": 0}, "July 2024": {"s": [2, 1, 0, 0, 1, 1], "cc": 7, "st": 6, "ns": 0}, "August 2024": {"s": [1, 1, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "September 2024": {"s": [0, 2, 0, 0, 0, 1], "cc": 5, "st": 1, "ns": 0}, "October 2024": {"s": [1, 1, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "November 2024": {"s": [2, 0, 0, 1, 0, 1], "cc": 3, "st": 0, "ns": 0}}}, "2025": {"s": [1, 3, 3, 1, 4, 2], "cc": 53, "st": 4, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "February 2025": {"s": [0, 1, 1, 0, 0, 0], "cc": 11, "st": 0, "ns": 0}, "March 2025": {"s": [0, 0, 0, 0, 1, 0], "cc": 6, "st": 0, "ns": 0}, "April 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "May 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "June 2025": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "July 2025": {"s": [0, 1, 0, 0, 1, 0], "cc": 3, "st": 1, "ns": 0}, "August 2025": {"s": [0, 0, 0, 1, 0, 1], "cc": 1, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 2, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 2, 0], "cc": 2, "st": 0, "ns": 0}, "November 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 9, "st": 2, "ns": 0}, "December 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 14, "st": 0, "ns": 0}}}, "2026": {"s": [5, 8, 3, 4, 2, 23], "cc": 82, "st": 10, "ns": 0, "months": {"January 2026": {"s": [0, 2, 0, 1, 1, 3], "cc": 6, "st": 2, "ns": 0}, "February 2026": {"s": [0, 1, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "March 2026": {"s": [0, 1, 0, 2, 0, 2], "cc": 28, "st": 3, "ns": 0}, "April 2026": {"s": [2, 2, 1, 0, 0, 7], "cc": 32, "st": 3, "ns": 0}, "May 2026": {"s": [0, 0, 1, 1, 0, 3], "cc": 4, "st": 0, "ns": 0}, "June 2026": {"s": [0, 0, 1, 0, 1, 2], "cc": 7, "st": 0, "ns": 0}, "July 2026": {"s": [1, 1, 0, 0, 0, 2], "cc": 3, "st": 1, "ns": 0}, "August 2026": {"s": [2, 1, 0, 0, 0, 4], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [1, 0, 0, 0, 0, 2], "cc": 0, "st": 6, "ns": 334, "months": {"None": {"s": [1, 0, 0, 0, 0, 2], "cc": 0, "st": 6, "ns": 334}}}}}, "Davangere": {"years": {"2023": {"s": [4, 1, 0, 2, 0, 3], "cc": 15, "st": 0, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 1, 0, 0], "cc": 4, "st": 0, "ns": 0}, "November 2023": {"s": [4, 0, 0, 0, 0, 2], "cc": 9, "st": 0, "ns": 0}, "December 2023": {"s": [0, 1, 0, 1, 0, 1], "cc": 2, "st": 0, "ns": 0}}}, "2024": {"s": [13, 15, 1, 5, 4, 15], "cc": 60, "st": 28, "ns": 1, "months": {"January 2024": {"s": [0, 1, 0, 0, 0, 4], "cc": 9, "st": 5, "ns": 0}, "February 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "March 2024": {"s": [3, 3, 0, 2, 0, 1], "cc": 11, "st": 3, "ns": 0}, "April 2024": {"s": [1, 0, 0, 1, 0, 0], "cc": 4, "st": 1, "ns": 0}, "May 2024": {"s": [0, 1, 0, 0, 1, 2], "cc": 4, "st": 3, "ns": 0}, "June 2024": {"s": [0, 0, 0, 0, 1, 0], "cc": 1, "st": 0, "ns": 0}, "July 2024": {"s": [3, 2, 1, 0, 0, 3], "cc": 11, "st": 11, "ns": 1}, "August 2024": {"s": [1, 1, 0, 0, 0, 1], "cc": 0, "st": 2, "ns": 0}, "September 2024": {"s": [2, 3, 0, 0, 0, 1], "cc": 7, "st": 1, "ns": 0}, "October 2024": {"s": [0, 0, 0, 1, 0, 0], "cc": 0, "st": 1, "ns": 0}, "November 2024": {"s": [1, 4, 0, 1, 2, 2], "cc": 8, "st": 1, "ns": 0}, "December 2024": {"s": [1, 0, 0, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}}}, "2025": {"s": [7, 10, 2, 1, 0, 18], "cc": 68, "st": 7, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "February 2025": {"s": [1, 2, 0, 0, 0, 1], "cc": 13, "st": 1, "ns": 0}, "March 2025": {"s": [1, 2, 0, 0, 0, 5], "cc": 9, "st": 1, "ns": 0}, "April 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "May 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 7, "st": 1, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 2], "cc": 1, "st": 1, "ns": 0}, "July 2025": {"s": [1, 2, 0, 0, 0, 4], "cc": 5, "st": 1, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 2, 0, 0, 2], "cc": 7, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "November 2025": {"s": [1, 1, 0, 1, 0, 2], "cc": 7, "st": 0, "ns": 0}, "December 2025": {"s": [3, 2, 0, 0, 0, 1], "cc": 11, "st": 0, "ns": 0}}}, "2026": {"s": [6, 7, 9, 3, 1, 23], "cc": 115, "st": 13, "ns": 0, "months": {"January 2026": {"s": [0, 1, 0, 1, 0, 1], "cc": 7, "st": 2, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 8, "st": 1, "ns": 0}, "March 2026": {"s": [1, 1, 0, 0, 0, 1], "cc": 49, "st": 3, "ns": 0}, "April 2026": {"s": [1, 3, 4, 0, 0, 7], "cc": 43, "st": 0, "ns": 0}, "May 2026": {"s": [0, 0, 2, 0, 0, 5], "cc": 1, "st": 1, "ns": 0}, "June 2026": {"s": [3, 1, 1, 1, 0, 4], "cc": 6, "st": 1, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 2, "ns": 0}, "August 2026": {"s": [1, 1, 2, 1, 1, 4], "cc": 0, "st": 3, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 19, "ns": 429, "months": {"None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 19, "ns": 429}}}}}, "Udupi": {"years": {"2023": {"s": [2, 4, 1, 1, 0, 7], "cc": 23, "st": 4, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}, "November 2023": {"s": [2, 1, 1, 0, 0, 6], "cc": 11, "st": 1, "ns": 0}, "December 2023": {"s": [0, 3, 0, 1, 0, 1], "cc": 6, "st": 3, "ns": 0}}}, "2024": {"s": [20, 19, 7, 3, 6, 19], "cc": 102, "st": 28, "ns": 0, "months": {"January 2024": {"s": [4, 3, 1, 0, 1, 4], "cc": 20, "st": 4, "ns": 0}, "February 2024": {"s": [2, 2, 0, 0, 1, 0], "cc": 10, "st": 1, "ns": 0}, "March 2024": {"s": [3, 5, 2, 1, 0, 4], "cc": 16, "st": 8, "ns": 0}, "April 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 5, "st": 2, "ns": 0}, "May 2024": {"s": [0, 3, 1, 0, 2, 4], "cc": 3, "st": 2, "ns": 0}, "June 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 7, "st": 0, "ns": 0}, "July 2024": {"s": [2, 2, 0, 1, 0, 1], "cc": 7, "st": 5, "ns": 0}, "August 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 5, "st": 0, "ns": 0}, "September 2024": {"s": [5, 1, 2, 1, 1, 2], "cc": 20, "st": 3, "ns": 0}, "October 2024": {"s": [1, 0, 1, 0, 1, 0], "cc": 0, "st": 1, "ns": 0}, "November 2024": {"s": [2, 1, 0, 0, 0, 3], "cc": 9, "st": 2, "ns": 0}, "December 2024": {"s": [0, 2, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}}}, "2025": {"s": [8, 17, 6, 5, 2, 11], "cc": 134, "st": 8, "ns": 1, "months": {"January 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}, "February 2025": {"s": [0, 3, 3, 1, 0, 2], "cc": 15, "st": 2, "ns": 0}, "March 2025": {"s": [0, 2, 2, 1, 0, 1], "cc": 7, "st": 2, "ns": 0}, "April 2025": {"s": [2, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "May 2025": {"s": [1, 1, 0, 0, 0, 0], "cc": 9, "st": 0, "ns": 0}, "June 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}, "July 2025": {"s": [0, 3, 0, 0, 1, 0], "cc": 9, "st": 1, "ns": 0}, "August 2025": {"s": [1, 0, 0, 1, 0, 0], "cc": 3, "st": 0, "ns": 0}, "September 2025": {"s": [1, 2, 1, 1, 0, 1], "cc": 8, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}, "November 2025": {"s": [3, 1, 0, 0, 1, 6], "cc": 60, "st": 2, "ns": 1}, "December 2025": {"s": [0, 3, 0, 1, 0, 0], "cc": 5, "st": 1, "ns": 0}}}, "2026": {"s": [17, 14, 8, 3, 3, 10], "cc": 164, "st": 32, "ns": 0, "months": {"January 2026": {"s": [0, 1, 1, 0, 1, 0], "cc": 13, "st": 2, "ns": 0}, "February 2026": {"s": [1, 0, 0, 0, 0, 1], "cc": 12, "st": 2, "ns": 0}, "March 2026": {"s": [2, 2, 1, 1, 0, 0], "cc": 78, "st": 11, "ns": 0}, "April 2026": {"s": [3, 2, 2, 1, 0, 4], "cc": 52, "st": 9, "ns": 0}, "May 2026": {"s": [2, 1, 0, 0, 0, 1], "cc": 2, "st": 1, "ns": 0}, "June 2026": {"s": [1, 4, 1, 0, 1, 1], "cc": 5, "st": 4, "ns": 0}, "July 2026": {"s": [2, 1, 0, 1, 0, 2], "cc": 2, "st": 0, "ns": 0}, "August 2026": {"s": [5, 3, 3, 0, 1, 1], "cc": 0, "st": 3, "ns": 0}, "September 2026": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 30, "ns": 440, "months": {"None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 30, "ns": 440}}}}}, "Kolar": {"years": {"2023": {"s": [2, 0, 0, 0, 1, 1], "cc": 9, "st": 1, "ns": 0, "months": {"October 2023": {"s": [1, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "November 2023": {"s": [1, 0, 0, 0, 1, 1], "cc": 4, "st": 1, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}}}, "2024": {"s": [10, 7, 7, 4, 1, 4], "cc": 62, "st": 16, "ns": 0, "months": {"January 2024": {"s": [1, 0, 0, 0, 0, 2], "cc": 5, "st": 1, "ns": 0}, "February 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 5, "st": 0, "ns": 0}, "March 2024": {"s": [2, 2, 2, 0, 0, 0], "cc": 8, "st": 4, "ns": 0}, "April 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "May 2024": {"s": [0, 1, 2, 0, 0, 1], "cc": 10, "st": 3, "ns": 0}, "June 2024": {"s": [0, 0, 1, 0, 0, 0], "cc": 7, "st": 2, "ns": 0}, "July 2024": {"s": [2, 2, 1, 2, 1, 0], "cc": 10, "st": 2, "ns": 0}, "August 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "September 2024": {"s": [1, 1, 0, 2, 0, 1], "cc": 10, "st": 1, "ns": 0}, "October 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "November 2024": {"s": [1, 0, 1, 0, 0, 0], "cc": 4, "st": 1, "ns": 0}, "December 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}}}, "2025": {"s": [7, 7, 5, 3, 0, 8], "cc": 55, "st": 4, "ns": 0, "months": {"February 2025": {"s": [1, 1, 2, 0, 0, 1], "cc": 11, "st": 1, "ns": 0}, "March 2025": {"s": [1, 2, 1, 0, 0, 0], "cc": 7, "st": 0, "ns": 0}, "April 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "May 2025": {"s": [1, 0, 0, 0, 0, 0], "cc": 5, "st": 0, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2025": {"s": [0, 0, 0, 1, 0, 1], "cc": 4, "st": 1, "ns": 0}, "August 2025": {"s": [0, 0, 1, 0, 0, 2], "cc": 0, "st": 0, "ns": 0}, "September 2025": {"s": [2, 3, 0, 1, 0, 0], "cc": 3, "st": 0, "ns": 0}, "October 2025": {"s": [1, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "November 2025": {"s": [0, 0, 0, 1, 0, 2], "cc": 11, "st": 1, "ns": 0}, "December 2025": {"s": [1, 0, 1, 0, 0, 2], "cc": 8, "st": 1, "ns": 0}}}, "2026": {"s": [8, 10, 5, 5, 3, 15], "cc": 133, "st": 22, "ns": 0, "months": {"January 2026": {"s": [1, 1, 1, 0, 0, 1], "cc": 9, "st": 4, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 9, "st": 2, "ns": 0}, "March 2026": {"s": [1, 5, 0, 0, 1, 1], "cc": 40, "st": 3, "ns": 0}, "April 2026": {"s": [2, 2, 0, 0, 1, 6], "cc": 59, "st": 4, "ns": 0}, "May 2026": {"s": [1, 0, 2, 0, 0, 3], "cc": 9, "st": 2, "ns": 0}, "June 2026": {"s": [1, 2, 2, 1, 1, 2], "cc": 5, "st": 2, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 1, "ns": 0}, "August 2026": {"s": [2, 0, 0, 4, 0, 1], "cc": 0, "st": 2, "ns": 0}, "September 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 2, "ns": 0}}}, "None": {"s": [0, 0, 1, 0, 0, 1], "cc": 0, "st": 11, "ns": 405, "months": {"None": {"s": [0, 0, 1, 0, 0, 1], "cc": 0, "st": 11, "ns": 405}}}}}, "Haveri": {"years": {"2023": {"s": [2, 0, 1, 0, 1, 0], "cc": 2, "st": 0, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2023": {"s": [2, 0, 1, 0, 1, 0], "cc": 1, "st": 0, "ns": 0}}}, "2024": {"s": [10, 9, 4, 1, 2, 8], "cc": 33, "st": 9, "ns": 0, "months": {"January 2024": {"s": [2, 0, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "February 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "March 2024": {"s": [2, 4, 0, 0, 0, 2], "cc": 5, "st": 1, "ns": 0}, "April 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "May 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "June 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "July 2024": {"s": [1, 0, 1, 0, 0, 1], "cc": 6, "st": 4, "ns": 0}, "August 2024": {"s": [3, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "September 2024": {"s": [0, 1, 1, 1, 1, 2], "cc": 5, "st": 1, "ns": 0}, "October 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2024": {"s": [1, 2, 2, 0, 1, 3], "cc": 3, "st": 0, "ns": 0}, "December 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2025": {"s": [3, 4, 3, 2, 0, 4], "cc": 45, "st": 2, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "February 2025": {"s": [1, 1, 1, 0, 0, 0], "cc": 7, "st": 0, "ns": 0}, "March 2025": {"s": [0, 2, 0, 0, 0, 1], "cc": 7, "st": 0, "ns": 0}, "April 2025": {"s": [0, 1, 1, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "May 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 5, "st": 0, "ns": 0}, "July 2025": {"s": [0, 0, 1, 0, 0, 0], "cc": 6, "st": 1, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "September 2025": {"s": [2, 0, 0, 0, 0, 1], "cc": 5, "st": 1, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "November 2025": {"s": [0, 0, 0, 1, 0, 2], "cc": 5, "st": 0, "ns": 0}, "December 2025": {"s": [0, 0, 0, 1, 0, 0], "cc": 4, "st": 0, "ns": 0}}}, "2026": {"s": [4, 5, 4, 1, 1, 12], "cc": 69, "st": 10, "ns": 0, "months": {"January 2026": {"s": [1, 0, 1, 0, 0, 2], "cc": 9, "st": 1, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "March 2026": {"s": [1, 1, 1, 0, 0, 1], "cc": 26, "st": 5, "ns": 0}, "April 2026": {"s": [2, 1, 0, 1, 1, 4], "cc": 26, "st": 2, "ns": 0}, "May 2026": {"s": [0, 1, 1, 0, 0, 1], "cc": 3, "st": 1, "ns": 0}, "June 2026": {"s": [0, 1, 0, 0, 0, 2], "cc": 3, "st": 1, "ns": 0}, "July 2026": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "August 2026": {"s": [0, 0, 1, 0, 0, 1], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 4, "ns": 252, "months": {"None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 4, "ns": 252}}}}}, "Bagalkot": {"years": {"2023": {"s": [1, 0, 0, 0, 0, 2], "cc": 15, "st": 0, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "November 2023": {"s": [1, 0, 0, 0, 0, 2], "cc": 10, "st": 0, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}}}, "2024": {"s": [12, 12, 6, 4, 2, 9], "cc": 49, "st": 11, "ns": 0, "months": {"January 2024": {"s": [1, 0, 2, 0, 1, 0], "cc": 7, "st": 0, "ns": 0}, "February 2024": {"s": [1, 0, 0, 0, 0, 1], "cc": 0, "st": 1, "ns": 0}, "March 2024": {"s": [3, 1, 1, 0, 0, 2], "cc": 5, "st": 3, "ns": 0}, "April 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "May 2024": {"s": [1, 4, 0, 1, 0, 1], "cc": 15, "st": 1, "ns": 0}, "June 2024": {"s": [0, 0, 0, 1, 0, 0], "cc": 2, "st": 0, "ns": 0}, "July 2024": {"s": [1, 2, 0, 0, 1, 0], "cc": 5, "st": 2, "ns": 0}, "August 2024": {"s": [2, 1, 0, 1, 0, 1], "cc": 2, "st": 0, "ns": 0}, "September 2024": {"s": [2, 1, 1, 1, 0, 3], "cc": 7, "st": 1, "ns": 0}, "October 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 0, "st": 0, "ns": 0}, "November 2024": {"s": [1, 3, 2, 0, 0, 0], "cc": 4, "st": 3, "ns": 0}, "December 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2025": {"s": [5, 1, 8, 0, 2, 9], "cc": 27, "st": 9, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "February 2025": {"s": [0, 1, 0, 0, 1, 1], "cc": 3, "st": 2, "ns": 0}, "March 2025": {"s": [2, 0, 3, 0, 0, 3], "cc": 5, "st": 1, "ns": 0}, "May 2025": {"s": [0, 0, 1, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 2], "cc": 0, "st": 1, "ns": 0}, "July 2025": {"s": [1, 0, 1, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "September 2025": {"s": [2, 0, 0, 0, 0, 0], "cc": 4, "st": 2, "ns": 0}, "November 2025": {"s": [0, 0, 2, 0, 0, 3], "cc": 6, "st": 0, "ns": 0}, "December 2025": {"s": [0, 0, 1, 0, 1, 0], "cc": 2, "st": 0, "ns": 0}}}, "2026": {"s": [4, 11, 2, 0, 3, 29], "cc": 103, "st": 10, "ns": 0, "months": {"January 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 10, "st": 2, "ns": 0}, "February 2026": {"s": [1, 0, 0, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "March 2026": {"s": [2, 0, 1, 0, 1, 3], "cc": 46, "st": 0, "ns": 0}, "April 2026": {"s": [0, 4, 0, 0, 1, 8], "cc": 34, "st": 3, "ns": 0}, "May 2026": {"s": [0, 2, 0, 0, 1, 3], "cc": 3, "st": 3, "ns": 0}, "June 2026": {"s": [0, 2, 0, 0, 0, 7], "cc": 5, "st": 2, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "August 2026": {"s": [1, 3, 1, 0, 0, 7], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [0, 0, 1, 0, 0, 0], "cc": 0, "st": 14, "ns": 386, "months": {"None": {"s": [0, 0, 1, 0, 0, 0], "cc": 0, "st": 14, "ns": 386}}}}}, "Gadag": {"years": {"2023": {"s": [0, 0, 1, 0, 0, 4], "cc": 3, "st": 0, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "November 2023": {"s": [0, 0, 1, 0, 0, 3], "cc": 2, "st": 0, "ns": 0}}}, "2024": {"s": [2, 4, 3, 0, 1, 5], "cc": 36, "st": 6, "ns": 0, "months": {"January 2024": {"s": [1, 1, 0, 0, 0, 0], "cc": 7, "st": 0, "ns": 0}, "March 2024": {"s": [0, 0, 0, 0, 1, 0], "cc": 5, "st": 2, "ns": 0}, "April 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "May 2024": {"s": [0, 1, 0, 0, 0, 1], "cc": 8, "st": 0, "ns": 0}, "June 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "July 2024": {"s": [0, 0, 1, 0, 0, 2], "cc": 1, "st": 2, "ns": 0}, "August 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "September 2024": {"s": [1, 1, 0, 0, 0, 0], "cc": 7, "st": 1, "ns": 0}, "October 2024": {"s": [0, 0, 2, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2024": {"s": [0, 1, 0, 0, 0, 2], "cc": 4, "st": 0, "ns": 0}}}, "2025": {"s": [2, 6, 2, 1, 0, 7], "cc": 65, "st": 5, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "February 2025": {"s": [1, 2, 1, 0, 0, 1], "cc": 8, "st": 3, "ns": 0}, "March 2025": {"s": [0, 2, 0, 0, 0, 1], "cc": 8, "st": 1, "ns": 0}, "April 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "May 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "June 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "July 2025": {"s": [1, 0, 0, 0, 0, 1], "cc": 7, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 1, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 0, 0, 0, 2], "cc": 7, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "November 2025": {"s": [0, 1, 0, 1, 0, 1], "cc": 21, "st": 0, "ns": 0}, "December 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 4, "st": 0, "ns": 0}}}, "2026": {"s": [3, 7, 4, 2, 2, 5], "cc": 68, "st": 11, "ns": 0, "months": {"January 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 8, "st": 0, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "March 2026": {"s": [2, 0, 2, 0, 0, 0], "cc": 24, "st": 4, "ns": 0}, "April 2026": {"s": [0, 2, 0, 0, 1, 3], "cc": 31, "st": 3, "ns": 0}, "May 2026": {"s": [0, 0, 1, 1, 0, 1], "cc": 1, "st": 0, "ns": 0}, "June 2026": {"s": [1, 4, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "August 2026": {"s": [0, 1, 1, 1, 1, 1], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [0, 0, 1, 0, 0, 1], "cc": 0, "st": 6, "ns": 284, "months": {"None": {"s": [0, 0, 1, 0, 0, 1], "cc": 0, "st": 6, "ns": 284}}}}}, "Koppal": {"years": {"2023": {"s": [1, 0, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0, "months": {"October 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2023": {"s": [1, 0, 0, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2024": {"s": [7, 5, 2, 1, 2, 4], "cc": 33, "st": 8, "ns": 0, "months": {"January 2024": {"s": [1, 0, 0, 0, 0, 1], "cc": 2, "st": 2, "ns": 0}, "February 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "March 2024": {"s": [2, 1, 0, 0, 0, 0], "cc": 7, "st": 1, "ns": 0}, "April 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "May 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "June 2024": {"s": [0, 0, 1, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "July 2024": {"s": [1, 2, 1, 0, 1, 0], "cc": 3, "st": 0, "ns": 0}, "August 2024": {"s": [0, 0, 0, 0, 1, 1], "cc": 2, "st": 0, "ns": 0}, "September 2024": {"s": [0, 0, 0, 1, 0, 1], "cc": 9, "st": 2, "ns": 0}, "October 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "November 2024": {"s": [1, 1, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "December 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}}}, "2025": {"s": [3, 0, 1, 1, 1, 8], "cc": 34, "st": 3, "ns": 1, "months": {"January 2025": {"s": [0, 0, 0, 0, 1, 0], "cc": 0, "st": 0, "ns": 0}, "February 2025": {"s": [1, 0, 1, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "March 2025": {"s": [1, 0, 0, 1, 0, 2], "cc": 3, "st": 1, "ns": 0}, "April 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "May 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 7, "st": 0, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2025": {"s": [1, 0, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "September 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "November 2025": {"s": [0, 0, 0, 0, 0, 2], "cc": 5, "st": 0, "ns": 0}, "December 2025": {"s": [0, 0, 0, 0, 0, 2], "cc": 12, "st": 1, "ns": 1}}}, "2026": {"s": [4, 2, 3, 1, 1, 8], "cc": 67, "st": 11, "ns": 0, "months": {"January 2026": {"s": [0, 1, 0, 0, 0, 0], "cc": 10, "st": 0, "ns": 0}, "February 2026": {"s": [0, 0, 1, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "March 2026": {"s": [0, 0, 0, 1, 0, 1], "cc": 26, "st": 4, "ns": 0}, "April 2026": {"s": [1, 0, 0, 0, 0, 4], "cc": 24, "st": 1, "ns": 0}, "May 2026": {"s": [2, 0, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "June 2026": {"s": [0, 0, 0, 0, 0, 2], "cc": 1, "st": 0, "ns": 0}, "July 2026": {"s": [0, 0, 1, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "August 2026": {"s": [1, 1, 1, 0, 1, 1], "cc": 0, "st": 4, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 1, 0], "cc": 0, "st": 4, "ns": 241, "months": {"None": {"s": [0, 0, 0, 0, 1, 0], "cc": 0, "st": 4, "ns": 241}}}}}, "Girinagar": {"years": {"2023": {"s": [7, 2, 7, 0, 1, 12], "cc": 35, "st": 4, "ns": 0, "months": {"October 2023": {"s": [0, 1, 1, 0, 0, 2], "cc": 7, "st": 0, "ns": 0}, "November 2023": {"s": [5, 1, 5, 0, 1, 8], "cc": 18, "st": 2, "ns": 0}, "December 2023": {"s": [2, 0, 1, 0, 0, 2], "cc": 10, "st": 2, "ns": 0}}}, "2024": {"s": [25, 42, 16, 5, 12, 20], "cc": 134, "st": 57, "ns": 0, "months": {"January 2024": {"s": [2, 4, 1, 0, 0, 2], "cc": 17, "st": 2, "ns": 0}, "February 2024": {"s": [1, 4, 2, 0, 1, 1], "cc": 8, "st": 5, "ns": 0}, "March 2024": {"s": [5, 6, 2, 1, 2, 2], "cc": 20, "st": 11, "ns": 0}, "April 2024": {"s": [0, 3, 1, 0, 0, 1], "cc": 8, "st": 4, "ns": 0}, "May 2024": {"s": [1, 3, 2, 0, 0, 4], "cc": 14, "st": 9, "ns": 0}, "June 2024": {"s": [2, 6, 2, 2, 0, 1], "cc": 6, "st": 4, "ns": 0}, "July 2024": {"s": [4, 6, 1, 1, 1, 4], "cc": 18, "st": 6, "ns": 0}, "August 2024": {"s": [1, 1, 0, 0, 3, 2], "cc": 7, "st": 1, "ns": 0}, "September 2024": {"s": [3, 5, 1, 0, 0, 1], "cc": 15, "st": 9, "ns": 0}, "October 2024": {"s": [0, 2, 2, 1, 0, 1], "cc": 4, "st": 2, "ns": 0}, "November 2024": {"s": [3, 2, 1, 0, 4, 0], "cc": 14, "st": 2, "ns": 0}, "December 2024": {"s": [3, 0, 1, 0, 1, 1], "cc": 3, "st": 2, "ns": 0}}}, "2025": {"s": [20, 27, 10, 6, 3, 24], "cc": 252, "st": 29, "ns": 1, "months": {"January 2025": {"s": [0, 0, 0, 0, 1, 0], "cc": 5, "st": 2, "ns": 0}, "February 2025": {"s": [5, 1, 1, 2, 0, 1], "cc": 13, "st": 7, "ns": 0}, "March 2025": {"s": [2, 2, 0, 0, 1, 1], "cc": 24, "st": 4, "ns": 0}, "April 2025": {"s": [0, 3, 1, 0, 0, 0], "cc": 4, "st": 1, "ns": 0}, "May 2025": {"s": [4, 3, 0, 0, 0, 1], "cc": 11, "st": 2, "ns": 0}, "June 2025": {"s": [0, 1, 1, 0, 0, 1], "cc": 5, "st": 4, "ns": 0}, "July 2025": {"s": [3, 2, 1, 0, 0, 1], "cc": 10, "st": 2, "ns": 0}, "August 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 6, "st": 2, "ns": 0}, "September 2025": {"s": [0, 1, 0, 1, 0, 4], "cc": 5, "st": 0, "ns": 0}, "October 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 4, "st": 1, "ns": 0}, "November 2025": {"s": [4, 7, 4, 2, 1, 11], "cc": 120, "st": 1, "ns": 1}, "December 2025": {"s": [2, 5, 2, 1, 0, 4], "cc": 45, "st": 3, "ns": 0}}}, "2026": {"s": [23, 17, 16, 11, 3, 49], "cc": 320, "st": 65, "ns": 0, "months": {"January 2026": {"s": [1, 3, 3, 1, 0, 6], "cc": 29, "st": 5, "ns": 0}, "February 2026": {"s": [1, 2, 0, 0, 0, 0], "cc": 23, "st": 2, "ns": 0}, "March 2026": {"s": [2, 5, 1, 2, 0, 6], "cc": 119, "st": 16, "ns": 0}, "April 2026": {"s": [9, 1, 6, 2, 2, 22], "cc": 124, "st": 19, "ns": 0}, "May 2026": {"s": [3, 1, 1, 2, 0, 7], "cc": 12, "st": 1, "ns": 0}, "June 2026": {"s": [3, 3, 3, 0, 1, 6], "cc": 6, "st": 11, "ns": 0}, "July 2026": {"s": [1, 1, 1, 2, 0, 1], "cc": 7, "st": 2, "ns": 0}, "August 2026": {"s": [3, 1, 1, 2, 0, 1], "cc": 0, "st": 9, "ns": 0}}}, "None": {"s": [1, 1, 2, 0, 1, 1], "cc": 0, "st": 66, "ns": 731, "months": {"None": {"s": [1, 1, 2, 0, 1, 1], "cc": 0, "st": 66, "ns": 731}}}}}, "Budigere Cross": {"years": {"2023": {"s": [6, 8, 1, 0, 1, 2], "cc": 39, "st": 5, "ns": 0, "months": {"October 2023": {"s": [1, 0, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}, "November 2023": {"s": [4, 7, 0, 0, 1, 2], "cc": 15, "st": 3, "ns": 0}, "December 2023": {"s": [1, 1, 1, 0, 0, 0], "cc": 18, "st": 2, "ns": 0}}}, "2024": {"s": [31, 39, 16, 10, 11, 27], "cc": 161, "st": 54, "ns": 0, "months": {"January 2024": {"s": [2, 3, 1, 1, 0, 1], "cc": 16, "st": 4, "ns": 0}, "February 2024": {"s": [9, 2, 1, 2, 4, 3], "cc": 25, "st": 8, "ns": 0}, "March 2024": {"s": [1, 2, 5, 2, 1, 5], "cc": 17, "st": 6, "ns": 0}, "April 2024": {"s": [6, 7, 2, 1, 0, 0], "cc": 19, "st": 7, "ns": 0}, "May 2024": {"s": [1, 3, 2, 0, 1, 2], "cc": 9, "st": 6, "ns": 0}, "June 2024": {"s": [3, 3, 1, 0, 0, 1], "cc": 11, "st": 7, "ns": 0}, "July 2024": {"s": [2, 3, 0, 0, 1, 2], "cc": 10, "st": 2, "ns": 0}, "August 2024": {"s": [2, 7, 0, 0, 0, 3], "cc": 18, "st": 3, "ns": 0}, "September 2024": {"s": [4, 1, 0, 1, 1, 4], "cc": 13, "st": 4, "ns": 0}, "October 2024": {"s": [1, 5, 1, 1, 1, 4], "cc": 10, "st": 2, "ns": 0}, "November 2024": {"s": [0, 2, 2, 2, 1, 0], "cc": 9, "st": 3, "ns": 0}, "December 2024": {"s": [0, 1, 1, 0, 1, 2], "cc": 4, "st": 2, "ns": 0}}}, "2025": {"s": [24, 30, 14, 12, 7, 34], "cc": 282, "st": 41, "ns": 2, "months": {"January 2025": {"s": [1, 1, 1, 1, 0, 1], "cc": 6, "st": 2, "ns": 0}, "February 2025": {"s": [4, 2, 1, 0, 0, 1], "cc": 27, "st": 3, "ns": 0}, "March 2025": {"s": [3, 5, 3, 3, 0, 3], "cc": 24, "st": 4, "ns": 0}, "April 2025": {"s": [4, 3, 2, 1, 0, 2], "cc": 6, "st": 6, "ns": 0}, "May 2025": {"s": [1, 3, 2, 1, 0, 1], "cc": 8, "st": 3, "ns": 0}, "June 2025": {"s": [1, 2, 0, 0, 0, 4], "cc": 5, "st": 1, "ns": 0}, "July 2025": {"s": [1, 1, 0, 0, 0, 1], "cc": 14, "st": 1, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 2, 0], "cc": 8, "st": 0, "ns": 0}, "September 2025": {"s": [0, 1, 0, 2, 1, 1], "cc": 10, "st": 2, "ns": 0}, "October 2025": {"s": [1, 0, 0, 0, 1, 2], "cc": 5, "st": 4, "ns": 0}, "November 2025": {"s": [4, 7, 0, 2, 1, 11], "cc": 109, "st": 4, "ns": 0}, "December 2025": {"s": [4, 5, 5, 2, 2, 7], "cc": 60, "st": 11, "ns": 2}}}, "2026": {"s": [39, 33, 17, 8, 9, 53], "cc": 445, "st": 67, "ns": 0, "months": {"January 2026": {"s": [3, 3, 1, 0, 0, 4], "cc": 37, "st": 4, "ns": 0}, "February 2026": {"s": [3, 2, 0, 0, 1, 2], "cc": 50, "st": 5, "ns": 0}, "March 2026": {"s": [4, 5, 3, 1, 1, 4], "cc": 146, "st": 11, "ns": 0}, "April 2026": {"s": [7, 12, 4, 2, 1, 24], "cc": 166, "st": 22, "ns": 0}, "May 2026": {"s": [5, 1, 3, 1, 2, 12], "cc": 22, "st": 9, "ns": 0}, "June 2026": {"s": [4, 5, 1, 0, 2, 0], "cc": 12, "st": 5, "ns": 0}, "July 2026": {"s": [4, 4, 3, 1, 1, 2], "cc": 12, "st": 3, "ns": 0}, "August 2026": {"s": [6, 1, 2, 3, 0, 4], "cc": 0, "st": 7, "ns": 0}, "September 2026": {"s": [3, 0, 0, 0, 1, 1], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [0, 0, 1, 0, 0, 1], "cc": 0, "st": 61, "ns": 1051, "months": {"None": {"s": [0, 0, 1, 0, 0, 1], "cc": 0, "st": 61, "ns": 1051}}}}}, "Kanakapura road": {"years": {"2023": {"s": [4, 3, 3, 0, 0, 4], "cc": 49, "st": 14, "ns": 0, "months": {"October 2023": {"s": [1, 0, 1, 0, 0, 1], "cc": 10, "st": 1, "ns": 0}, "November 2023": {"s": [2, 1, 2, 0, 0, 2], "cc": 27, "st": 8, "ns": 0}, "December 2023": {"s": [1, 2, 0, 0, 0, 1], "cc": 12, "st": 5, "ns": 0}}}, "2024": {"s": [44, 43, 19, 5, 9, 33], "cc": 189, "st": 71, "ns": 0, "months": {"January 2024": {"s": [9, 7, 0, 1, 1, 4], "cc": 29, "st": 6, "ns": 0}, "February 2024": {"s": [6, 3, 2, 0, 0, 3], "cc": 17, "st": 4, "ns": 0}, "March 2024": {"s": [6, 5, 1, 0, 3, 2], "cc": 23, "st": 14, "ns": 0}, "April 2024": {"s": [5, 2, 1, 0, 0, 1], "cc": 9, "st": 4, "ns": 0}, "May 2024": {"s": [4, 3, 0, 3, 1, 0], "cc": 13, "st": 8, "ns": 0}, "June 2024": {"s": [2, 4, 4, 0, 1, 1], "cc": 17, "st": 4, "ns": 0}, "July 2024": {"s": [0, 6, 5, 0, 0, 2], "cc": 28, "st": 12, "ns": 0}, "August 2024": {"s": [1, 4, 1, 1, 2, 3], "cc": 11, "st": 2, "ns": 0}, "September 2024": {"s": [2, 2, 2, 0, 1, 5], "cc": 16, "st": 8, "ns": 0}, "October 2024": {"s": [1, 2, 0, 0, 0, 2], "cc": 11, "st": 1, "ns": 0}, "November 2024": {"s": [4, 3, 2, 0, 0, 9], "cc": 9, "st": 6, "ns": 0}, "December 2024": {"s": [4, 2, 1, 0, 0, 1], "cc": 6, "st": 2, "ns": 0}}}, "2025": {"s": [28, 20, 13, 9, 3, 33], "cc": 338, "st": 42, "ns": 1, "months": {"January 2025": {"s": [0, 0, 0, 1, 0, 0], "cc": 9, "st": 3, "ns": 0}, "February 2025": {"s": [5, 2, 1, 1, 1, 2], "cc": 18, "st": 6, "ns": 0}, "March 2025": {"s": [3, 6, 0, 0, 0, 4], "cc": 35, "st": 9, "ns": 0}, "April 2025": {"s": [2, 3, 0, 0, 1, 3], "cc": 8, "st": 4, "ns": 0}, "May 2025": {"s": [1, 0, 1, 1, 0, 2], "cc": 8, "st": 2, "ns": 0}, "June 2025": {"s": [0, 1, 0, 1, 0, 1], "cc": 9, "st": 2, "ns": 0}, "July 2025": {"s": [2, 1, 1, 0, 0, 0], "cc": 16, "st": 0, "ns": 0}, "August 2025": {"s": [0, 2, 2, 0, 0, 0], "cc": 11, "st": 1, "ns": 0}, "September 2025": {"s": [2, 1, 0, 0, 0, 0], "cc": 11, "st": 1, "ns": 0}, "October 2025": {"s": [1, 1, 1, 1, 0, 0], "cc": 6, "st": 0, "ns": 0}, "November 2025": {"s": [6, 1, 5, 1, 0, 10], "cc": 144, "st": 7, "ns": 1}, "December 2025": {"s": [6, 2, 2, 3, 1, 11], "cc": 63, "st": 7, "ns": 0}}}, "2026": {"s": [24, 30, 15, 7, 14, 69], "cc": 498, "st": 65, "ns": 0, "months": {"January 2026": {"s": [4, 0, 2, 0, 1, 7], "cc": 38, "st": 3, "ns": 0}, "February 2026": {"s": [1, 0, 0, 0, 1, 1], "cc": 44, "st": 3, "ns": 0}, "March 2026": {"s": [6, 8, 1, 0, 0, 12], "cc": 190, "st": 20, "ns": 0}, "April 2026": {"s": [5, 10, 4, 5, 3, 21], "cc": 180, "st": 19, "ns": 0}, "May 2026": {"s": [2, 1, 1, 0, 3, 9], "cc": 25, "st": 4, "ns": 0}, "June 2026": {"s": [5, 5, 3, 0, 2, 9], "cc": 15, "st": 4, "ns": 0}, "July 2026": {"s": [0, 2, 1, 0, 1, 4], "cc": 6, "st": 3, "ns": 0}, "August 2026": {"s": [1, 4, 3, 2, 3, 4], "cc": 0, "st": 8, "ns": 0}, "September 2026": {"s": [0, 0, 0, 0, 0, 2], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [0, 0, 1, 1, 0, 5], "cc": 0, "st": 79, "ns": 890, "months": {"None": {"s": [0, 0, 1, 1, 0, 5], "cc": 0, "st": 79, "ns": 890}}}}}, "Kodagu": {"years": {"2023": {"s": [0, 1, 0, 1, 0, 0], "cc": 2, "st": 1, "ns": 0, "months": {"November 2023": {"s": [0, 1, 0, 1, 0, 0], "cc": 2, "st": 0, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}}}, "2024": {"s": [1, 5, 1, 2, 1, 3], "cc": 30, "st": 4, "ns": 0, "months": {"January 2024": {"s": [0, 0, 0, 1, 0, 0], "cc": 6, "st": 0, "ns": 0}, "February 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "March 2024": {"s": [1, 0, 0, 0, 0, 1], "cc": 1, "st": 1, "ns": 0}, "April 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 3, "st": 1, "ns": 0}, "May 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "June 2024": {"s": [0, 0, 1, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2024": {"s": [0, 1, 0, 1, 0, 0], "cc": 8, "st": 2, "ns": 0}, "August 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "September 2024": {"s": [0, 2, 0, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "October 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2024": {"s": [0, 0, 0, 0, 1, 1], "cc": 1, "st": 0, "ns": 0}, "December 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 0, "st": 0, "ns": 0}}}, "2025": {"s": [3, 4, 3, 0, 1, 4], "cc": 31, "st": 4, "ns": 0, "months": {"February 2025": {"s": [1, 0, 0, 0, 0, 0], "cc": 5, "st": 0, "ns": 0}, "March 2025": {"s": [0, 1, 0, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}, "April 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "May 2025": {"s": [1, 1, 1, 0, 1, 0], "cc": 2, "st": 0, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "July 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "September 2025": {"s": [0, 2, 0, 0, 0, 1], "cc": 2, "st": 1, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2025": {"s": [1, 0, 2, 0, 0, 2], "cc": 8, "st": 1, "ns": 0}, "December 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 5, "st": 1, "ns": 0}}}, "2026": {"s": [10, 7, 3, 3, 1, 6], "cc": 65, "st": 6, "ns": 0, "months": {"January 2026": {"s": [0, 0, 0, 1, 0, 0], "cc": 6, "st": 0, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "March 2026": {"s": [1, 0, 0, 0, 1, 1], "cc": 32, "st": 2, "ns": 0}, "April 2026": {"s": [4, 2, 2, 1, 0, 2], "cc": 23, "st": 1, "ns": 0}, "May 2026": {"s": [3, 2, 0, 0, 0, 1], "cc": 0, "st": 1, "ns": 0}, "June 2026": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2026": {"s": [0, 0, 1, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "August 2026": {"s": [2, 2, 0, 1, 0, 2], "cc": 0, "st": 1, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 5, "ns": 190, "months": {"None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 5, "ns": 190}}}}}, "Chamarajanagar": {"years": {"2023": {"s": [0, 3, 0, 0, 1, 0], "cc": 2, "st": 0, "ns": 0, "months": {"November 2023": {"s": [0, 3, 0, 0, 1, 0], "cc": 1, "st": 0, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2024": {"s": [2, 1, 1, 3, 2, 2], "cc": 16, "st": 4, "ns": 0, "months": {"January 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 5, "st": 0, "ns": 0}, "February 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "March 2024": {"s": [0, 0, 0, 1, 2, 0], "cc": 1, "st": 0, "ns": 0}, "May 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "June 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}, "July 2024": {"s": [0, 0, 1, 0, 0, 0], "cc": 0, "st": 2, "ns": 0}, "September 2024": {"s": [1, 0, 0, 2, 0, 0], "cc": 1, "st": 1, "ns": 0}, "November 2024": {"s": [1, 0, 0, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}, "December 2024": {"s": [0, 0, 0, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}}}, "2025": {"s": [3, 3, 0, 0, 1, 2], "cc": 15, "st": 4, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "February 2025": {"s": [1, 2, 0, 0, 1, 0], "cc": 2, "st": 1, "ns": 0}, "March 2025": {"s": [2, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "April 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 1, "ns": 0}, "May 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 2, "st": 0, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 4, "st": 0, "ns": 0}, "December 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}}}, "2026": {"s": [2, 4, 3, 1, 0, 4], "cc": 34, "st": 3, "ns": 0, "months": {"January 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "March 2026": {"s": [0, 0, 0, 0, 0, 2], "cc": 14, "st": 0, "ns": 0}, "April 2026": {"s": [0, 2, 2, 1, 0, 0], "cc": 9, "st": 2, "ns": 0}, "May 2026": {"s": [0, 1, 0, 0, 0, 1], "cc": 0, "st": 1, "ns": 0}, "June 2026": {"s": [1, 0, 1, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 1], "cc": 0, "st": 0, "ns": 0}, "August 2026": {"s": [1, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 2, "ns": 107, "months": {"None": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 2, "ns": 107}}}}}, "Yadgir": {"years": {"2023": {"s": [0, 0, 0, 1, 0, 0], "cc": 1, "st": 1, "ns": 0, "months": {"November 2023": {"s": [0, 0, 0, 1, 0, 0], "cc": 1, "st": 0, "ns": 0}, "December 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}}}, "2024": {"s": [2, 3, 1, 1, 1, 3], "cc": 12, "st": 3, "ns": 0, "months": {"January 2024": {"s": [0, 0, 0, 0, 1, 0], "cc": 2, "st": 2, "ns": 0}, "March 2024": {"s": [1, 0, 0, 0, 0, 2], "cc": 4, "st": 0, "ns": 0}, "April 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "May 2024": {"s": [0, 0, 1, 1, 0, 0], "cc": 2, "st": 0, "ns": 0}, "June 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "July 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "September 2024": {"s": [1, 1, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "November 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}}}, "2025": {"s": [0, 2, 0, 2, 1, 1], "cc": 11, "st": 3, "ns": 0, "months": {"February 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "March 2025": {"s": [0, 1, 0, 0, 1, 0], "cc": 2, "st": 1, "ns": 0}, "May 2025": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 1], "cc": 0, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "October 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 0, "st": 1, "ns": 0}, "November 2025": {"s": [0, 0, 0, 2, 0, 0], "cc": 4, "st": 0, "ns": 0}}}, "2026": {"s": [2, 1, 0, 0, 0, 5], "cc": 26, "st": 6, "ns": 0, "months": {"January 2026": {"s": [1, 0, 0, 0, 0, 0], "cc": 4, "st": 1, "ns": 0}, "February 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "March 2026": {"s": [1, 0, 0, 0, 0, 0], "cc": 6, "st": 3, "ns": 0}, "April 2026": {"s": [0, 0, 0, 0, 0, 3], "cc": 13, "st": 1, "ns": 0}, "May 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "August 2026": {"s": [0, 0, 0, 0, 0, 2], "cc": 0, "st": 1, "ns": 0}, "September 2026": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}}}, "None": {"s": [0, 0, 0, 0, 0, 1], "cc": 0, "st": 3, "ns": 103, "months": {"None": {"s": [0, 0, 0, 0, 0, 1], "cc": 0, "st": 3, "ns": 103}}}}}, "Chitradurga": {"years": {"2023": {"s": [0, 0, 1, 0, 0, 0], "cc": 4, "st": 2, "ns": 0, "months": {"November 2023": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 2, "ns": 0}, "December 2023": {"s": [0, 0, 1, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2024": {"s": [7, 6, 7, 2, 0, 7], "cc": 39, "st": 12, "ns": 0, "months": {"January 2024": {"s": [0, 1, 2, 0, 0, 2], "cc": 8, "st": 2, "ns": 0}, "February 2024": {"s": [1, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "March 2024": {"s": [0, 3, 2, 1, 0, 1], "cc": 3, "st": 7, "ns": 0}, "April 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 1, "ns": 0}, "May 2024": {"s": [0, 0, 0, 1, 0, 1], "cc": 5, "st": 1, "ns": 0}, "June 2024": {"s": [1, 0, 0, 0, 0, 1], "cc": 1, "st": 0, "ns": 0}, "July 2024": {"s": [1, 0, 0, 0, 0, 0], "cc": 7, "st": 1, "ns": 0}, "August 2024": {"s": [0, 0, 0, 0, 0, 0], "cc": 2, "st": 0, "ns": 0}, "September 2024": {"s": [2, 0, 2, 0, 0, 1], "cc": 5, "st": 0, "ns": 0}, "October 2024": {"s": [0, 0, 1, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "November 2024": {"s": [2, 0, 0, 0, 0, 1], "cc": 3, "st": 0, "ns": 0}, "December 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}}}, "2025": {"s": [5, 4, 2, 2, 1, 6], "cc": 56, "st": 2, "ns": 0, "months": {"January 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "February 2025": {"s": [1, 1, 1, 0, 0, 0], "cc": 8, "st": 0, "ns": 0}, "March 2025": {"s": [2, 0, 0, 2, 0, 1], "cc": 4, "st": 0, "ns": 0}, "April 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "May 2025": {"s": [1, 0, 0, 0, 0, 2], "cc": 2, "st": 1, "ns": 0}, "June 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 3, "st": 0, "ns": 0}, "July 2025": {"s": [0, 0, 0, 0, 0, 2], "cc": 10, "st": 0, "ns": 0}, "August 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 1, "st": 0, "ns": 0}, "September 2025": {"s": [0, 0, 0, 0, 0, 0], "cc": 5, "st": 0, "ns": 0}, "November 2025": {"s": [1, 3, 0, 0, 1, 1], "cc": 14, "st": 0, "ns": 0}, "December 2025": {"s": [0, 0, 1, 0, 0, 0], "cc": 5, "st": 1, "ns": 0}}}, "2026": {"s": [4, 3, 1, 5, 1, 10], "cc": 93, "st": 12, "ns": 0, "months": {"January 2026": {"s": [1, 0, 0, 0, 1, 1], "cc": 12, "st": 2, "ns": 0}, "February 2026": {"s": [0, 1, 0, 1, 0, 0], "cc": 5, "st": 0, "ns": 0}, "March 2026": {"s": [1, 0, 0, 2, 0, 0], "cc": 30, "st": 4, "ns": 0}, "April 2026": {"s": [1, 1, 1, 2, 0, 5], "cc": 32, "st": 4, "ns": 0}, "May 2026": {"s": [0, 1, 0, 0, 0, 0], "cc": 6, "st": 0, "ns": 0}, "June 2026": {"s": [0, 0, 0, 0, 0, 0], "cc": 5, "st": 0, "ns": 0}, "July 2026": {"s": [0, 0, 0, 0, 0, 2], "cc": 3, "st": 0, "ns": 0}, "August 2026": {"s": [1, 0, 0, 0, 0, 2], "cc": 0, "st": 2, "ns": 0}}}, "None": {"s": [1, 1, 0, 0, 0, 0], "cc": 0, "st": 11, "ns": 310, "months": {"None": {"s": [1, 1, 0, 0, 0, 0], "cc": 0, "st": 11, "ns": 310}}}}}, "Devanahalli": {"years": {"2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0, "months": {"September 2024": {"s": [0, 1, 0, 0, 0, 0], "cc": 0, "st": 0, "ns": 0}}}}}};
+/* __IE_ONLINE_END__ */
 
 /* __CENTRE_TIMESTAMPS_START__ */
 const CENTRE_DATA_TIMESTAMPS = {
@@ -5327,21 +5400,48 @@ async function denyRequest(docId){
   _deniedIds.delete(docId);                           // Firestore confirmed — safe to clear
 }
 
+function _umValidate(){
+  const email = document.getElementById('umEmail').value.trim();
+  const pw    = document.getElementById('umPassword').value.trim();
+  const role  = document.getElementById('umRole').value;
+  const centre= document.getElementById('umCentre').value;
+  const emailOk  = email.includes('@') && email.length > 3;
+  const pwOk     = pw === '' || pw.length >= 4;
+  const centreOk = role === 'admin' || centre !== 'all';
+  document.getElementById('umAddBtn').disabled = !(emailOk && pwOk && centreOk);
+}
+(function _umBindValidation(){
+  // Fields may not exist yet if UM panel hasn't rendered — defer until DOM ready
+  function _bind(){
+    const ids = ['umEmail','umPassword','umRole','umCentre'];
+    if(!document.getElementById('umEmail')) return setTimeout(_bind, 200);
+    ids.forEach(id => document.getElementById(id).addEventListener('input', _umValidate));
+    // selects fire 'change', not 'input'
+    document.getElementById('umRole').addEventListener('change', _umValidate);
+    document.getElementById('umCentre').addEventListener('change', _umValidate);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',_bind);
+  else _bind();
+})();
+
 async function umAddUser(){
   const email=document.getElementById('umEmail').value.trim().toLowerCase();
   const pw=document.getElementById('umPassword').value.trim();
   const role=document.getElementById('umRole').value;
-  const centre=document.getElementById('umCentre').value;
+  const centre=role==='admin' ? 'all' : document.getElementById('umCentre').value;
   const msg=document.getElementById('umMsg');
   if(!email||!email.includes('@')){msg.className='um-msg err';msg.textContent='Enter a valid email.';return;}
-  if(!pw||pw.length<4){msg.className='um-msg err';msg.textContent='Password must be at least 4 chars.';return;}
-  const passwordHash=await sha256(pw);
+  if(pw && pw.length<4){msg.className='um-msg err';msg.textContent='Password must be at least 4 chars (or leave blank for Google Sign-In only).';return;}
+  if(role==='coordinator' && centre==='all'){msg.className='um-msg err';msg.textContent='Please select a specific centre for coordinators.';return;}
+  const passwordHash = pw ? await sha256(pw) : null;
   await db.collection('users').doc(email).set({ email, role, passwordHash, centre, addedAt: new Date().toISOString() });
   _fsUsersLoaded=false;
   await loadFSUsers();
   document.getElementById('umEmail').value='';
   document.getElementById('umPassword').value='';
-  msg.className='um-msg ok'; msg.textContent=`✓ ${email} added as ${role} (${centre}).`;
+  document.getElementById('umAddBtn').disabled=true;
+  const authNote = pw ? '' : ' (Google Sign-In only)';
+  msg.className='um-msg ok'; msg.textContent=`✓ ${email} added as ${role} (${centre})${authNote}.`;
   renderUMTable();
 }
 
@@ -5814,14 +5914,14 @@ async function doLogin(){
     }
     return;
   }
-  // Built-in ROLES use plain text; Firestore users use SHA-256 hash
-  let valid=false;
-  if(entry.source==='firestore'){
-    const hash=await sha256(pw);
-    valid=(hash===entry.passwordHash);
-  } else {
-    valid=(pw===entry.password);
+  // All users (built-in and Firestore) use SHA-256 hashed passwords
+  if(!entry.passwordHash){
+    hideSigningIn(); btn.disabled=false;
+    showAuthErr('Use Google Sign-In','This account does not have a password. Please use the "Sign in with Google" button below.');
+    return;
   }
+  const hash=await sha256(pw);
+  const valid=(hash===entry.passwordHash);
   if(!valid){
     hideSigningIn(); btn.disabled=false;
     showAuthErr('Incorrect Password','The password you entered is wrong. Please try again or contact the admin.');
@@ -7059,6 +7159,176 @@ function buildAllUpcoming(centre){
   `;
 }
 
+function _ieoLookup(centre){
+  // IE_ONLINE_DATA uses names like "Vijayanagar", "Malleswaram"
+  // Dashboard uses "IP - Vijayanagar", "IP - Malleswaram", "Kanakapura Road" etc.
+  if(IE_ONLINE_DATA[centre]) return IE_ONLINE_DATA[centre];
+  const stripped = centre.replace(/^IP\s*-\s*/i,'').trim();
+  if(IE_ONLINE_DATA[stripped]) return IE_ONLINE_DATA[stripped];
+  // Case-insensitive search
+  const lc = stripped.toLowerCase();
+  for(const [k,v] of Object.entries(IE_ONLINE_DATA)){
+    if(k.toLowerCase()===lc) return v;
+  }
+  return null;
+}
+
+function _buildCentreIeoSection(centre){
+  const d = _ieoLookup(centre);
+  if(!d || !d.years) return '';
+
+  const YEARS = Object.keys(d.years).filter(y=>y!=='None').sort();
+  const STEP_COLORS = ['#7c9fc8','#5b85ba','#3a6bac','#2a559e','#1a4090','#0a2c7a'];
+
+  // Sort months chronologically
+  const MONTH_ORDER = ['January','February','March','April','May','June',
+                       'July','August','September','October','November','December'];
+  function sortMonths(months){
+    return Object.keys(months).sort((a,b)=>{
+      const [am,ay]=a.split(' '); const [bm,by]=b.split(' ');
+      return (parseInt(ay)-parseInt(by)) || (MONTH_ORDER.indexOf(am)-MONTH_ORDER.indexOf(bm));
+    });
+  }
+
+  // Build per-year rows with expandable month breakdown
+  const yearRows = YEARS.slice().reverse().map(yr=>{
+    const yd = d.years[yr];
+    const steps = yd.s||[0,0,0,0,0,0];
+    const inProg = steps.reduce((a,b)=>a+b,0) + (yd.st||0);
+    const total  = (yd.cc||0) + (yd.st||0) + (yd.ns||0) + steps.reduce((a,b)=>a+b,0);
+    const pct    = total ? Math.round(100*(yd.cc||0)/total) : 0;
+    const stepBadges = steps.map((v,i)=>v?`<span style="background:#e8f0ff;color:#1e4090;border-radius:4px;padding:1px 5px;font-size:.58rem;font-weight:700;white-space:nowrap">S${i+1}:${v}</span>`:'').filter(Boolean).join(' ');
+    const rowId = `ieo_${centre.replace(/\W/g,'_')}_${yr}`;
+
+    // Month sub-rows
+    const months = yd.months || {};
+    const sortedMonths = sortMonths(months);
+    const monthRows = sortedMonths.reverse().map(mon=>{
+      const md = months[mon];
+      const msteps = md.s||[0,0,0,0,0,0];
+      const mInProg = msteps.reduce((a,b)=>a+b,0) + (md.st||0);
+      const mTotal  = (md.cc||0) + (md.st||0) + (md.ns||0) + msteps.reduce((a,b)=>a+b,0);
+      const mPct    = mTotal ? Math.round(100*(md.cc||0)/mTotal) : 0;
+      const mBadges = msteps.map((v,i)=>v?`<span style="background:#f0f4ff;color:#1e4090;border-radius:3px;padding:1px 4px;font-size:.56rem;font-weight:700">S${i+1}:${v}</span>`:'').filter(Boolean).join(' ');
+      return `<tr style="background:#f7f4ee;border-bottom:1px solid #ede7d8">
+        <td style="padding:5px 10px 5px 24px;color:var(--muted);font-size:.68rem">${mon}</td>
+        <td style="padding:5px 10px;text-align:right;font-size:.68rem">${mTotal.toLocaleString()}</td>
+        <td style="padding:5px 10px;text-align:right;color:#1a6b3a;font-size:.68rem">${(md.cc||0).toLocaleString()}</td>
+        <td style="padding:5px 10px">
+          <div style="display:flex;align-items:center;gap:4px">
+            <div style="width:40px;background:#e8e0d4;border-radius:2px;height:5px">
+              <div style="width:${mPct}%;background:${mPct>=60?'#1a6b3a':mPct>=40?'#d4641a':'#b83232'};height:100%;border-radius:2px"></div>
+            </div>
+            <span style="font-size:.6rem;font-weight:700;color:${mPct>=60?'#1a6b3a':mPct>=40?'#d4641a':'#b83232'}">${mPct}%</span>
+          </div>
+        </td>
+        <td style="padding:5px 10px;text-align:right;font-size:.68rem">${mInProg.toLocaleString()}</td>
+        <td style="padding:5px 10px;font-size:.62rem">${mBadges||'<span style="color:var(--muted)">—</span>'}</td>
+        <td style="padding:5px 10px;text-align:right;font-size:.68rem;color:var(--muted)">${(md.ns||0).toLocaleString()}</td>
+      </tr>`;
+    }).join('');
+
+    return `<tr style="border-bottom:1px solid #f0ebe0;cursor:pointer;background:#fff" onclick="(function(el,r){r.style.display=r.style.display==='none'?'':'none';el.querySelector('.ieo-arrow').textContent=r.style.display===''?'▲':'▼';})(this,document.getElementById('${rowId}'))">
+      <td style="padding:7px 10px;font-weight:700;color:var(--navy)">${yr} <span class="ieo-arrow" style="font-size:.55rem;color:var(--muted);margin-left:4px">▼</span></td>
+      <td style="padding:7px 10px;text-align:right;font-weight:700">${total.toLocaleString()}</td>
+      <td style="padding:7px 10px;text-align:right;color:#1a6b3a;font-weight:700">${(yd.cc||0).toLocaleString()}</td>
+      <td style="padding:7px 10px">
+        <div style="display:flex;align-items:center;gap:5px">
+          <div style="width:60px;background:#f0ebe0;border-radius:3px;height:7px">
+            <div style="width:${pct}%;background:${pct>=60?'#1a6b3a':pct>=40?'#d4641a':'#b83232'};height:100%;border-radius:3px"></div>
+          </div>
+          <span style="font-size:.65rem;font-weight:700;color:${pct>=60?'#1a6b3a':pct>=40?'#d4641a':'#b83232'}">${pct}%</span>
+        </div>
+      </td>
+      <td style="padding:7px 10px;text-align:right">${inProg.toLocaleString()}</td>
+      <td style="padding:7px 10px;font-size:.65rem">${stepBadges||'<span style="color:var(--muted)">—</span>'}</td>
+      <td style="padding:7px 10px;text-align:right;color:var(--muted)">${(yd.ns||0).toLocaleString()}</td>
+    </tr>
+    <tr id="${rowId}" style="display:none"><td colspan="7" style="padding:0">
+      <table style="width:100%;border-collapse:collapse">${monthRows}</table>
+    </td></tr>`
+  }).join('');
+
+  // All-time aggregate
+  let totAll=0, ccAll=0, stAll=0, nsAll=0, sAll=[0,0,0,0,0,0];
+  for(const yr of YEARS){
+    const yd=d.years[yr];
+    ccAll+=yd.cc||0; stAll+=yd.st||0; nsAll+=yd.ns||0;
+    (yd.s||[]).forEach((v,i)=>sAll[i]+=v);
+    totAll+=(yd.cc||0)+(yd.st||0)+(yd.ns||0)+(yd.s||[]).reduce((a,b)=>a+b,0);
+  }
+  const pctAll = totAll ? Math.round(100*ccAll/totAll) : 0;
+  const inStepsAll = sAll.reduce((a,b)=>a+b,0);
+
+  // Step funnel bars
+  const STEP_LABELS = ['Started','Step 1','Step 2','Step 3','Step 4','Step 5','Step 6','Completed'];
+  const STEP_VALS   = [stAll, ...sAll, ccAll];
+  const STEP_COLS   = ['#94a3b8',...STEP_COLORS,'#1a6b3a'];
+  const fMax = Math.max(...STEP_VALS, 1);
+  const funnelBars = STEP_LABELS.map((lbl,i)=>{
+    const v=STEP_VALS[i];
+    const pct=Math.round(100*v/fMax);
+    const pctT=totAll?Math.round(100*v/totAll):0;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="width:70px;text-align:right;font-size:.62rem;font-weight:700;color:var(--navy);flex-shrink:0">${lbl}</div>
+      <div style="flex:1;background:#f0ebe0;border-radius:3px;height:18px;overflow:hidden">
+        <div style="width:${pct}%;background:${STEP_COLS[i]};height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px;box-sizing:border-box">
+          ${pct>20?`<span style="font-size:.58rem;font-weight:700;color:#fff">${v.toLocaleString()}</span>`:''}
+        </div>
+      </div>
+      <div style="width:55px;font-size:.6rem;color:var(--muted);flex-shrink:0">${pct<=20?v.toLocaleString()+' · ':''}<b style="color:var(--navy)">${pctT}%</b></div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="card ins-section" style="margin-top:14px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+        <div class="card-t" style="margin-bottom:0">IE Online</div>
+        <div style="font-size:.6rem;color:var(--muted)">from Santhosha CRM</div>
+      </div>
+
+      <!-- All-time KPIs -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+        ${[
+          ['Total Enrolled', totAll.toLocaleString(), 'all-time', '#1e2a45'],
+          ['Completed',      ccAll.toLocaleString(),  pctAll+'% completion', '#1a6b3a'],
+          ['In Progress',    (stAll+inStepsAll).toLocaleString(), 'started + steps 1–6', '#d4641a'],
+          ['Not Started',    nsAll.toLocaleString(),  'registered only', '#7a7060'],
+        ].map(([l,v,s,c])=>`
+          <div style="background:#faf6ef;border-radius:7px;padding:9px 11px;border-left:3px solid ${c}">
+            <div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:3px">${l}</div>
+            <div style="font-size:1.1rem;font-weight:800;color:${c};line-height:1">${v}</div>
+            <div style="font-size:.57rem;color:var(--muted);margin-top:2px">${s}</div>
+          </div>`).join('')}
+      </div>
+
+      <!-- Step funnel -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:.65rem;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">All-time Step Progression</div>
+        ${funnelBars}
+      </div>
+
+      <!-- Year-by-year table -->
+      <div style="font-size:.65rem;font-weight:700;color:var(--navy);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Year-by-Year</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.72rem">
+          <thead>
+            <tr style="background:#f0ebe0">
+              <th style="padding:6px 10px;text-align:left;font-size:.6rem;font-weight:700;letter-spacing:.5px;color:var(--muted)">YEAR</th>
+              <th style="padding:6px 10px;text-align:right;font-size:.6rem;font-weight:700;letter-spacing:.5px;color:var(--muted)">ENROLLED</th>
+              <th style="padding:6px 10px;text-align:right;font-size:.6rem;font-weight:700;letter-spacing:.5px;color:var(--muted)">COMPLETED</th>
+              <th style="padding:6px 10px;font-size:.6rem;font-weight:700;letter-spacing:.5px;color:var(--muted)">RATE</th>
+              <th style="padding:6px 10px;text-align:right;font-size:.6rem;font-weight:700;letter-spacing:.5px;color:var(--muted)">IN PROGRESS</th>
+              <th style="padding:6px 10px;font-size:.6rem;font-weight:700;letter-spacing:.5px;color:var(--muted)">STEP BREAKDOWN</th>
+              <th style="padding:6px 10px;text-align:right;font-size:.6rem;font-weight:700;letter-spacing:.5px;color:var(--muted)">NOT STARTED</th>
+            </tr>
+          </thead>
+          <tbody>${yearRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
 function buildCentreInsights(centre){
   const el = document.getElementById('centreInsightsContent');
   const cd = CENTRE_DATA[centre];
@@ -7221,6 +7491,7 @@ function buildCentreInsights(centre){
           </div>`).join('')}
       </div>
     </div>`:''}
+
   `;
 
   // Draw bar chart
@@ -7335,6 +7606,171 @@ function renderIEUpcoming(centre){
     </a>`, 'No upcoming Inner Engineering programs for this centre announced yet');
 }
 
+function switchIeSubTab(tab){
+  const isProg = tab === 'prog';
+  document.getElementById('ieProgPanel').style.display   = isProg ? '' : 'none';
+  document.getElementById('ieOnlinePanel').style.display = isProg ? 'none' : '';
+  document.getElementById('ieSubProg').style.borderBottomColor   = isProg ? 'var(--navy)' : 'transparent';
+  document.getElementById('ieSubProg').style.color               = isProg ? 'var(--navy)' : 'var(--muted)';
+  document.getElementById('ieSubProg').style.fontWeight          = isProg ? '700' : '600';
+  document.getElementById('ieSubOnline').style.borderBottomColor = isProg ? 'transparent' : 'var(--navy)';
+  document.getElementById('ieSubOnline').style.color             = isProg ? 'var(--muted)' : 'var(--navy)';
+  document.getElementById('ieSubOnline').style.fontWeight        = isProg ? '600' : '700';
+  if(!isProg) renderIeoOnlineCentre(currentCentre);
+}
+
+function renderIeoOnlineCentre(centre){
+  const el = document.getElementById('ieoOnlineCentreSection');
+  if(!el) return;
+  const d = _ieoLookup(centre);
+  if(!d || !d.years){ el.innerHTML=''; return; }
+
+  const YEARS = Object.keys(d.years).filter(y=>y!=='None').sort();
+  const MONTH_ORDER = ['January','February','March','April','May','June',
+                       'July','August','September','October','November','December'];
+  const STEP_COLORS = ['#94a3b8','#7c9fc8','#5b85ba','#3a6bac','#2a559e','#1a4090','#0a2c7a','#1a6b3a'];
+
+  function sortMonths(months){
+    return Object.keys(months).sort((a,b)=>{
+      const [am,ay]=a.split(' '); const [bm,by]=b.split(' ');
+      return (parseInt(ay)-parseInt(by))||(MONTH_ORDER.indexOf(am)-MONTH_ORDER.indexOf(bm));
+    });
+  }
+
+  // All-time aggregate
+  let totAll=0,ccAll=0,stAll=0,nsAll=0,sAll=[0,0,0,0,0,0];
+  for(const yr of YEARS){
+    const yd=d.years[yr];
+    ccAll+=yd.cc||0; stAll+=yd.st||0; nsAll+=yd.ns||0;
+    (yd.s||[]).forEach((v,i)=>sAll[i]+=v);
+    totAll+=(yd.cc||0)+(yd.st||0)+(yd.ns||0)+(yd.s||[]).reduce((a,b)=>a+b,0);
+  }
+  const pctAll = totAll ? Math.round(100*ccAll/totAll) : 0;
+  const inStepsAll = sAll.reduce((a,b)=>a+b,0);
+
+  // Funnel
+  const STEP_LABELS = ['Started','Step 1','Step 2','Step 3','Step 4','Step 5','Step 6','Completed'];
+  const STEP_VALS   = [stAll,...sAll,ccAll];
+  const fMax = Math.max(...STEP_VALS,1);
+  const funnelBars = STEP_LABELS.map((lbl,i)=>{
+    const v=STEP_VALS[i], pct=Math.round(100*v/fMax), pctT=totAll?Math.round(100*v/totAll):0;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="width:70px;text-align:right;font-size:.62rem;font-weight:700;color:var(--navy);flex-shrink:0">${lbl}</div>
+      <div style="flex:1;background:#f0ebe0;border-radius:3px;height:18px;overflow:hidden">
+        <div style="width:${pct}%;background:${STEP_COLORS[i]};height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px;box-sizing:border-box">
+          ${pct>20?`<span style="font-size:.58rem;font-weight:700;color:#fff">${v.toLocaleString()}</span>`:''}
+        </div>
+      </div>
+      <div style="width:55px;font-size:.6rem;color:var(--muted);flex-shrink:0">${pct<=20?v.toLocaleString()+' · ':''}<b style="color:var(--navy)">${pctT}%</b></div>
+    </div>`;
+  }).join('');
+
+  // Year rows with expandable months
+  const yearRows = YEARS.slice().reverse().map(yr=>{
+    const yd=d.years[yr];
+    const steps=yd.s||[0,0,0,0,0,0];
+    const inProg=steps.reduce((a,b)=>a+b,0)+(yd.st||0);
+    const total=(yd.cc||0)+(yd.st||0)+(yd.ns||0)+steps.reduce((a,b)=>a+b,0);
+    const pct=total?Math.round(100*(yd.cc||0)/total):0;
+    const stepBadges=steps.map((v,i)=>v?`<span style="background:#e8f0ff;color:#1e4090;border-radius:4px;padding:1px 5px;font-size:.58rem;font-weight:700">S${i+1}:${v}</span>`:'').filter(Boolean).join(' ');
+    const rowId=`ieo_ie_${centre.replace(/\W/g,'_')}_${yr}`;
+
+    const months=yd.months||{};
+    const monthRows=sortMonths(months).reverse().map(mon=>{
+      const md=months[mon];
+      const ms=md.s||[0,0,0,0,0,0];
+      const mInProg=ms.reduce((a,b)=>a+b,0)+(md.st||0);
+      const mTotal=(md.cc||0)+(md.st||0)+(md.ns||0)+ms.reduce((a,b)=>a+b,0);
+      const mPct=mTotal?Math.round(100*(md.cc||0)/mTotal):0;
+      const mBadges=ms.map((v,i)=>v?`<span style="background:#f0f4ff;color:#1e4090;border-radius:3px;padding:1px 4px;font-size:.56rem;font-weight:700">S${i+1}:${v}</span>`:'').filter(Boolean).join(' ');
+      return `<tr style="background:#f7f4ee;border-bottom:1px solid #ede7d8">
+        <td style="padding:5px 10px 5px 24px;color:var(--muted);font-size:.68rem">${mon}</td>
+        <td style="padding:5px 10px;text-align:right;font-size:.68rem">${mTotal.toLocaleString()}</td>
+        <td style="padding:5px 10px;text-align:right;color:#1a6b3a;font-size:.68rem">${(md.cc||0).toLocaleString()}</td>
+        <td style="padding:5px 10px">
+          <div style="display:flex;align-items:center;gap:4px">
+            <div style="width:40px;background:#e8e0d4;border-radius:2px;height:5px">
+              <div style="width:${mPct}%;background:${mPct>=60?'#1a6b3a':mPct>=40?'#d4641a':'#b83232'};height:100%;border-radius:2px"></div>
+            </div>
+            <span style="font-size:.6rem;font-weight:700;color:${mPct>=60?'#1a6b3a':mPct>=40?'#d4641a':'#b83232'}">${mPct}%</span>
+          </div>
+        </td>
+        <td style="padding:5px 10px;text-align:right;font-size:.68rem">${mInProg.toLocaleString()}</td>
+        <td style="padding:5px 10px;font-size:.62rem">${mBadges||'<span style="color:var(--muted)">—</span>'}</td>
+        <td style="padding:5px 10px;text-align:right;font-size:.68rem;color:var(--muted)">${(md.ns||0).toLocaleString()}</td>
+      </tr>`;
+    }).join('');
+
+    return `<tr style="cursor:pointer;border-bottom:1px solid #f0ebe0"
+        onclick="(function(el,r){r.style.display=r.style.display==='none'?'':'none';el.querySelector('.ieo-arr').textContent=r.style.display===''?'▲':'▼';})(this,document.getElementById('${rowId}'))">
+      <td style="padding:7px 10px;font-weight:700;color:var(--navy)">${yr} <span class="ieo-arr" style="font-size:.55rem;color:var(--muted);margin-left:4px">▼</span></td>
+      <td style="padding:7px 10px;text-align:right;font-weight:700">${total.toLocaleString()}</td>
+      <td style="padding:7px 10px;text-align:right;font-weight:700;color:#1a6b3a">${(yd.cc||0).toLocaleString()}</td>
+      <td style="padding:7px 10px">
+        <div style="display:flex;align-items:center;gap:5px">
+          <div style="width:60px;background:#f0ebe0;border-radius:3px;height:7px">
+            <div style="width:${pct}%;background:${pct>=60?'#1a6b3a':pct>=40?'#d4641a':'#b83232'};height:100%;border-radius:3px"></div>
+          </div>
+          <span style="font-size:.65rem;font-weight:700;color:${pct>=60?'#1a6b3a':pct>=40?'#d4641a':'#b83232'}">${pct}%</span>
+        </div>
+      </td>
+      <td style="padding:7px 10px;text-align:right">${inProg.toLocaleString()}</td>
+      <td style="padding:7px 10px;font-size:.65rem">${stepBadges||'<span style="color:var(--muted)">—</span>'}</td>
+      <td style="padding:7px 10px;text-align:right;color:var(--muted)">${(yd.ns||0).toLocaleString()}</td>
+    </tr>
+    <tr id="${rowId}" style="display:none"><td colspan="7" style="padding:0">
+      <table style="width:100%;border-collapse:collapse">${monthRows}</table>
+    </td></tr>`;
+  }).join('');
+
+  el.innerHTML = `<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="card-t" style="margin-bottom:0">IE Online — ${centre}</div>
+      <div style="font-size:.6rem;color:var(--muted)">from Santhosha CRM</div>
+    </div>
+
+    <!-- KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+      ${[
+        ['Total Enrolled', totAll.toLocaleString(), 'all-time', '#1e2a45'],
+        ['Completed',      ccAll.toLocaleString(),  pctAll+'% completion', '#1a6b3a'],
+        ['In Progress',    (stAll+inStepsAll).toLocaleString(), 'started + steps 1–6', '#d4641a'],
+        ['Not Started',    nsAll.toLocaleString(),  'registered only', '#7a7060'],
+      ].map(([l,v,s,c])=>`
+        <div style="background:#faf6ef;border-radius:7px;padding:9px 11px;border-left:3px solid ${c}">
+          <div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:3px">${l}</div>
+          <div style="font-size:1.1rem;font-weight:800;color:${c};line-height:1">${v}</div>
+          <div style="font-size:.57rem;color:var(--muted);margin-top:2px">${s}</div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Funnel -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:.62rem;font-weight:700;color:var(--navy);margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px">All-time Step Progression</div>
+      ${funnelBars}
+    </div>
+
+    <!-- Year / Month table -->
+    <div style="font-size:.62rem;font-weight:700;color:var(--navy);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Year-by-Year · click to expand months</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.72rem">
+        <thead>
+          <tr style="background:#f0ebe0">
+            <th style="padding:6px 10px;text-align:left;font-size:.6rem;font-weight:700;color:var(--muted)">YEAR</th>
+            <th style="padding:6px 10px;text-align:right;font-size:.6rem;font-weight:700;color:var(--muted)">ENROLLED</th>
+            <th style="padding:6px 10px;text-align:right;font-size:.6rem;font-weight:700;color:var(--muted)">COMPLETED</th>
+            <th style="padding:6px 10px;font-size:.6rem;font-weight:700;color:var(--muted)">RATE</th>
+            <th style="padding:6px 10px;text-align:right;font-size:.6rem;font-weight:700;color:var(--muted)">IN PROGRESS</th>
+            <th style="padding:6px 10px;font-size:.6rem;font-weight:700;color:var(--muted)">STEP BREAKDOWN</th>
+            <th style="padding:6px 10px;text-align:right;font-size:.6rem;font-weight:700;color:var(--muted)">NOT STARTED</th>
+          </tr>
+        </thead>
+        <tbody>${yearRows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
 function loadProg(progId){
   currentProg=progId;
   const cfg=PROG_CONFIG[progId];
@@ -7342,11 +7778,18 @@ function loadProg(progId){
   const ieSec = document.getElementById('ieUpcomingSection');
   const bspSec = document.getElementById('bspUpcomingSection');
   const shoSec = document.getElementById('shoonyaUpcomingSection');
-  if(ieSec){ ieSec.style.display = (progId === 'ie') ? '' : 'none'; }
+  if(ieSec){ ieSec.style.display = (progId === 'ie') ? '' : 'none'; }  // still inside ieProgPanel
   if(bspSec){ bspSec.style.display = (progId === 'bsp') ? '' : 'none'; }
   const samSec = document.getElementById('samyamaUpcomingSection');
   if(shoSec){ shoSec.style.display = (progId === 'shoonya') ? '' : 'none'; }
   if(samSec){ samSec.style.display = (progId === 'samyama') ? '' : 'none'; }
+  // IE sub-tab bar — only shown on IE tab; always reset to Programme Data view
+  const ieSubBar = document.getElementById('ieSubTabBar');
+  const ieoData = _ieoLookup(currentCentre);
+  if(ieSubBar){
+    ieSubBar.style.display = (progId === 'ie' && ieoData) ? 'block' : 'none';
+    if(progId === 'ie') switchIeSubTab('prog');
+  }
   if(progId === 'ie') renderIEUpcoming(currentCentre);
   if(progId === 'bsp') renderBSPUpcoming();
   if(progId === 'shoonya') renderShoonyaUpcoming();
@@ -7649,15 +8092,181 @@ function loadProg(progId){
 function showOvPage(page){
   const isInsights  = page==='insights';
   const isRegCounts = page==='regcounts';
-  const isOverview  = !isInsights && !isRegCounts;
+  const isIeOnline  = page==='ieonline';
+  const isOverview  = !isInsights && !isRegCounts && !isIeOnline;
   document.getElementById('ovOverviewPage').style.display   = isOverview  ? '' : 'none';
   document.getElementById('ovInsightsPage').style.display   = isInsights  ? '' : 'none';
   document.getElementById('ovRegCountsPage').style.display  = isRegCounts ? '' : 'none';
+  document.getElementById('ovIeOnlinePage').style.display   = isIeOnline  ? '' : 'none';
   document.getElementById('ovNavOverview').classList.toggle('active',   isOverview);
   document.getElementById('ovNavInsights').classList.toggle('active',   isInsights);
   document.getElementById('ovNavRegCounts').classList.toggle('active',  isRegCounts);
+  document.getElementById('ovNavIeOnline').classList.toggle('active',   isIeOnline);
   if(isInsights)  buildInsights();
   if(isRegCounts){ switchRegSubTab('table'); buildAdminRegCounts(); }
+  if(isIeOnline)  buildIeOnlinePage();
+}
+
+// ════════════════════════════════════════════════════════════
+//  IE ONLINE PAGE
+// ════════════════════════════════════════════════════════════
+let _ieoYear = 'All';
+let _ieoSort = {col:'total', dir:-1};
+
+function buildIeOnlinePage(){
+  if(!IE_ONLINE_DATA || !Object.keys(IE_ONLINE_DATA).length){
+    document.getElementById('ieoKpiStrip').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:.78rem">No IE Online data available. Run <code>update_regs.py</code> to load data.</div>';
+    return;
+  }
+  _renderIeoYearPills();
+  _renderIeoPage();
+}
+
+function _ieoYears(){
+  const yrs = new Set();
+  for(const d of Object.values(IE_ONLINE_DATA))
+    for(const y of Object.keys(d.years||{})) if(y!=='None') yrs.add(y);
+  return [...yrs].sort();
+}
+
+function _ieoAggregate(centreData){
+  const years = centreData.years || {};
+  const agg = {total:0,cc:0,st:0,ns:0,s:[0,0,0,0,0,0]};
+  for(const [yr, yd] of Object.entries(years)){
+    if(yr==='None') continue;
+    if(_ieoYear!=='All' && yr!==_ieoYear) continue;
+    agg.cc += yd.cc||0;
+    agg.st += yd.st||0;
+    agg.ns += yd.ns||0;
+    (yd.s||[]).forEach((v,i)=>agg.s[i]+=v);
+    agg.total += (yd.cc||0)+(yd.st||0)+(yd.ns||0)+(yd.s||[]).reduce((a,b)=>a+b,0);
+  }
+  return agg;
+}
+
+function _renderIeoYearPills(){
+  const yrs = ['All', ..._ieoYears()];
+  document.getElementById('ieoYearPills').innerHTML = yrs.map(y=>`
+    <button onclick="ieoSelectYear('${y}')" id="ieoYr_${y}"
+      style="padding:5px 14px;border-radius:20px;border:1.5px solid ${_ieoYear===y?'var(--navy)':'var(--border)'};
+      background:${_ieoYear===y?'var(--navy)':'#fff'};color:${_ieoYear===y?'#fff':'var(--navy)'};
+      font-size:.7rem;font-weight:700;cursor:pointer;transition:all .15s">${y}</button>`).join('');
+}
+
+function ieoSelectYear(y){ _ieoYear=y; _renderIeoYearPills(); _renderIeoPage(); }
+
+function _renderIeoPage(){
+  let totalAll=0,ccAll=0,stAll=0,nsAll=0,sAll=[0,0,0,0,0,0];
+  const rows = [];
+  for(const [centre, d] of Object.entries(IE_ONLINE_DATA)){
+    const a = _ieoAggregate(d);
+    totalAll+=a.total; ccAll+=a.cc; stAll+=a.st; nsAll+=a.ns;
+    a.s.forEach((v,i)=>sAll[i]+=v);
+    rows.push({centre, ...a});
+  }
+  const inSteps = sAll.reduce((a,b)=>a+b,0);
+  const pctDone = totalAll ? Math.round(100*ccAll/totalAll) : 0;
+  const activeN = stAll + inSteps;
+
+  document.getElementById('ieoKpiStrip').innerHTML = [
+    {label:'Total Enrolled',  val: totalAll.toLocaleString(), sub:'All Karnataka centres', col:'#1e2a45'},
+    {label:'Course Completed',val: ccAll.toLocaleString(),    sub: pctDone+'% completion rate', col:'#1a6b3a'},
+    {label:'In Progress',     val: activeN.toLocaleString(),  sub:'Started + in steps 1–6', col:'#d4641a'},
+    {label:'Not Yet Started', val: nsAll.toLocaleString(),    sub:'Registered, not started', col:'#7a7060'},
+  ].map(k=>`
+    <div class="card" style="padding:12px 14px;border-left:3px solid ${k.col}">
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${k.label}</div>
+      <div style="font-size:1.4rem;font-weight:800;color:${k.col};line-height:1">${k.val}</div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:3px">${k.sub}</div>
+    </div>`).join('');
+
+  const STEP_LABELS = ['Started','Step 1','Step 2','Step 3','Step 4','Step 5','Step 6','Completed'];
+  const STEP_VALUES = [stAll, ...sAll, ccAll];
+  const STEP_COLORS = ['#94a3b8','#7c9fc8','#5b85ba','#3a6bac','#2a559e','#1a4090','#0a2c7a','#1a6b3a'];
+  const fMax = Math.max(...STEP_VALUES, 1);
+  document.getElementById('ieoFunnel').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:5px;padding:4px 0">
+      ${STEP_LABELS.map((lbl,i)=>{
+        const v = STEP_VALUES[i];
+        const pct = Math.round(100*v/fMax);
+        const pctOfTotal = totalAll ? Math.round(100*v/totalAll) : 0;
+        return `<div style="display:flex;align-items:center;gap:10px">
+          <div style="width:90px;text-align:right;font-size:.65rem;font-weight:700;color:var(--navy);flex-shrink:0">${lbl}</div>
+          <div style="flex:1;background:#f0ebe0;border-radius:4px;height:22px;overflow:hidden">
+            <div style="width:${pct}%;background:${STEP_COLORS[i]};height:100%;border-radius:4px;transition:width .4s;display:flex;align-items:center;padding-left:8px;box-sizing:border-box">
+              ${pct>15?`<span style="font-size:.62rem;font-weight:700;color:#fff">${v.toLocaleString()}</span>`:''}
+            </div>
+          </div>
+          <div style="width:70px;font-size:.63rem;color:var(--muted);flex-shrink:0">${pct<=15?v.toLocaleString()+' · ':''}<span style="font-weight:700;color:var(--navy)">${pctOfTotal}%</span></div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  rows.sort((a,b)=>{
+    const av = _ieoSort.col==='centre' ? a.centre : (a[_ieoSort.col]||0);
+    const bv = _ieoSort.col==='centre' ? b.centre : (b[_ieoSort.col]||0);
+    if(typeof av==='string') return _ieoSort.dir*(av.localeCompare(bv));
+    return _ieoSort.dir*(bv-av);
+  });
+
+  function _sortBtn(col,lbl){
+    const active = _ieoSort.col===col;
+    const arrow  = active ? (_ieoSort.dir===-1?'↓':'↑') : '';
+    return `<th onclick="ieoSortBy('${col}')" style="cursor:pointer;white-space:nowrap;padding:8px 10px;font-size:.65rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:${active?'var(--navy)':'var(--muted)'};border-bottom:2px solid ${active?'var(--navy)':'var(--border)'};background:#faf6ef;text-align:${col==='centre'?'left':'right'}">${lbl}${arrow?` <span style="color:var(--saffron)">${arrow}</span>`:''}</th>`;
+  }
+
+  document.getElementById('ieoTableWrap').innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:.73rem">
+      <thead><tr>
+        ${_sortBtn('centre','Centre')}
+        ${_sortBtn('total','Enrolled')}
+        ${_sortBtn('cc','Completed')}
+        <th style="padding:8px 10px;font-size:.65rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border);background:#faf6ef;text-align:center">Completion %</th>
+        ${_sortBtn('st','Started')}
+        <th style="padding:8px 10px;font-size:.65rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border);background:#faf6ef;text-align:center">Steps 1–6 in Progress</th>
+        ${_sortBtn('ns','Not Started')}
+      </tr></thead>
+      <tbody>
+      ${rows.map((r,idx)=>{
+        const pct = r.total ? Math.round(100*r.cc/r.total) : 0;
+        const pctBar = `<div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;max-width:80px;background:#f0ebe0;border-radius:3px;height:8px">
+            <div style="width:${pct}%;background:${pct>=60?'#1a6b3a':pct>=40?'#d4641a':'#b83232'};height:100%;border-radius:3px"></div>
+          </div>
+          <span style="font-size:.68rem;font-weight:700;color:${pct>=60?'#1a6b3a':pct>=40?'#d4641a':'#b83232'}">${pct}%</span>
+        </div>`;
+        const stepsMini = `<div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">
+          ${r.s.map((v,i)=>v?`<span style="background:#e8f0ff;color:#1e4090;border-radius:4px;padding:2px 5px;font-size:.6rem;font-weight:700" title="Step ${i+1}: ${v}">S${i+1}:${v}</span>`:'').filter(Boolean).join('')||'<span style="color:var(--muted);font-size:.62rem">—</span>'}
+        </div>`;
+        return `<tr style="background:${idx%2?'#faf6ef':'#fff'}" onmouseover="this.style.background='#f0eadc'" onmouseout="this.style.background='${idx%2?'#faf6ef':'#fff'}'">
+          <td style="padding:8px 10px;font-weight:600;color:var(--navy)">${r.centre}</td>
+          <td style="padding:8px 10px;text-align:right;font-weight:700;color:var(--navy)">${r.total.toLocaleString()}</td>
+          <td style="padding:8px 10px;text-align:right;font-weight:700;color:#1a6b3a">${r.cc.toLocaleString()}</td>
+          <td style="padding:8px 10px">${pctBar}</td>
+          <td style="padding:8px 10px;text-align:right;color:var(--navy)">${r.st.toLocaleString()}</td>
+          <td style="padding:8px 10px">${stepsMini}</td>
+          <td style="padding:8px 10px;text-align:right;color:var(--muted)">${r.ns.toLocaleString()}</td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+      <tfoot>
+        <tr style="background:#1e2a45;color:#fff;font-weight:800">
+          <td style="padding:8px 10px">Karnataka Total</td>
+          <td style="padding:8px 10px;text-align:right">${totalAll.toLocaleString()}</td>
+          <td style="padding:8px 10px;text-align:right;color:#7be8a0">${ccAll.toLocaleString()}</td>
+          <td style="padding:8px 10px;text-align:center;color:#7be8a0">${pctDone}%</td>
+          <td style="padding:8px 10px;text-align:right">${stAll.toLocaleString()}</td>
+          <td style="padding:8px 10px;text-align:center">${inSteps.toLocaleString()} in steps</td>
+          <td style="padding:8px 10px;text-align:right;opacity:.7">${nsAll.toLocaleString()}</td>
+        </tr>
+      </tfoot>
+    </table>`;
+}
+
+function ieoSortBy(col){
+  if(_ieoSort.col===col) _ieoSort.dir *= -1;
+  else { _ieoSort.col=col; _ieoSort.dir = col==='centre' ? 1 : -1; }
+  _renderIeoPage();
 }
 
 // ════════════════════════════════════════════════════════════
