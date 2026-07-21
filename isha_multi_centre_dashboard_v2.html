@@ -3253,60 +3253,19 @@ const ROLES = {
   'indiranagar@isha.ec':             { role:'coordinator', password:'Isha@Indi2026',   centre:'Indiranagar' },
 };
 
-// Upcoming Inner Engineering programs — IDs from api.ishafoundation.org/scheduleApi/data.php?task=list
-const IE_IMG = 'https://static.sadhguru.org/d/46272/1695654981-ieo2023_sg-banner_website.jpg';
-// IE_UPCOMING — populated entirely from live API fetch; no static data
-let IE_UPCOMING = {
-  'IP - Jayanagar':    [],
-  'IP - Marathahalli': [],
-  'IP - Vijayanagar':  [],
-  'IP - Malleswaram':  [],
-  'Electronic City':   [],
-  'Banaswadi':         [],
-  'Hebbal':            [],
-  'Indiranagar':       [],
-  'Bannerghatta Road': [],
-  'Ballari':           [],
-  'Belagavi':          [],
-  'Hubbali':           [],
-  'Koramangala':       [],
-  'Kanakapura Road':   [],
-  'Girinagar':         [],
-  'Hassan':            [],
-  'Chikkaballapura':   [],
-  'Mandya':            [],
-  'Tumkur':            [],
-  'Udupi':             [],
-  'Shivamogga':        [],
-};
-
-// BSP_UPCOMING — populated entirely from live API fetch; no static data
-const BSP_IMG = 'https://static.sadhguru.org/d/46272/1650519638-website-thumbnail-yogameditation-bsp.jpg';
-let BSP_UPCOMING = [];
-
-// SAMYAMA_UPCOMING — populated entirely from live API fetch; no static data
+// Upcoming programs — pre-fetched by update_regs.py, overridden by live browser fetch if available
+const IE_IMG      = 'https://static.sadhguru.org/d/46272/1695654981-ieo2023_sg-banner_website.jpg';
+const BSP_IMG     = 'https://static.sadhguru.org/d/46272/1650519638-website-thumbnail-yogameditation-bsp.jpg';
 const SAMYAMA_IMG = 'https://static.sadhguru.org/d/46272/1650517087-website-thumbnail-yogameditation-samyama.jpg';
-let SAMYAMA_UPCOMING = [];
-
-// SHOONYA_UPCOMING — populated entirely from live API fetch; no static data
 const SHOONYA_IMG = 'https://static.sadhguru.org/d/46272/1650449300-website-thumbnail-yogameditation-shoonya.jpg';
+/* __UPCOMING_DATA_START__ */
+let IE_UPCOMING      = {};
+let BSP_UPCOMING     = [];
 let SHOONYA_UPCOMING = [];
-
-// HATHA_UPCOMING — populated entirely from live API fetch; no static data
-let HATHA_UPCOMING = {
-  'IP - Jayanagar':    [],
-  'IP - Marathahalli': [],
-  'IP - Vijayanagar':  [],
-  'IP - Malleswaram':  [],
-  'Electronic City':   [],
-  'Banaswadi':         [],
-  'Hebbal':            [],
-  'Indiranagar':       [],
-};
-
-// ALL_UPCOMING — every programme per centre from the API (no category filter, all Karnataka)
-// Populated dynamically from the API — not limited to the 8 dashboard centres
-let ALL_UPCOMING = {};
+let SAMYAMA_UPCOMING = [];
+let HATHA_UPCOMING   = {};
+let ALL_UPCOMING     = {};
+/* __UPCOMING_DATA_END__ */
 
 // ── Registration counts from Google Sheet ────────────────────────────────────
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTGUFtdGt2Tcmoi4Y-9Ul93uPvD8qTk1forUTNZpTm7GNzm-Np2yklu9Gz_5A2KubcX5tYbKMhYvGNw/pub?output=csv';
@@ -3363,6 +3322,8 @@ function _normCentreKey(s){
 function _normProgKey(s){
   const l=(s||'').toLowerCase().replace(/[\n\r]/g,' ');
   if(/\bie\b|inner\s*engineering|isha\s*yoga/.test(l)) return 'inner engineering';
+  if(l.includes('guru purnima'))                     return 'guru purnima';
+  if(l.includes('volunteers meet')||l.includes('volunteer meet')) return 'volunteers meet';
   if(l.includes('guru poo')||l.includes('guru puj')) return 'guru pooja';
   if(l.includes('bhava spandana')) return 'bhava spandana';
   if(l.includes('shoonya')) return 'shoonya intensive';
@@ -3471,71 +3432,96 @@ async function fetchSheetRegistrations(){
 /* __LIVE_REGS_START__ */
 const LIVE_REGS = {
   "sadhguru sannidhi": {
-    "angamardana|2026-07-25": 23,
-    "bhuta shuddhi|2026-07-19": 10,
-    "jala neti|2026-07-19": 7,
+    "angamardana|2026-07-25": 24,
+    "guru purnima|2026-07-29": 0,
     "samyama": 195,
-    "shoonya intensive|2026-08-06": 89,
-    "shoonya intensive|2026-07-16": 5,
+    "shoonya intensive|2026-08-06": 96,
     "shoonya intensive|2026-07-23": 93,
-    "upa yoga": 1490,
-    "yogasanas|2026-07-26": 3,
-    "yogasanas|2026-07-18": 35,
-    "yogasanas|2026-07-17": 3
+    "upa yoga": 1514,
+    "yogasanas|2026-07-26": 4
+  },
+  "ballari": {
+    "guru purnima|2026-07-29": 2
+  },
+  "banaswadi": {
+    "guru purnima|2026-07-29": 0
   },
   "bg road": {
-    "inner engineering": 3
+    "inner engineering": 5
+  },
+  "belagavi": {
+    "guru purnima|2026-07-29": 0
   },
   "electronic": {
-    "guru pooja": 39,
-    "inner engineering": 2
+    "guru purnima|2026-07-29": 3,
+    "inner engineering": 3
+  },
+  "hubbali": {
+    "guru purnima|2026-07-29": 2
+  },
+  "indiranagar": {
+    "guru purnima|2026-07-29": 3
   },
   "jayanagar": {
     "bhuta shuddhi": 2,
-    "inner engineering": 3,
+    "guru purnima|2026-07-29": 6,
+    "inner engineering": 4,
     "isha janani": 17,
-    "yogasanas": 5
+    "yogasanas": 9
   },
   "hsr": {
-    "angamardana": 4,
+    "angamardana": 5,
     "bhastrika": 0,
-    "surya kriya": 3,
-    "yogasanas": 2
+    "guru purnima|2026-07-29": 3,
+    "surya kriya": 0,
+    "yogasanas": 0
   },
   "sarjapur": {
-    "inner engineering": 9
+    "guru purnima|2026-07-29": 2
   },
   "malleswaram": {
-    "bhuta shuddhi": 9,
-    "guru pooja": 11,
-    "inner engineering": 25,
-    "surya kriya": 11
+    "angamardana": 0,
+    "bhuta shuddhi": 0,
+    "guru pooja": 14,
+    "guru purnima|2026-07-29": 6,
+    "inner engineering": 32,
+    "yogasanas": 0
+  },
+  "mangalore": {
+    "guru purnima|2026-07-29": 0
   },
   "marathahalli": {
-    "angamardana|2026-03-17": 3,
-    "bhuta shuddhi|2026-03-19": 11,
+    "angamardana|2026-03-17": 2,
     "bhuta shuddhi|2026-03-30": 0,
-    "inner engineering": 10,
+    "guru purnima|2026-07-29": 5,
+    "inner engineering": 17,
     "surya kriya": 1,
-    "yogasanas": 3
+    "yogasanas": 4
   },
   "mysuru": {
-    "angamardana": 0
+    "guru purnima|2026-07-29": 11
   },
   "vijayanagar": {
-    "hatha children": 3,
-    "inner engineering": 18
+    "angamardana": 0,
+    "guru purnima|2026-07-29": 6,
+    "hatha children": 1,
+    "inner engineering": 22,
+    "surya kriya": 0
   },
   "kanakapura": {
-    "inner engineering": 15,
-    "bhuta shuddhi": 9,
-    "yogasanas": 3
+    "guru purnima|2026-07-29": 9,
+    "inner engineering": 20,
+    "yogasanas": 2
   },
   "budigere cross": {
-    "inner engineering": 2
+    "guru purnima|2026-07-29": 10,
+    "inner engineering": 3
+  },
+  "yelahanka": {
+    "guru purnima|2026-07-29": 7
   }
 };
-const LIVE_REGS_UPDATED = "17 Jul 2026, 01:49 AM";
+const LIVE_REGS_UPDATED = "21 Jul 2026, 11:20 AM";
 /* __LIVE_REGS_END__ */
 
 /* __CENTRE_TIMESTAMPS_START__ */
@@ -5495,6 +5481,8 @@ function _pubProgCategory(name){
   if(l.includes('devi'))           return 'Devi Process';
   if(l.includes('isha kriya'))     return 'Isha Kriya';
   if(l.includes('guru pooja')||l.includes('guru puja')) return 'Guru Pooja';
+  if(l.includes('guru purnima'))   return 'Guru Purnima';
+  if(l.includes('volunteers meet')||l.includes('volunteer meet')) return 'Volunteers Meet';
   if(l.includes('nada aradhana'))  return 'Nada Aradhana';
   if(l.includes('satsang')||l.includes('sathsang'))     return 'Satsang';
   if(l.includes('upa yoga')||l.includes('upayoga'))     return 'Upa Yoga';
@@ -6233,17 +6221,21 @@ async function fetchLivePrograms(){
 
   // activeFilter=100 is required — without it the API returns only past/completed programs
   const API_URL='https://api.ishafoundation.org/scheduleApi/data.php?task=list&activeFilter=100';
+  const GAS_PROXY = 'https://script.google.com/macros/s/AKfycbxVojC4sNnfRobAPVnan38i3tPbnUGN-mtQMaY5lPqMlJd68aORHWJ8qtx643ENVeymwA/exec';
   const SOURCES=[
+    // GAS proxy: append timestamp for cache-busting (avoids OPTIONS preflight triggered by cache:'no-store')
+    {label:'gas-proxy',    url: GAS_PROXY+'?_t='+Date.now(), simple:true},
     {label:'corsproxy.io', url: `https://corsproxy.io/?url=${encodeURIComponent(API_URL)}`},
     {label:'allorigins',   url: `https://api.allorigins.win/raw?url=${encodeURIComponent(API_URL)}`},
     {label:'thingproxy',   url: `https://thingproxy.freeboard.io/fetch/${API_URL}`},
     {label:'direct',       url: API_URL},
   ];
   async function tryFetch(){
-    for(const {label,url} of SOURCES){
+    for(const {label,url,simple} of SOURCES){
       try{
         console.log(`[Dashboard] Trying ${label}…`);
-        const res=await fetch(url,{cache:'no-store'});
+        // simple=true: no cache header (avoids OPTIONS preflight for GAS proxy)
+        const res=await fetch(url, simple ? {} : {cache:'no-store'});
         if(!res.ok){ console.warn(`[Dashboard] ${label}: HTTP ${res.status}`); continue; }
         const data=await res.json();
         if(data&&data.results){ console.log(`[Dashboard] Live programs loaded via ${label} ✓`); return data; }
@@ -6700,6 +6692,8 @@ function buildRegCounts(centre){
       else if(nl.includes('eye care'))       progLabel='Eye Care';
       else if(nl.includes('surya shakti'))   progLabel='Surya Shakti';
       else if(nl.includes('guru pooja')||nl.includes('guru puja')) progLabel='Guru Pooja';
+      else if(nl.includes('guru purnima'))   progLabel='Guru Purnima';
+      else if(nl.includes('volunteers meet')||nl.includes('volunteer meet')) progLabel='Volunteers Meet';
       else if(nl.includes('nada aradhana'))  progLabel='Nada Aradhana';
       rows.push({
         programme: p.name,

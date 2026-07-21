@@ -13,7 +13,7 @@ Requires: macOS (uses osascript to export Numbers → CSV)
           pip install openpyxl  (for reading .xlsx directly)
 """
 
-import subprocess, csv, os, re, json, sys, tempfile, glob, datetime
+import subprocess, csv, os, re, json, sys, tempfile, glob, datetime, urllib.request
 
 # openpyxl — for reading .xlsx directly (no AppleScript needed)
 try:
@@ -90,6 +90,8 @@ PROG_PATTERNS = [
     (r'nauli',                                                       'nauli'),
     (r'kapalbhati',                                                  'kapalbhati'),
     (r'trataka',                                                     'trataka'),
+    (r'guru purnima',                                                'guru purnima'),
+    (r'volunteers meet|volunteer meet',                              'volunteers meet'),
     (r'guru pooja|guru puja',                                        'guru pooja'),
     (r'upa yoga|upayoga',                                            'upa yoga'),
     (r'isha kriya',                                                  'isha kriya'),
@@ -492,13 +494,277 @@ def monthly_data_to_js(md):
     lines.append('};')
     return '\n'.join(lines)
 
+# ── Fetch upcoming programs from Isha API and build embedded data ─────────────
+UP_START = "/* __UPCOMING_DATA_START__ */"
+UP_END   = "/* __UPCOMING_DATA_END__ */"
+
+PLACE_CENTRE = {
+    'vijayanagar':     'IP - Vijayanagar',
+    'jayanagar':       'IP - Jayanagar',
+    'jp nagar':        'IP - Jayanagar',
+    'marathahalli':    'IP - Marathahalli',
+    'marathali':       'IP - Marathahalli',
+    'malleswaram':     'IP - Malleswaram',
+    'malleswar':       'IP - Malleswaram',
+    'malleshwaram':    'IP - Malleswaram',
+    'electronic city': 'Electronic City',
+    'ecity':           'Electronic City',
+    'e city':          'Electronic City',
+    'banaswadi':       'Banaswadi',
+    'banasawadi':      'Banaswadi',
+    'hebbal':          'Hebbal',
+    'hebbala':         'Hebbal',
+    'indiranagar':     'Indiranagar',
+    'indira nagar':    'Indiranagar',
+    'sarjapur':        'Sarjapur Road',
+    'sargapur':        'Sarjapur Road',
+    'kanakapura':      'Kanakapura Road',
+    'kanakapur':       'Kanakapura Road',
+    'hsr layout':      'HSR Layout',
+    'hsr':             'HSR Layout',
+    'mysuru':          'Mysuru',
+    'mysore':          'Mysuru',
+    'sadhguru sannidhi': 'Sadhguru Sannidhi',
+    'sannidhi':          'Sadhguru Sannidhi',
+    'koramangala':     'Koramangala',
+    'bannerghatta road': 'Bannerghatta Road',
+    'bannerghatta':    'Bannerghatta Road',
+    'bg road':         'Bannerghatta Road',
+    'yelahanka':       'Yelahanka',
+    'girinagar':       'Girinagar',
+    'hassan':          'Hassan',
+    'kengeri':         'Kengeri',
+    'peenya':          'Peenya',
+    'chandapura':      'Chandapura',
+    'begur':           'Begur',
+    'budigere cross':  'Budigere Cross',
+    'budigere':        'Budigere Cross',
+    'mangalore':       'Mangalore',
+    'mangaluru':       'Mangalore',
+    'hubballi':        'Hubbali',
+    'hubli':           'Hubbali',
+    'ballari':         'Ballari',
+    'bellary':         'Ballari',
+    'belagavi':        'Belagavi',
+    'belgaum':         'Belagavi',
+    'dharwad':         'Dharwad',
+    'chikkaballapura': 'Chikkaballapura',
+    'chikballapur':    'Chikkaballapura',
+    'mandya':          'Mandya',
+    'shivamogga':      'Shivamogga',
+    'shimoga':         'Shivamogga',
+    'tumkur':          'Tumkur',
+    'tumakuru':        'Tumkur',
+    'udupi':           'Udupi',
+    'whitefield':      'Whitefield',
+    'singasandra':     'Singasandra',
+}
+
+KA_CITIES = [
+    'bengaluru','bangalore','mysuru','mysore','hubli','hubbali','hubballi','dharwad',
+    'mangaluru','mangalore','belagavi','belgaum','kalaburagi','gulbarga','tumkur','tumakuru',
+    'davanagere','bellary','ballari','shivamogga','shimoga','udupi','hassan','mandya','raichur',
+    'bidar','vijayapura','bijapur','chitradurga','chikkamagaluru','chikmagalur','koppal','gadag',
+    'bagalkot','yadgir','chamarajanagar','kodagu','coorg','kolar','chikkaballapur','ramanagara',
+    'kanakapura','karnataka',
+]
+IYC_IDENTIFIERS = ['velliangiri','isha yoga center','isha yoga centre']
+TN_PROG_KEYWORDS = ['bhava spandana','shoonya','samyama','vairagya','upa yoga','surya shakti']
+
+IE_IMG      = 'https://static.sadhguru.org/d/46272/1695654981-ieo2023_sg-banner_website.jpg'
+BSP_IMG     = 'https://static.sadhguru.org/d/46272/1650519638-website-thumbnail-yogameditation-bsp.jpg'
+SAMYAMA_IMG = 'https://static.sadhguru.org/d/46272/1650517087-website-thumbnail-yogameditation-samyama.jpg'
+SHOONYA_IMG = 'https://static.sadhguru.org/d/46272/1650449300-website-thumbnail-yogameditation-shoonya.jpg'
+
+def _fmt_date_range(fr, to):
+    """Replicate JS _fmtDateRange for Python."""
+    MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    try:
+        a = datetime.datetime.fromisoformat((fr or '').replace(' ', 'T').split('T')[0])
+        b = datetime.datetime.fromisoformat(((to or fr) or '').replace(' ', 'T').split('T')[0])
+    except Exception:
+        return fr or ''
+    if a.month == b.month and a.year == b.year:
+        return f"{a.day}–{b.day} {MONTHS[a.month-1]} {a.year}"
+    if a.year == b.year:
+        return f"{a.day} {MONTHS[a.month-1]}–{b.day} {MONTHS[b.month-1]} {a.year}"
+    return f"{a.day} {MONTHS[a.month-1]} {a.year}–{b.day} {MONTHS[b.month-1]} {b.year}"
+
+def _ie_name(n):
+    l = n.lower()
+    if not (l.find('inner engineering') >= 0 or l.find('isha yoga') >= 0 or
+            l.find('ie total') >= 0 or l.find('inner eng') >= 0):
+        return None
+    if 'retreat'  in l: return 'Inner Engineering Retreat'
+    if '4 day'    in l or '4day' in l: return 'Inner Engineering 4 Days'
+    return 'Inner Engineering 7 Days'
+
+def _hatha_name(n):
+    l = n.lower()
+    if 'eye care' in l and ('upa yoga' in l or 'upayoga' in l): return 'Eye Care & Upa Yoga'
+    if 'eye care' in l and ('shanmukhi' in l or 'mudra' in l):  return 'Eye Care Yoga & Shanmukhi Mudra'
+    if 'eye care'     in l: return 'Eye Care'
+    if 'surya kriya'  in l and 'surya shakti' in l: return 'Surya Kriya & Surya Shakti'
+    if 'surya kriya'  in l and 'weekend' in l:      return 'Surya Kriya Weekend'
+    if 'surya kriya'  in l: return 'Surya Kriya'
+    if 'angamardana'  in l: return 'Angamardana'
+    if 'yogasanas'    in l or 'yoga asana' in l: return 'Yogasanas'
+    if 'bhuta shud'   in l: return 'Bhuta Shuddhi'
+    if 'shanmukhi'    in l: return 'Shanmukhi'
+    if 'thoppukarnam' in l: return 'Thoppukarnam'
+    if 'jala neti'    in l: return 'Jala Neti'
+    if 'sutra neti'   in l: return 'Sutra Neti'
+    if 'nauli'        in l: return 'Nauli'
+    if 'kapalbhati'   in l: return 'Kapalbhati'
+    if 'trataka'      in l: return 'Trataka'
+    return None
+
+def _match_centre(p):
+    combined = ((p.get('place') or '') + ' ' + (p.get('city') or '')).lower()
+    # Must check longer keys first to avoid 'jayanagar' matching inside 'vijayanagar'
+    for k in sorted(PLACE_CENTRE, key=len, reverse=True):
+        if k in combined:
+            return PLACE_CENTRE[k]
+    name_l = (p.get('name') or '').lower()
+    for k in sorted(PLACE_CENTRE, key=len, reverse=True):
+        if k in name_l:
+            return PLACE_CENTRE[k]
+    return None
+
+def _is_included_region(p):
+    pin = str(p.get('pin') or p.get('pincode') or p.get('zip') or '').strip()
+    st  = (p.get('state') or p.get('st') or p.get('region') or '').lower()
+    cp  = ((p.get('city') or '') + (p.get('place') or '')).lower()
+    nl  = (p.get('name') or '').lower()
+    if pin and re.match(r'^5[6-9]', pin): return True
+    if st and ('karnataka' in st or st == 'ka' or st == 'kk'): return True
+    if 'karnataka' in cp or any(k in cp for k in KA_CITIES): return True
+    is_iyc = any(k in cp for k in IYC_IDENTIFIERS)
+    if is_iyc and any(k in nl for k in TN_PROG_KEYWORDS): return True
+    return False
+
+def detail_url(id_):
+    return f"https://isha.sadhguru.org/in/en/program-details?id={id_}"
+
+def fetch_upcoming_programs():
+    """Fetch from Isha API and return (ie_up, bsp_up, shoonya_up, samyama_up, hatha_up, all_up).
+    Returns None on failure."""
+    API_URL = 'https://api.ishafoundation.org/scheduleApi/data.php?task=list&activeFilter=100'
+    try:
+        req = urllib.request.Request(API_URL, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            data = json.loads(r.read().decode('utf-8'))
+    except Exception as e:
+        print(f"  ⚠ Could not fetch Isha API: {e}")
+        return None
+
+    results = data.get('results', {})
+    if not isinstance(results, dict):
+        print("  ⚠ Unexpected API response shape")
+        return None
+
+    today = datetime.date.today()
+    all_progs = []
+    for ok in results:
+        inner = results[ok]
+        if isinstance(inner, dict):
+            for id_ in inner:
+                all_progs.append(inner[id_])
+
+    # Filter: exclude US, keep future (or dateless) programs
+    future = []
+    for p in all_progs:
+        if p.get('cntry') == 'US':
+            continue
+        fr = p.get('fr')
+        if not fr:
+            future.append(p)
+            continue
+        try:
+            start = datetime.date.fromisoformat(fr.split(' ')[0].split('T')[0])
+            if start >= today:
+                future.append(p)
+        except Exception:
+            future.append(p)
+
+    # IE UPCOMING
+    ie_up = {}
+    for p in future:
+        centre = _match_centre(p)
+        if not centre: continue
+        name = _ie_name(p.get('name',''))
+        if not name: continue
+        if centre not in ie_up: ie_up[centre] = []
+        ie_up[centre].append({'name': name, 'date': _fmt_date_range(p.get('fr'), p.get('to')),
+                              'url': detail_url(p.get('id','')), 'img': IE_IMG, 'fr': p.get('fr','')})
+
+    # BSP / SHOONYA / SAMYAMA
+    bsp_up     = []
+    shoonya_up = []
+    samyama_up = []
+    for p in future:
+        if not _is_included_region(p): continue
+        nl = (p.get('name') or '').lower()
+        entry = {'name': p.get('name',''), 'date': _fmt_date_range(p.get('fr'), p.get('to')),
+                 'loc': ((p.get('place') or '') + ', ' if p.get('place') else '') + (p.get('city') or ''),
+                 'url': detail_url(p.get('id','')), 'fr': p.get('fr','')}
+        if 'bhava spandana' in nl: bsp_up.append(entry)
+        if 'shoonya'        in nl: shoonya_up.append(entry)
+        if 'samyama'        in nl: samyama_up.append(entry)
+
+    # HATHA UPCOMING
+    hatha_up = {}
+    for p in future:
+        centre = _match_centre(p)
+        if not centre: continue
+        name = _hatha_name(p.get('name',''))
+        if not name: continue
+        if centre not in hatha_up: hatha_up[centre] = []
+        hatha_up[centre].append({'name': name, 'date': _fmt_date_range(p.get('fr'), p.get('to')),
+                                 'url': detail_url(p.get('id','')), 'fr': p.get('fr','')})
+
+    # ALL UPCOMING (Karnataka + TN/IYC)
+    KNOWN_ORDER = ['Banaswadi','Electronic City','Hebbal','Indiranagar',
+                   'IP - Jayanagar','IP - Malleswaram','IP - Marathahalli','IP - Vijayanagar',
+                   'Kanakapura Road','Sarjapur Road']
+    all_up_raw = {}
+    for p in future:
+        if not _is_included_region(p): continue
+        matched = _match_centre(p)
+        centre_key = matched or ', '.join(filter(None,[p.get('place'),p.get('city')])) or 'Karnataka'
+        if centre_key not in all_up_raw: all_up_raw[centre_key] = []
+        img_path = p.get('img','')
+        img_url  = f"https://static.sadhguru.org/d{img_path}" if img_path else ''
+        all_up_raw[centre_key].append({
+            'name':  p.get('name',''),
+            'date':  _fmt_date_range(p.get('fr'), p.get('to')),
+            'loc':   ((p.get('place') or '') + ', ' if p.get('place') else '') + (p.get('city') or ''),
+            'url':   detail_url(p.get('id','')),
+            'fr':    p.get('fr',''),
+            'to':    p.get('to',''),
+            'img':   img_url,
+            'place': p.get('place',''),
+            'city':  p.get('city',''),
+            'state': p.get('state') or p.get('st') or p.get('region') or '',
+            'pin':   str(p.get('pin') or p.get('pincode') or p.get('zip') or '').strip(),
+        })
+    sorted_keys = sorted(all_up_raw.keys(),
+        key=lambda k: (KNOWN_ORDER.index(k) if k in KNOWN_ORDER else len(KNOWN_ORDER), k))
+    all_up = {k: all_up_raw[k] for k in sorted_keys}
+
+    total = sum(len(v) for v in ie_up.values())
+    print(f"  ✓ Fetched upcoming programs: {total} IE, {len(bsp_up)} BSP, "
+          f"{len(shoonya_up)} Shoonya, {len(samyama_up)} Samyama, "
+          f"{sum(len(v) for v in hatha_up.values())} Hatha")
+    return ie_up, bsp_up, shoonya_up, samyama_up, hatha_up, all_up
+
 # ── Inject LIVE_REGS, CENTRE_DATA, MONTHLY_DATA, and CENTRE_TIMESTAMPS into HTML ─
 LIVE_START = "/* __LIVE_REGS_START__ */"
 LIVE_END   = "/* __LIVE_REGS_END__ */"
 TS_START   = "/* __CENTRE_TIMESTAMPS_START__ */"
 TS_END     = "/* __CENTRE_TIMESTAMPS_END__ */"
 
-def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timestamps=None):
+def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timestamps=None, upcoming=None):
     # 1. LIVE_REGS block
     dt          = datetime.datetime.fromtimestamp(latest_mtime)
     updated_str = dt.strftime('%d %b %Y, %I:%M %p')
@@ -547,6 +813,29 @@ def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timest
         print(f"  ✓ Updated CENTRE_DATA_TIMESTAMPS: {ts_dict}")
     elif TS_START not in html:
         print(f"  ⚠ CENTRE_TIMESTAMPS markers not found — skipping")
+
+    # 5. UPCOMING_DATA block
+    if upcoming is not None and UP_START in html:
+        ie_up, bsp_up, shoonya_up, samyama_up, hatha_up, all_up = upcoming
+        fetched_str = datetime.datetime.now().strftime('%d %b %Y, %I:%M %p')
+        up_block = (
+            f"{UP_START}\n"
+            f"// Upcoming programs pre-fetched from Isha API — last updated {fetched_str}\n"
+            f"// The browser live fetch will override this data if it succeeds.\n"
+            f"IE_UPCOMING      = {json.dumps(ie_up,      ensure_ascii=False)};\n"
+            f"BSP_UPCOMING     = {json.dumps(bsp_up,     ensure_ascii=False)};\n"
+            f"SHOONYA_UPCOMING = {json.dumps(shoonya_up, ensure_ascii=False)};\n"
+            f"SAMYAMA_UPCOMING = {json.dumps(samyama_up, ensure_ascii=False)};\n"
+            f"HATHA_UPCOMING   = {json.dumps(hatha_up,   ensure_ascii=False)};\n"
+            f"ALL_UPCOMING     = {json.dumps(all_up,     ensure_ascii=False)};\n"
+            f"/* UPCOMING_FETCHED: {fetched_str} */\n"
+            f"{UP_END}"
+        )
+        html = re.sub(re.escape(UP_START) + r'.*?' + re.escape(UP_END),
+                      up_block, html, flags=re.DOTALL)
+        print(f"  ✓ Updated UPCOMING_DATA (fetched {fetched_str})")
+    elif UP_START not in html:
+        print(f"  ⚠ UPCOMING_DATA markers not found — skipping")
 
     with open(HTML, 'w', encoding='utf-8') as f:
         f.write(html)
@@ -655,6 +944,10 @@ if __name__ == '__main__':
     print(f"{'─'*62}")
     print(f"  {'TOTAL':<52}  {total:>5}")
 
+    # Fetch upcoming programs from Isha API
+    print(f"\nFetching upcoming programs from Isha API …")
+    upcoming = fetch_upcoming_programs()
+
     print(f"\nInjecting into dashboard …")
     inject_html(
         html,
@@ -662,7 +955,8 @@ if __name__ == '__main__':
         centre_data if cd_updates else None,
         monthly_data if monthly_updates else None,
         latest_mtime,
-        file_timestamps if file_timestamps else None
+        file_timestamps if file_timestamps else None,
+        upcoming
     )
 
     # Cleanup
