@@ -494,6 +494,81 @@ def monthly_data_to_js(md):
     lines.append('};')
     return '\n'.join(lines)
 
+# ── IE Online data parsing ────────────────────────────────────────────────────
+IEO_START = "/* __IE_ONLINE_START__ */"
+IEO_END   = "/* __IE_ONLINE_END__ */"
+
+ALL_IEO_STATUSES = [
+    'Not Registered','Not Started','Started',
+    'Step 1 Completed','Step 2 Completed','Step 3 Completed',
+    'Step 4 Completed','Step 5 Completed','Step 6 Completed',
+    'Course Completed',
+]
+IEO_SKIP_CENTRES = {'None','Karnataka - Others','Vijayanagara'}
+
+def parse_ie_online(xlsx_path):
+    """Parse 'IE Online - All center.xlsx' pivot table.
+    Returns dict: centre → {years: {year → {s, cc, st, ns, months: {month → {s, cc, st, ns}}}}}
+    """
+    try:
+        import openpyxl as _opx
+        wb = _opx.load_workbook(xlsx_path, data_only=True)
+        ws = wb.active
+    except Exception as e:
+        print(f"  ⚠ Could not open IE Online file: {e}")
+        return {}
+
+    # raw[centre][year][month][status] = count
+    raw = {}
+    cur_year = cur_month = cur_centre = None
+
+    for row in ws.iter_rows(values_only=True):
+        v0 = row[0]
+        if v0 is None: continue
+        s_raw = str(v0); s = s_raw.strip()
+        if not s or s == 'Total': continue
+        indent = len(s_raw) - len(s)
+        try: count = int(row[5] or 0)
+        except: count = 0
+
+        if indent == 5:     # Year  e.g. "2026"
+            cur_year = s; cur_month = None; cur_centre = None
+        elif indent == 10:  # Month e.g. "January 2026"
+            cur_month = s; cur_centre = None
+        elif indent == 15:  # Centre
+            cur_centre = s
+            raw.setdefault(s, {}).setdefault(cur_year, {}).setdefault(cur_month, {st: 0 for st in ALL_IEO_STATUSES})
+        elif indent == 25:  # Status
+            if cur_centre and cur_year and cur_month:
+                m_dict = raw.get(cur_centre, {}).get(cur_year, {}).get(cur_month, {})
+                if s in m_dict:
+                    m_dict[s] += count
+
+    def _to_entry(yd):
+        steps = [yd.get(f'Step {i} Completed', 0) for i in range(1, 7)]
+        return {'s': steps, 'cc': yd.get('Course Completed', 0),
+                'st': yd.get('Started', 0),
+                'ns': yd.get('Not Started', 0) + yd.get('Not Registered', 0)}
+
+    out = {}
+    for centre, yrs in raw.items():
+        if centre in IEO_SKIP_CENTRES: continue
+        out[centre] = {'years': {}}
+        for yr, months in yrs.items():
+            # aggregate year totals from months
+            yr_agg = {st: 0 for st in ALL_IEO_STATUSES}
+            months_out = {}
+            for mon, md in months.items():
+                for st, v in md.items(): yr_agg[st] += v
+                months_out[mon] = _to_entry(md)
+            entry = _to_entry(yr_agg)
+            entry['months'] = months_out
+            out[centre]['years'][yr] = entry
+
+    print(f"  ✓ IE Online: {len(out)} centres parsed")
+    return out
+
+
 # ── Fetch upcoming programs from Isha API and build embedded data ─────────────
 UP_START = "/* __UPCOMING_DATA_START__ */"
 UP_END   = "/* __UPCOMING_DATA_END__ */"
@@ -748,6 +823,82 @@ def fetch_upcoming_programs():
             'state': p.get('state') or p.get('st') or p.get('region') or '',
             'pin':   str(p.get('pin') or p.get('pincode') or p.get('zip') or '').strip(),
         })
+    # ── SATSANG fetch (separate endpoint: api.php?category=173) ─────────────
+    # The main data.php API does not return Karnataka satsang events.
+    SAT_URL = ('https://api.ishafoundation.org/scheduleApi/api.php'
+               '?option=com_program&v=2&format=json&task=filter'
+               '&count=200&startrec=0&category=173')
+    MONTH_MAP = {'jan':'01','feb':'02','mar':'03','apr':'04','may':'05','jun':'06',
+                 'jul':'07','aug':'08','sep':'09','oct':'10','nov':'11','dec':'12'}
+    KA_WORDS  = ['bengaluru','bangalore','karnataka','mangalore','mangaluru',
+                 'mysuru','mysore','hubli','hubbali','hubballi','tumkur','tumakuru',
+                 'kanakapura','belagavi','belgaum','ballari','bellary','dharwad',
+                 'shivamogga','shimoga','udupi','hassan','mandya']
+
+    def _parse_sat_date(s):
+        """'5 Jul 2026' → '2026-07-05 00:00:00'"""
+        m = re.search(r'(\d+)\s+([A-Za-z]+)\s+(\d{4})', s or '')
+        if not m: return None
+        mon = MONTH_MAP.get(m.group(2).lower()[:3])
+        return f"{m.group(3)}-{mon}-{m.group(1).zfill(2)} 00:00:00" if mon else None
+
+    sat_count = 0
+    try:
+        req2 = urllib.request.Request(SAT_URL, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req2, timeout=20) as r2:
+            sat_data = json.loads(r2.read().decode('utf-8'))
+        # results is a list of {id: satsang_obj} dicts
+        all_sat = []
+        sat_results = sat_data.get('results', [])
+        if isinstance(sat_results, list):
+            for obj in sat_results:
+                if isinstance(obj, dict):
+                    all_sat.extend(obj.values())
+        elif isinstance(sat_results, dict):
+            for obj in sat_results.values():
+                if isinstance(obj, dict):
+                    all_sat.extend(obj.values())
+
+        for s in all_sat:
+            addr_l = (s.get('address') or '').lower()
+            if not any(w in addr_l for w in KA_WORDS): continue
+            fr = _parse_sat_date(s.get('date') or '')
+            if fr:
+                try:
+                    if datetime.date.fromisoformat(fr.split(' ')[0]) < today: continue
+                except Exception:
+                    pass
+            # Match to a specific centre
+            combined = ((s.get('title') or '') + ' ' + addr_l).lower()
+            centre_key = None
+            for k in sorted(PLACE_CENTRE, key=len, reverse=True):
+                if k in combined:
+                    centre_key = PLACE_CENTRE[k]
+                    break
+            if not centre_key: continue
+            if centre_key not in all_up_raw: all_up_raw[centre_key] = []
+            # Skip if a satsang entry already exists for this centre
+            if any('satsang' in (e.get('name') or '').lower() for e in all_up_raw[centre_key]):
+                continue
+            all_up_raw[centre_key].append({
+                'name':  s.get('title') or 'Monthly Satsang',
+                'date':  s.get('date') or '',
+                'loc':   s.get('address') or '',
+                'url':   (s.get('register_url') or
+                          f"https://isha.sadhguru.org/in/en/program-details?id={s.get('program_id','')}"),
+                'fr':    fr or '',
+                'to':    fr or '',
+                'img':   '',
+                'place': s.get('address_title') or '',
+                'city':  '',
+                'state': 'Karnataka',
+                'pin':   '',
+            })
+            sat_count += 1
+        print(f"  ✓ Fetched satsang: {sat_count} Karnataka entries")
+    except Exception as e:
+        print(f"  ⚠ Could not fetch satsang programs: {e}")
+
     sorted_keys = sorted(all_up_raw.keys(),
         key=lambda k: (KNOWN_ORDER.index(k) if k in KNOWN_ORDER else len(KNOWN_ORDER), k))
     all_up = {k: all_up_raw[k] for k in sorted_keys}
@@ -755,7 +906,7 @@ def fetch_upcoming_programs():
     total = sum(len(v) for v in ie_up.values())
     print(f"  ✓ Fetched upcoming programs: {total} IE, {len(bsp_up)} BSP, "
           f"{len(shoonya_up)} Shoonya, {len(samyama_up)} Samyama, "
-          f"{sum(len(v) for v in hatha_up.values())} Hatha")
+          f"{sum(len(v) for v in hatha_up.values())} Hatha, {sat_count} Satsang")
     return ie_up, bsp_up, shoonya_up, samyama_up, hatha_up, all_up
 
 # ── Inject LIVE_REGS, CENTRE_DATA, MONTHLY_DATA, and CENTRE_TIMESTAMPS into HTML ─
@@ -764,7 +915,7 @@ LIVE_END   = "/* __LIVE_REGS_END__ */"
 TS_START   = "/* __CENTRE_TIMESTAMPS_START__ */"
 TS_END     = "/* __CENTRE_TIMESTAMPS_END__ */"
 
-def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timestamps=None, upcoming=None):
+def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timestamps=None, upcoming=None, ieo_data=None):
     # 1. LIVE_REGS block
     dt          = datetime.datetime.fromtimestamp(latest_mtime)
     updated_str = dt.strftime('%d %b %Y, %I:%M %p')
@@ -836,6 +987,16 @@ def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timest
         print(f"  ✓ Updated UPCOMING_DATA (fetched {fetched_str})")
     elif UP_START not in html:
         print(f"  ⚠ UPCOMING_DATA markers not found — skipping")
+
+    # 6. IE_ONLINE_DATA block
+    if ieo_data is not None and IEO_START in html:
+        ieo_block = (f"{IEO_START}\nconst IE_ONLINE_DATA = "
+                     f"{json.dumps(ieo_data, ensure_ascii=False)};\n{IEO_END}")
+        html = re.sub(re.escape(IEO_START) + r'.*?' + re.escape(IEO_END),
+                      ieo_block, html, flags=re.DOTALL)
+        print(f"  ✓ Updated IE_ONLINE_DATA ({len(ieo_data)} centres)")
+    elif IEO_START not in html:
+        print(f"  ⚠ IE_ONLINE markers not found — skipping")
 
     with open(HTML, 'w', encoding='utf-8') as f:
         f.write(html)
@@ -948,6 +1109,15 @@ if __name__ == '__main__':
     print(f"\nFetching upcoming programs from Isha API …")
     upcoming = fetch_upcoming_programs()
 
+    # Parse IE Online data
+    ieo_path = os.path.join(SANTHOSHA_DIR, 'IE Online - All center.xlsx')
+    ieo_data = None
+    if os.path.exists(ieo_path):
+        print(f"\nParsing IE Online data …")
+        ieo_data = parse_ie_online(ieo_path)
+    else:
+        print(f"\n  ⚠ IE Online file not found at {ieo_path}")
+
     print(f"\nInjecting into dashboard …")
     inject_html(
         html,
@@ -956,7 +1126,8 @@ if __name__ == '__main__':
         monthly_data if monthly_updates else None,
         latest_mtime,
         file_timestamps if file_timestamps else None,
-        upcoming
+        upcoming,
+        ieo_data,
     )
 
     # Cleanup
