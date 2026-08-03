@@ -651,6 +651,56 @@ tr:hover td{background:#faf6ef;}
   transition:.15s;margin-left:6px;opacity:.85;
 }
 .logout-btn:hover{background:rgba(255,255,255,.15);opacity:1;}
+
+/* ══════════════ REGION ANALYTICS ══════════════ */
+.ra-title{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--m);margin:22px 0 12px;display:flex;align-items:center;gap:8px;}
+.ra-title::before{content:'';flex:1;height:1px;background:var(--brd);}
+.ra-title::after{content:'';flex:1;height:1px;background:var(--brd);}
+
+.ra-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.ra-stat{background:var(--card);border-radius:12px;padding:14px 16px;box-shadow:var(--sh);border-top:3px solid var(--m);text-align:center;}
+.ra-stat-val{font-size:2rem;font-weight:900;font-family:'Poppins','Inter',sans-serif;color:var(--m);line-height:1;}
+.ra-stat-lbl{font-size:.7rem;font-weight:600;color:var(--tlt);margin-top:4px;text-transform:uppercase;letter-spacing:.4px;}
+.ra-stat.green{border-top-color:#2E7D32;} .ra-stat.green .ra-stat-val{color:#2E7D32;}
+.ra-stat.amber{border-top-color:#E65100;} .ra-stat.amber .ra-stat-val{color:#E65100;}
+.ra-stat.blue{border-top-color:#1565C0;} .ra-stat.blue .ra-stat-val{color:#1565C0;}
+.ra-stat.red{border-top-color:#B71C1C;} .ra-stat.red .ra-stat-val{color:#B71C1C;}
+
+.ra-charts-row{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-bottom:16px;}
+.ra-box{background:var(--card);border-radius:12px;padding:16px;box-shadow:var(--sh);}
+.ra-box-title{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--m);margin-bottom:14px;}
+
+/* Monthly bar chart */
+.ra-monthly-bars{display:flex;align-items:flex-end;gap:8px;height:120px;}
+.ra-month-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.ra-bar-stack{width:100%;display:flex;flex-direction:column-reverse;border-radius:4px 4px 0 0;overflow:hidden;min-height:4px;}
+.ra-bar-seg{width:100%;transition:height .3s;}
+.ra-month-lbl{font-size:.6rem;font-weight:700;color:var(--tlt);text-align:center;}
+.ra-month-num{font-size:.6rem;color:#aaa;text-align:center;}
+.ra-legend{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;}
+.ra-leg{display:flex;align-items:center;gap:5px;font-size:.65rem;color:var(--tlt);}
+.ra-leg-dot{width:9px;height:9px;border-radius:50%;}
+
+/* Type breakdown bars */
+.ra-type-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ra-type-name{font-size:.7rem;font-weight:700;width:90px;flex-shrink:0;color:var(--text);}
+.ra-type-track{flex:1;background:var(--brd);border-radius:4px;height:12px;overflow:hidden;}
+.ra-type-fill{height:100%;border-radius:4px;transition:width .4s;}
+.ra-type-count{font-size:.68rem;font-weight:800;color:var(--m);width:28px;text-align:right;flex-shrink:0;}
+
+/* Center activity grid */
+.ra-ctr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+.ra-ctr-card{background:var(--card);border-radius:8px;padding:9px 11px;box-shadow:var(--sh);border-left:3px solid var(--brd);display:flex;flex-direction:column;gap:3px;}
+.ra-ctr-name{font-size:.67rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ra-ctr-pills{display:flex;gap:3px;flex-wrap:wrap;}
+.ra-pill{font-size:.55rem;font-weight:800;padding:1px 5px;border-radius:8px;}
+.ra-pill.done{background:#E8F5E9;color:#2E7D32;}
+.ra-pill.confirmed{background:#FFF3E0;color:#E65100;}
+.ra-pill.planned{background:#E3F2FD;color:#1565C0;}
+.ra-pill.miss{background:#FFEBEE;color:#B71C1C;}
+.ra-reg-bar{height:3px;border-radius:2px;background:var(--brd);margin-top:3px;overflow:hidden;}
+.ra-reg-fill{height:100%;border-radius:2px;background:#2E7D32;}
+@media(max-width:640px){.ra-stat-row{grid-template-columns:1fr 1fr;}.ra-charts-row{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -770,6 +820,29 @@ tr:hover td{background:#faf6ef;}
     </div>
   </div>
   <div id="ka-all-centers-preview" style="margin-top:18px"></div>
+
+  <!-- ── REGION ANALYTICS ── -->
+  <div class="ra-title">📊 Programme Analytics — 2026</div>
+  <div class="ra-stat-row" id="ra-stat-row"></div>
+  <div class="ra-charts-row">
+    <div class="ra-box">
+      <div class="ra-box-title">📅 Programs by Month (Jun – Dec)</div>
+      <div class="ra-monthly-bars" id="ra-monthly-bars"></div>
+      <div class="ra-legend">
+        <div class="ra-leg"><span class="ra-leg-dot" style="background:#2E7D32"></span>Done</div>
+        <div class="ra-leg"><span class="ra-leg-dot" style="background:#C8922A"></span>Confirmed</div>
+        <div class="ra-leg"><span class="ra-leg-dot" style="background:#90CAF9"></span>Planned</div>
+      </div>
+    </div>
+    <div class="ra-box">
+      <div class="ra-box-title">🧩 By Program Type</div>
+      <div id="ra-type-bars"></div>
+    </div>
+  </div>
+  <div class="ra-box" style="margin-bottom:14px">
+    <div class="ra-box-title">🏛️ Centre Activity — Upcoming Programs</div>
+    <div class="ra-ctr-grid" id="ra-ctr-grid"></div>
+  </div>
 </div>
 
 <!-- ══════════════ CENTRES BROWSER ══════════════ -->
@@ -1794,8 +1867,10 @@ const CTRS = [
   { key:"sadhguru_sannidhi", tag:"Ashram", name:"Sadhguru Sannidhi", region:"ssb", color:"#8D3C00" },
   { key:"b_g_road", name:"B G Road", region:"blr", color:"#283593" },
   { key:"banaswadi", name:"Banaswadi", region:"blr", color:"#1B5E20" },
+  { key:"bannerghatta_road", name:"Bannerghatta Road", region:"blr", color:"#4E342E" },
   { key:"budigere_cross", name:"Budigere Cross", region:"blr", color:"#B71C1C" },
   { key:"e_city",    name:"Electronic City", region:"blr", color:"#B71C1C" },
+  { key:"sarjapur_road", name:"Sarjapur Road", region:"blr", color:"#1565C0" },
   { key:"chandapura", name:"Chandapura",      region:"blr", color:"#880E4F" },
   { key:"singasandra",name:"Singasandra",     region:"blr", color:"#1B5E20" },
   { key:"girinagar", name:"Girinagar", region:"blr", color:"#E65100" },
@@ -1836,6 +1911,8 @@ const REGIONS = [
 const POC_DATA = {
   "b_g_road": {"prog": "Jaywardene, Nikhil", "prog_ph": "9821201721,9740060767", "ie": "", "ie_ph": "", "sat": "", "sat_ph": "", "step": "", "step_ph": "", "hatha": "", "hatha_ph": "", "other": "", "other_ph": ""},
   "banaswadi": {"prog": "Naveen Devansh", "prog_ph": "94811 34228, 84315 81537", "ie": "", "ie_ph": "", "sat": "Santosh Raju, Devansh", "sat_ph": "97383 43297, 84315 81537", "step": "Preethi", "step_ph": "9880732525", "hatha": "", "hatha_ph": "", "other": "", "other_ph": ""},
+  "bannerghatta_road": {"prog": "", "prog_ph": "", "ie": "", "ie_ph": "", "sat": "", "sat_ph": "", "step": "", "step_ph": "", "hatha": "", "hatha_ph": "", "other": "", "other_ph": ""},
+  "sarjapur_road": {"prog": "", "prog_ph": "", "ie": "", "ie_ph": "", "sat": "", "sat_ph": "", "step": "", "step_ph": "", "hatha": "", "hatha_ph": "", "other": "", "other_ph": ""},
   "budigere_cross": {"prog": "Sanjay, Sivakumar", "prog_ph": "8073 871 589", "ie": "Shamanth", "ie_ph": "97407 81555", "sat": "Jyothishree", "sat_ph": "90049 98197", "step": "Anusha", "step_ph": "97414 51483", "hatha": "Pooja", "hatha_ph": "95916 22255", "other": "", "other_ph": ""},
   "e_city": {"prog": "Nitesh", "prog_ph": "93863 29656", "ie": "Currently restructuring ( Praveen)", "ie_ph": "9880032253", "sat": "Currently restructuring (Rohan)", "sat_ph": "8123676861", "step": "Currently restructuring (Deepa)", "step_ph": "9986734637", "hatha": "Currently restructuring (Mandeep)", "hatha_ph": "7795593093", "other": "Currently restructuring(Nitesh)", "other_ph": "9386329656"},
   "girinagar": {"prog": "", "prog_ph": "", "ie": "", "ie_ph": "", "sat": "", "sat_ph": "", "step": "", "step_ph": "", "hatha": "", "hatha_ph": "", "other": "", "other_ph": ""},
@@ -1877,6 +1954,8 @@ const VENUE_DATA = {
   "budigere_cross": {"ie": "Gnana Jyoti international school or NPS OMR", "ie_type": "Free", "ie_cost": "0.0", "sat": "GJIS and NPS OMR", "sat_type": "Free", "sat_cost": "0.0", "other": "Poojitha home or Amudhan studio", "oth_type": "Free", "oth_cost": "0.0"},
   "e_city": {"ie": "St. Joseph Group of Institutions", "ie_type": "Rented", "ie_cost": "2000.0", "sat": "Incture Technologies", "sat_type": "Free", "sat_cost": "0.0", "other": "Transform Cricket Academy", "oth_type": "Free", "oth_cost": "0.0"},  "chandapura": {"ie": "Isha Yoga Center – Chandapura", "ie_type": "Own", "ie_cost": "0", "sat": "Isha Yoga Center – Chandapura", "sat_type": "Own", "sat_cost": "0", "other": "", "oth_type": "", "oth_cost": ""},
   "singasandra": {"ie": "Isha Yoga Center – Singasandra", "ie_type": "Own", "ie_cost": "0", "sat": "Isha Yoga Center – Singasandra", "sat_type": "Own", "sat_cost": "0", "other": "", "oth_type": "", "oth_cost": ""},
+  "bannerghatta_road": {"ie": "", "ie_type": "Rented", "ie_cost": "", "sat": "", "sat_type": "", "sat_cost": "", "other": "", "oth_type": "", "oth_cost": ""},
+  "sarjapur_road": {"ie": "", "ie_type": "Rented", "ie_cost": "", "sat": "", "sat_type": "", "sat_cost": "", "other": "", "oth_type": "", "oth_cost": ""},
 
   "girinagar": {"ie": "Not Available", "ie_type": "", "ie_cost": "", "sat": "Vijaya Bharathi Vidyalaya", "sat_type": "Rented", "sat_cost": "2000.0", "other": "Alilu Sabhangana", "oth_type": "Free", "oth_cost": "0.0"},
   "hebbal": {"ie": "Alumni Association Hall", "ie_type": "Rented", "ie_cost": "Lower hall- 4500+gst , upper hall- 6000+gst", "sat": "", "sat_type": "", "sat_cost": "", "other": "", "oth_type": "", "oth_cost": ""},
@@ -2522,10 +2601,10 @@ document.addEventListener('keydown',e=>{
 // ═══════════════════════════════════════════════════
 // SESSION/LOGIN helpers
 function loadSession(){
-  try{ SESSION = JSON.parse(sessionStorage.getItem('isha_session')||'null'); }catch(e){ SESSION=null; }
+  try{ SESSION = JSON.parse(localStorage.getItem('isha_session')||'null'); }catch(e){ SESSION=null; }
 }
-function saveSession(s){ SESSION=s; sessionStorage.setItem('isha_session', JSON.stringify(s)); }
-function clearSession(){ SESSION=null; sessionStorage.removeItem('isha_session'); }
+function saveSession(s){ SESSION=s; localStorage.setItem('isha_session', JSON.stringify(s)); }
+function clearSession(){ SESSION=null; localStorage.removeItem('isha_session'); }
 
 function switchLoginRole(role){
   document.getElementById('tab-admin').classList.toggle('active', role==='admin');
@@ -2566,6 +2645,23 @@ function doLogin(){
     }
     err.textContent = '';
     applySession();
+    // Re-sync from Firebase so the view is always fresh after login
+    syncCalendarFromFirebase().then(remote => {
+      if(remote){
+        seedMonthlySatsangs();
+        seedProgrammeCalendar();
+      }
+      fetchAndSeedIshaPrograms().then(()=>{
+        autoMarkDone();
+        try{ renderCalendar(); }catch(e){}
+        try{ renderRegionAnalytics(); }catch(e){}
+      }).catch(()=>{
+        autoMarkDone();
+        try{ renderCalendar(); }catch(e){}
+        try{ renderRegionAnalytics(); }catch(e){}
+      });
+    }).catch(()=>{});
+    syncCtrStoresFromFirebase().then(()=>{ renderCentersGrid(); updateCtrCounts(); }).catch(()=>{});
   } catch(e){
     document.getElementById('login-err').textContent = 'Error: ' + e.message;
     console.error('doLogin error:', e);
@@ -2621,6 +2717,21 @@ function applySession(){
     // Also check for pending approval stored in URL link flow
     if(window._pendingApproval){ showApprovalPrompt(window._pendingApproval); window._pendingApproval=null; }
   }
+  // For admin: reset all filters to "all" in case a previous coord session locked them
+  if(SESSION.role==='admin'){
+    calActiveCtr = 'all';
+    _tmf = 'all';
+    matActiveCtr = 'all';
+    activeRegionFilter = 'all';
+    const rfb = document.querySelector('.region-filter-bar');
+    if(rfb) rfb.style.display='';
+    const tfd = document.getElementById('team-ctr-select');
+    if(tfd){ tfd.value='all'; tfd.disabled=false; }
+    const calSel = document.getElementById('cal-ctr-select');
+    if(calSel){ calSel.value='all'; calSel.disabled=false; }
+    const matSel = document.getElementById('mat-ctr-select');
+    if(matSel){ matSel.value='all'; matSel.disabled=false; }
+  }
   // For coordinator: lock filters
   if(SESSION.role==='coord'){
     calActiveCtr = SESSION.ctrKey;
@@ -2642,6 +2753,118 @@ function applySession(){
   try{ renderCentersGrid(); updateCtrCounts(); }catch(e){ console.error('renderCentersGrid',e); }
   renderLastUpdated();
   try{ renderCalendar(); }catch(e){ console.error('renderCalendar',e); }
+  try{ renderRegionAnalytics(); }catch(e){ console.error('renderRegionAnalytics',e); }
+}
+
+function renderRegionAnalytics(){
+  const data = getCalData();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const PROG_LABELS = { ie:'Inner Engineering', hy:'Hatha Yoga', ms:'Monthly Satsang', pcs:'Practice Correction', ap:'Advanced Prog', shoonya:'Shoonya', samyama:'Samyama' };
+  const PROG_COLORS = { ie:'#7B1A1A', hy:'#1565C0', ms:'#C8922A', pcs:'#2E7D32', ap:'#6A1B9A', shoonya:'#00695C', samyama:'#37474F' };
+  const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Collect all 2026 events
+  const allEvts = [];
+  Object.entries(data).forEach(([key, evs]) => {
+    const m = key.match(/^2026-(.+)-([a-z_]+)-(\d+)$/);
+    if(!m) return;
+    const [, ctrKey, progKey, miStr] = m;
+    const mi = parseInt(miStr);
+    (Array.isArray(evs) ? evs : [evs]).forEach(ev => {
+      if(ev && ev.id) allEvts.push({ ctrKey, progKey, mi, ev });
+    });
+  });
+
+  // ── 1. Summary Stats ──────────────────────────────────
+  const upcoming = allEvts.filter(e => e.ev.status === 'confirmed' || e.ev.status === 'planned');
+  const confirmed = allEvts.filter(e => e.ev.status === 'confirmed');
+  const done = allEvts.filter(e => e.ev.status === 'done');
+  const missingReg = upcoming.filter(e => !e.ev.reglink || !e.ev.reglink.trim());
+  const activeCtrs = new Set(upcoming.map(e => e.ctrKey)).size;
+
+  const statRow = document.getElementById('ra-stat-row');
+  if(statRow) statRow.innerHTML = `
+    <div class="ra-stat blue"><div class="ra-stat-val">${upcoming.length}</div><div class="ra-stat-lbl">Upcoming Programs</div></div>
+    <div class="ra-stat green"><div class="ra-stat-val">${confirmed.length}</div><div class="ra-stat-lbl">Confirmed</div></div>
+    <div class="ra-stat amber"><div class="ra-stat-val">${done.length}</div><div class="ra-stat-lbl">Done This Year</div></div>
+    <div class="ra-stat ${missingReg.length > 0 ? 'red' : 'green'}"><div class="ra-stat-val">${missingReg.length}</div><div class="ra-stat-lbl">Missing Reg Links</div></div>
+  `;
+
+  // ── 2. Monthly Chart ──────────────────────────────────
+  const byMonth = {};
+  for(let m=5; m<=11; m++) byMonth[m] = { done:0, confirmed:0, planned:0 };
+  allEvts.forEach(e => {
+    if(e.mi >= 5 && e.mi <= 11) {
+      const s = e.ev.status;
+      if(byMonth[e.mi] && (s==='done'||s==='confirmed'||s==='planned')) byMonth[e.mi][s]++;
+    }
+  });
+  const maxBarVal = Math.max(1, ...Object.values(byMonth).map(m => m.done + m.confirmed + m.planned));
+  const barsEl = document.getElementById('ra-monthly-bars');
+  if(barsEl) barsEl.innerHTML = Object.entries(byMonth).map(([mi, counts]) => {
+    const total = counts.done + counts.confirmed + counts.planned;
+    const pct = v => Math.round((v / maxBarVal) * 100);
+    return `<div class="ra-month-col">
+      <div class="ra-month-num" style="font-size:.58rem;color:var(--tlt)">${total||''}</div>
+      <div class="ra-bar-stack" style="height:${Math.max(4, pct(total))}px;width:100%">
+        <div class="ra-bar-seg" style="height:${pct(counts.planned)}%;background:#90CAF9"></div>
+        <div class="ra-bar-seg" style="height:${pct(counts.confirmed)}%;background:#C8922A"></div>
+        <div class="ra-bar-seg" style="height:${pct(counts.done)}%;background:#2E7D32"></div>
+      </div>
+      <div class="ra-month-lbl">${MONTHS_SHORT[parseInt(mi)]}</div>
+    </div>`;
+  }).join('');
+
+  // ── 3. Program Type Bars ──────────────────────────────
+  const byType = {};
+  allEvts.forEach(e => {
+    if(!byType[e.progKey]) byType[e.progKey] = 0;
+    if(e.ev.status !== 'done') byType[e.progKey]++;
+  });
+  const maxType = Math.max(1, ...Object.values(byType));
+  const typeEl = document.getElementById('ra-type-bars');
+  if(typeEl) typeEl.innerHTML = Object.entries(byType)
+    .sort((a,b) => b[1]-a[1])
+    .map(([pk, cnt]) => `
+      <div class="ra-type-row">
+        <div class="ra-type-name">${PROG_LABELS[pk] || pk}</div>
+        <div class="ra-type-track"><div class="ra-type-fill" style="width:${Math.round(cnt/maxType*100)}%;background:${PROG_COLORS[pk]||'#888'}"></div></div>
+        <div class="ra-type-count">${cnt}</div>
+      </div>`).join('');
+
+  // ── 4. Centre Activity Grid ───────────────────────────
+  const byCtr = {};
+  allEvts.forEach(e => {
+    if(!byCtr[e.ctrKey]) byCtr[e.ctrKey] = { done:0, confirmed:0, planned:0, total:0, withReg:0 };
+    const s = e.ev.status;
+    byCtr[e.ctrKey].total++;
+    if(s==='done') byCtr[e.ctrKey].done++;
+    else if(s==='confirmed') byCtr[e.ctrKey].confirmed++;
+    else if(s==='planned') byCtr[e.ctrKey].planned++;
+    if(e.ev.reglink && e.ev.reglink.trim()) byCtr[e.ctrKey].withReg++;
+  });
+  const ctrEl = document.getElementById('ra-ctr-grid');
+  if(ctrEl) {
+    const ctrsSorted = Object.entries(byCtr)
+      .filter(([,c]) => c.confirmed + c.planned > 0)
+      .sort((a,b) => (b[1].confirmed+b[1].planned) - (a[1].confirmed+a[1].planned));
+    ctrEl.innerHTML = ctrsSorted.map(([ctrKey, c]) => {
+      const ctr = CTRS.find(x => x.key === ctrKey);
+      const name = ctr ? ctr.name : ctrKey.replace(/_/g,' ');
+      const upcomingTotal = c.confirmed + c.planned;
+      const regPct = upcomingTotal > 0 ? Math.round(c.withReg / upcomingTotal * 100) : 0;
+      const borderColor = c.confirmed > 3 ? '#2E7D32' : c.confirmed > 0 ? '#C8922A' : '#90CAF9';
+      return `<div class="ra-ctr-card" style="border-left-color:${borderColor}" title="${name}: ${c.confirmed} confirmed, ${c.planned} planned, ${c.done} done">
+        <div class="ra-ctr-name">${name}</div>
+        <div class="ra-ctr-pills">
+          ${c.done ? `<span class="ra-pill done">✓ ${c.done}</span>` : ''}
+          ${c.confirmed ? `<span class="ra-pill confirmed">● ${c.confirmed}</span>` : ''}
+          ${c.planned ? `<span class="ra-pill planned">○ ${c.planned}</span>` : ''}
+        </div>
+        <div class="ra-reg-bar"><div class="ra-reg-fill" style="width:${regPct}%" title="${regPct}% have reg links"></div></div>
+      </div>`;
+    }).join('');
+  }
 }
 
 async function init(){
@@ -2664,22 +2887,35 @@ async function init(){
   initGoogleSignIn();
   const mab = document.getElementById('access-mgr-login-btn');
   if(mab) mab.style.display = (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.startsWith('YOUR_')) ? 'none' : 'block';
-  renderSocBar();
-  renderSectorProgCards();
-  CTRS.forEach(c=>{ try{ renderCenter(c); }catch(e){} });
-  migrateCalDataToYear();
-  seedMonthlySatsangs();
-  seedProgrammeCalendar();
-  autoMarkDone();
-  // Pull calendar + centre POC/venue from Firebase in background and refresh
-  syncCalendarFromFirebase().then(remote=>{ if(remote) renderCalendar(); }).catch(()=>{});
-  syncCtrStoresFromFirebase().then(()=>{ renderCentersGrid(); updateCtrCounts(); }).catch(()=>{});
+
+  // Apply session FIRST — before any render that could throw
   if(SESSION){
     applySession();
   } else {
     document.getElementById('app-shell').style.display = 'none';
     document.getElementById('login-overlay').style.display = 'flex';
   }
+
+  try{ renderSocBar(); }catch(e){}
+  try{ renderSectorProgCards(); }catch(e){}
+  try{ CTRS.forEach(c=>{ try{ renderCenter(c); }catch(e){} }); }catch(e){}
+  try{ migrateCalDataToYear(); }catch(e){}
+  // Seed on local data first (fast path for offline/first-load)
+  try{ seedMonthlySatsangs(); seedProgrammeCalendar(); autoMarkDone(); }catch(e){}
+  // Pull calendar from Firebase, then re-run seed so any gaps in Firebase get patched
+  syncCalendarFromFirebase().then(async remote=>{
+    if(remote){
+      try{ seedMonthlySatsangs(); seedProgrammeCalendar(); }catch(e){}
+    }
+    // Fetch live programs from Isha API and seed into calendar
+    const apiChanged = await fetchAndSeedIshaPrograms();
+    autoMarkDone();
+    renderCalendar(); // always re-render after API fetch (data may have changed)
+    try{ renderRegionAnalytics(); }catch(e){}
+  }).catch(()=>{
+    fetchAndSeedIshaPrograms().then(()=>{ autoMarkDone(); renderCalendar(); try{ renderRegionAnalytics(); }catch(e){} }).catch(()=>{});
+  });
+  syncCtrStoresFromFirebase().then(()=>{ renderCentersGrid(); updateCtrCounts(); }).catch(()=>{});
 }
 document.addEventListener('DOMContentLoaded', ()=>init());
 
@@ -2852,6 +3088,130 @@ async function syncCalendarFromFirebase(){
   return null;
 }
 
+async function fetchAndSeedIshaPrograms(){
+  // Fetch upcoming Karnataka programs live from Isha API and seed into the calendar.
+  const BASE_URL = 'https://isha.sadhguru.org/in/en/program-details?id=';
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Isha API type ID → dashboard program key
+  const TYPE_MAP = {
+    '8':'ie','128':'ie','15':'ie','5':'ie',
+    '124':'hy','122':'hy','125':'hy','121':'hy','235':'hy','148':'hy',
+    '21':'hy','123':'hy','93':'hy','94':'hy','127':'hy',
+    '13':'shoonya',
+    '12':'samyama',
+    '14':'ap','166':'ap','91':'ap','88':'ap',
+    '98':'pcs','97':'pcs','96':'pcs',
+  };
+
+  // Isha API place name → dashboard center key (Bengaluru centers)
+  const PLACE_MAP = {
+    'Sadhguru Sannidhi':'sadhguru_sannidhi',
+    'Jayanagar':'jayanagar',
+    'Marathahalli':'marathahalli',
+    'Malleswaram':'malleshwaram',
+    'Kanakapura Road':'kanakapura_road',
+    'HSR Layout':'hsr_layout',
+    'Sarjapur Road':'sarjapur_road',
+    'Electronic City':'e_city',
+    'Vijayanagar':'vijayanagar',
+    'Bannerghatta Road':'bannerghatta_road',
+    'Budigere Cross':'budigere_cross',
+    'Girinagar':'girinagar',
+    'Hebbal':'hebbal',
+    'Indiranagar':'indiranagar',
+    'Banaswadi':'banaswadi',
+    'B G Road':'b_g_road',
+    'Koramangala':'koramangala',
+    'Whitefield':'whitefield',
+    'Yelahanka':'yelahanka',
+    'Jakkur':'jakkur',
+    'Chandapura':'chandapura',
+    'Singasandra':'singasandra',
+  };
+
+  // City → center key (non-Bengaluru KA cities)
+  const CITY_MAP = {
+    'Mysuru':'mysuru','Mysore':'mysuru',
+    'Hubballi':'hubballi','Hubli':'hubballi',
+    'Mangaluru':'mangalore','Mangalore':'mangalore',
+    'Belagavi':'belagavi','Belgaum':'belagavi',
+    'Shivamogga':'shivamogga',
+    'Tumkur':'tumkur',
+    'Udupi':'udupi',
+    'Hassan':'hassan',
+  };
+
+  const KA_CITIES = new Set(['Bengaluru','Bangalore',...Object.keys(CITY_MAP)]);
+
+  try {
+    const API_URL = 'https://api.ishafoundation.org/scheduleApi/data.php?task=list';
+    let resp;
+    try { resp = await fetch(API_URL); if(!resp.ok) throw new Error('status '+resp.status); }
+    catch(e){ resp = await fetch('https://corsproxy.io/?' + encodeURIComponent(API_URL)); }
+    const json = await resp.json();
+    const programs = Object.values(json.results).map(p => Object.values(p)[0]);
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const YEAR = 2026;
+    const data = getCalData();
+    let changed = false;
+
+    programs.forEach(p => {
+      if(!KA_CITIES.has(p.city)) return;
+
+      const progKey = TYPE_MAP[String(p.type)];
+      if(!progKey) return;
+
+      let ctrKey = PLACE_MAP[p.place];
+      if(!ctrKey) ctrKey = CITY_MAP[p.city];
+      if(!ctrKey) return;
+
+      const rawDate = p.fr.substring(0, 10);
+      const dateObj = new Date(rawDate + 'T00:00:00');
+      if(dateObj.getFullYear() !== YEAR) return;
+      const mi = dateObj.getMonth();
+      const dateDisp = `${dateObj.getDate()} ${MONTHS[mi]}`;
+
+      // Build a clean label
+      let label = p.name.split(',')[0].split('(')[0].trim();
+      if(label.length > 50) label = label.substring(0, 50);
+
+      const toDate = p.to ? p.to.substring(0, 10) : rawDate;
+      const langNote = p.lang && p.lang !== 'unspecified' ? ` · ${p.lang}` : '';
+      const notes = `${rawDate} to ${toDate}${langNote} · ${p.place || p.city}`;
+
+      const ev = {
+        id: `api-${p.id}`,
+        label: label,
+        date: dateDisp,
+        rawDate: rawDate,
+        status: dateObj < today ? 'done' : 'confirmed',
+        notes: notes,
+        reglink: BASE_URL + p.id,
+        venue: p.place || p.city,
+      };
+
+      const key = `${YEAR}-${ctrKey}-${progKey}-${mi}`;
+      if(!data[key]) { data[key] = [ev]; changed = true; return; }
+      if(!Array.isArray(data[key])) data[key] = [data[key]];
+      const existing = data[key].find(e => e.id === ev.id);
+      if(!existing) {
+        data[key].push(ev); changed = true;
+      } else {
+        // Keep reglink always up to date from API
+        if(existing.reglink !== ev.reglink){ existing.reglink = ev.reglink; changed = true; }
+      }
+    });
+
+    if(changed){ saveCalData(data); return true; }
+    return false;
+  } catch(e) {
+    console.warn('fetchAndSeedIshaPrograms failed:', e);
+    return false;
+  }
+}
+
 function seedProgrammeCalendar(){
   // Seed confirmed IE and HY programme events for 2026 with registration links.
   // Adds the event if absent; updates reglink if event exists but link is missing.
@@ -2866,9 +3226,15 @@ function seedProgrammeCalendar(){
     // IE July (mi=6)
     {c:'malleshwaram',    p:'ie', mi:6,  ev:{id:'ie-2026-07-23-mal',  label:'Inner Engineering 4 Days', date:'23 Jul', rawDate:'2026-07-23', status:'confirmed', notes:'23-26 Jul 2026 · Malleswaram',            reglink:BASE+'1202273'}},
     {c:'kanakapura_road', p:'ie', mi:6,  ev:{id:'ie-2026-07-23-kan',  label:'Inner Engineering 4 Days', date:'23 Jul', rawDate:'2026-07-23', status:'confirmed', notes:'23-26 Jul 2026 · Kanakapura Road',        reglink:BASE+'1202274'}},
+    {c:'sarjapur_road',   p:'ie', mi:6,  ev:{id:'ie-2026-07-16-sar',  label:'Inner Engineering 4 Days', date:'16 Jul', rawDate:'2026-07-16', status:'confirmed', notes:'16-19 Jul 2026 · Sarjapur Road',       reglink:BASE+'1201852'}},
     // IE August (mi=7)
     {c:'vijayanagar',     p:'ie', mi:7,  ev:{id:'ie-2026-08-05-vij',  label:'Inner Engineering 7 Days', date:'5 Aug',  rawDate:'2026-08-05', status:'confirmed', notes:'5-11 Aug 2026 · Vijayanagar (Kannada)',   reglink:BASE+'1202635'}},
     {c:'marathahalli',    p:'ie', mi:7,  ev:{id:'ie-2026-08-06-mar',  label:'Inner Engineering 4 Days', date:'6 Aug',  rawDate:'2026-08-06', status:'confirmed', notes:'6-9 Aug 2026 · Marathahalli',             reglink:BASE+'1202636'}},
+    {c:'jayanagar',       p:'ie', mi:7,  ev:{id:'ie-2026-08-20-jay',  label:'Inner Engineering 4 Days', date:'20 Aug', rawDate:'2026-08-20', status:'confirmed', notes:'20-23 Aug 2026 · Jayanagar',             reglink:BASE+'1202681'}},
+    {c:'kanakapura_road', p:'ie', mi:7,  ev:{id:'ie-2026-08-20-kan2', label:'Inner Engineering 4 Days', date:'20 Aug', rawDate:'2026-08-20', status:'confirmed', notes:'20-23 Aug 2026 · Kanakapura Road',       reglink:BASE+'1203065'}},
+    {c:'e_city',          p:'ie', mi:7,  ev:{id:'ie-2026-08-20-ect1', label:'Inner Engineering 4 Days', date:'20 Aug', rawDate:'2026-08-20', status:'confirmed', notes:'20-23 Aug 2026 · Electronic City',       reglink:BASE+'1203067'}},
+    {c:'budigere_cross',  p:'ie', mi:7,  ev:{id:'ie-2026-08-20-bud1', label:'Inner Engineering 4 Days', date:'20 Aug', rawDate:'2026-08-20', status:'confirmed', notes:'20-23 Aug 2026 · Budigere Cross',        reglink:BASE+'1203066'}},
+    {c:'bannerghatta_road',p:'ie',mi:7,  ev:{id:'ie-2026-08-06-bgr',  label:'Inner Engineering 4 Days', date:'6 Aug',  rawDate:'2026-08-06', status:'confirmed', notes:'6-9 Aug 2026 · Bannerghatta Road',       reglink:BASE+'1203044'}},
     // HY June (mi=5)
     {c:'mysuru',          p:'hy', mi:5,  ev:{id:'hy-2026-06-25-mys',  label:'Surya Kriya',             date:'25 Jun', rawDate:'2026-06-25', status:'confirmed', notes:'25-28 Jun 2026 · Mysuru',              reglink:BASE+'1202054'}},
     {c:'mysuru',          p:'hy', mi:5,  ev:{id:'hy-2026-06-26-mys2', label:'Eye Care & Upa Yoga',     date:'26 Jun', rawDate:'2026-06-26', status:'confirmed', notes:'26-28 Jun 2026 · Mysuru',              reglink:BASE+'1202148'}},
@@ -2885,6 +3251,7 @@ function seedProgrammeCalendar(){
     {c:'kanakapura_road', p:'hy', mi:6,  ev:{id:'hy-2026-07-12-kan1', label:'Surya Kriya',    date:'12 Jul', rawDate:'2026-07-12', status:'confirmed', notes:'12-15 Jul 2026 · Kanakapura Road',      reglink:BASE+'1202544'}},
     {c:'marathahalli',    p:'hy', mi:6,  ev:{id:'hy-2026-07-13-mar3', label:'Yogasanas',      date:'13 Jul', rawDate:'2026-07-13', status:'confirmed', notes:'13-17 Jul 2026 · Marathahalli',         reglink:BASE+'1202058'}},
     {c:'mysuru',          p:'hy', mi:6,  ev:{id:'hy-2026-07-15-mys1', label:'Angamardana',    date:'15 Jul', rawDate:'2026-07-15', status:'confirmed', notes:'15-19 Jul 2026 · Mysuru',               reglink:BASE+'1202486'}},
+    {c:'vijayanagar',     p:'hy', mi:6,  ev:{id:'hy-2026-07-18-vij1', label:'Hatha Yoga for Children', date:'18 Jul', rawDate:'2026-07-18', status:'confirmed', notes:'18-22 Jul 2026 · Vijayanagar',   reglink:''}},
     {c:'malleshwaram',    p:'hy', mi:6,  ev:{id:'hy-2026-07-18-mal2', label:'Surya Kriya',    date:'18 Jul', rawDate:'2026-07-18', status:'confirmed', notes:'18-19 Jul 2026 · Malleswaram',          reglink:BASE+'1202487'}},
     {c:'marathahalli',    p:'hy', mi:6,  ev:{id:'hy-2026-07-18-mar5', label:'Surya Kriya',    date:'18 Jul', rawDate:'2026-07-18', status:'confirmed', notes:'18-19 Jul 2026 · Marathahalli',         reglink:BASE+'1200263'}},
     {c:'kanakapura_road', p:'hy', mi:6,  ev:{id:'hy-2026-07-19-kan2', label:'Bhuta Shuddhi',  date:'19 Jul', rawDate:'2026-07-19', status:'confirmed', notes:'19 Jul 2026 · Kanakapura Road',          reglink:BASE+'1202545'}},
@@ -2921,6 +3288,14 @@ function seedProgrammeCalendar(){
     {c:'hsr_layout',      p:'hy', mi:6,  ev:{id:'hy-2026-07-20-hsr3', label:'Surya Kriya',         date:'20 Jul', rawDate:'2026-07-20', status:'confirmed', notes:'20-23 Jul 2026 · HSR Layout',           reglink:BASE+'1202489'}},
     {c:'hsr_layout',      p:'hy', mi:6,  ev:{id:'hy-2026-07-25-hsr4', label:'Angamardana',         date:'25 Jul', rawDate:'2026-07-25', status:'confirmed', notes:'25-29 Jul 2026 · HSR Layout',           reglink:BASE+'1202490'}},
     {c:'hsr_layout',      p:'hy', mi:6,  ev:{id:'hy-2026-07-25-hsr5', label:'Bhastrika Kriya',     date:'25 Jul', rawDate:'2026-07-25', status:'confirmed', notes:'25 Jul 2026 · HSR Layout',              reglink:BASE+'1202495'}},
+    // HY August (mi=7)
+    {c:'kanakapura_road', p:'hy', mi:7,  ev:{id:'hy-2026-08-05-kan1', label:'Yogasanas',           date:'5 Aug',  rawDate:'2026-08-05', status:'confirmed', notes:'5-9 Aug 2026 · Kanakapura Road',         reglink:''}},
+    {c:'marathahalli',    p:'hy', mi:7,  ev:{id:'hy-2026-08-17-mar1', label:'Angamardana',         date:'17 Aug', rawDate:'2026-08-17', status:'confirmed', notes:'17-21 Aug 2026 · Marathahalli',          reglink:''}},
+    {c:'marathahalli',    p:'hy', mi:7,  ev:{id:'hy-2026-08-22-mar2', label:'Surya Kriya',         date:'22 Aug', rawDate:'2026-08-22', status:'confirmed', notes:'22-23 Aug 2026 · Marathahalli',          reglink:''}},
+    {c:'marathahalli',    p:'hy', mi:7,  ev:{id:'hy-2026-08-24-mar3', label:'Yogasanas',           date:'24 Aug', rawDate:'2026-08-24', status:'confirmed', notes:'24-28 Aug 2026 · Marathahalli',          reglink:''}},
+    {c:'marathahalli',    p:'hy', mi:7,  ev:{id:'hy-2026-08-30-mar4', label:'Bhuta Shuddhi',       date:'30 Aug', rawDate:'2026-08-30', status:'confirmed', notes:'30 Aug 2026 · Marathahalli',             reglink:''}},
+    // Advanced Programs / ap
+    {c:'jayanagar',       p:'ap', mi:6,  ev:{id:'ap-2026-07-17-jay2', label:'Isha Janani',     date:'17 Jul', rawDate:'2026-07-17', status:'confirmed', notes:'17-26 Jul 2026 · Jayanagar',              reglink:''}},
     // Guru Pooja (under Advanced Programs / ap)
     {c:'e_city',          p:'ap', mi:6,  ev:{id:'ap-2026-07-17-ect',  label:'Guru Pooja',      date:'17 Jul', rawDate:'2026-07-17', status:'confirmed', notes:'17-19 Jul 2026 · Electronic City',       reglink:BASE+'1201493'}},
     {c:'malleshwaram',    p:'ap', mi:7,  ev:{id:'ap-2026-08-07-mal',  label:'Guru Pooja',      date:'7 Aug',  rawDate:'2026-08-07', status:'confirmed', notes:'7-9 Aug 2026 · Malleswaram',             reglink:BASE+'1202492'}},
@@ -2977,11 +3352,29 @@ function autoMarkDone(){
 }
 
 function seedMonthlySatsangs(){
-  // Seed Monthly Satsang on the 1st Sunday of each month, June–Dec 2026, for all 3 centres.
-  // Only writes if no entry exists yet (never overwrites user data).
+  // Seed Monthly Satsang on the 1st Sunday of each month, June–Dec 2026, for all centres.
+  // confirmed = current month only; planned = future months.
   const YEAR = 2026;
   const data = getCalData();
   let changed = false;
+  const nowMi = new Date().getMonth(); // 0-indexed; July = 6
+
+  // Jul 2026 per-center registration IDs from isha.sadhguru.org
+  const MS_JUL_IDS = {
+    'jayanagar':       '1202742',
+    'malleshwaram':    '1202789',
+    'koramangala':     '1202788',
+    'vijayanagar':     '1202799',
+    'girinagar':       '1202839',
+    'indiranagar':     '1202743',
+    'hebbal':          '1202750',
+    'b_g_road':        '1202740',
+    'banaswadi':       '1202741',
+    'sarjapur_road':   '1202841',
+    'kanakapura_road': '1202744',
+    'mangalore':       '1202842',
+    'hubballi':        '1202840',
+  };
 
   function firstSundayDate(year, monthIdx){
     const d = new Date(year, monthIdx, 1);
@@ -2995,21 +3388,44 @@ function seedMonthlySatsangs(){
     const day = firstSundayDate(YEAR, mi);
     const rawDate = `${YEAR}-${String(mi+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const dateDisp = `${day} ${MONTHS[mi]}`;
+    const isCurrent = (mi === nowMi);
+    const isFuture  = (mi > nowMi);
+    const status    = isFuture ? 'planned' : 'confirmed';
 
     CTRS.forEach(ctr => {
       const key = `${YEAR}-${ctr.key}-ms-${mi}`;
+      const msId = isCurrent && MS_JUL_IDS[ctr.key];
+      const reglink = msId
+        ? BASE + msId
+        : 'https://isha.sadhguru.org/in/en/events/monthly/satsang';
+
       if(!data[key]){
         data[key] = [{
           id:      'ms-'+rawDate,
           label:   'Monthly Satsang',
           date:    dateDisp,
           rawDate: rawDate,
-          status:  'planned',
-          venue:   '',
+          status:  status,
+          venue:   ctr.name,
           teacher: '',
           notes:   '1st Sunday of the month',
+          reglink: reglink,
         }];
         changed = true;
+      } else {
+        // Patch existing entries: keep status/reglink current
+        const ev = data[key][0];
+        if(ev){
+          let needsUpdate = false;
+          if(ev.status === 'planned' && !isFuture){ ev.status = 'confirmed'; needsUpdate = true; }
+          if(ev.status === 'confirmed' && isFuture){ ev.status = 'planned'; needsUpdate = true; }
+          if(!ev.venue){ ev.venue = ctr.name; needsUpdate = true; }
+          const wantLink = reglink;
+          if(ev.reglink !== wantLink && (!ev.reglink || ev.reglink === 'https://isha.sadhguru.org/in/en/events/monthly/satsang')){
+            ev.reglink = wantLink; needsUpdate = true;
+          }
+          if(needsUpdate) changed = true;
+        }
       }
     });
   }
