@@ -3563,7 +3563,7 @@ const LIVE_REGS = {
     "yogasanas": 18
   }
 };
-const LIVE_REGS_UPDATED = "18 Aug 2026, 03:44 PM";
+const LIVE_REGS_UPDATED = "18 Aug 2026, 04:37 PM";
 /* __LIVE_REGS_END__ */
 
 /* __IE_ONLINE_START__ */
@@ -6674,6 +6674,7 @@ function loadRegCounts(centre){
 let _regGroupBy  = 'date'; // 'date' | 'centre' | 'programme'
 let _regView     = 'tiles'; // 'tiles' | 'table'
 let _regCountRows = [];   // last rendered rows — used by export
+let _regDayFilter = 0;    // 0 = All, 3/5/10 = next N days
 
 function _exportRegCountsCSV(filename){
   const fmtDt = raw => {
@@ -6781,10 +6782,31 @@ function buildRegCounts(centre){
   }
 
   rows.sort((a,b)=> new Date(a.startDate||0)-new Date(b.startDate||0) || a.programme.localeCompare(b.programme));
-  _regCountRows = rows; // store for export
 
-  if(!rows.length){
-    el.innerHTML=`<div style="padding:24px;color:var(--muted);font-size:.8rem">No upcoming programmes found.</div>`;
+  // Apply day filter if set
+  const _parseDate = raw => {
+    if(!raw) return null;
+    if(/^\d+\s+[A-Za-z]+\s+\d{4}$/.test(raw.trim())){
+      const [d,m,y]=raw.trim().split(' '); return new Date(`${m} ${d} ${y}`);
+    }
+    const d=new Date(raw.replace(' ','T')); return isNaN(d)?null:d;
+  };
+  let filteredRows = rows;
+  if(_regDayFilter > 0){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const cutoff = new Date(today); cutoff.setDate(today.getDate() + _regDayFilter);
+    filteredRows = rows.filter(r=>{
+      const d = _parseDate(r.startDate);
+      return d && d >= today && d <= cutoff;
+    });
+  }
+  _regCountRows = filteredRows; // store for export
+
+  if(!filteredRows.length){
+    const msg = _regDayFilter > 0
+      ? `No programmes starting in the next ${_regDayFilter} days.`
+      : 'No upcoming programmes found.';
+    el.innerHTML=`<div style="padding:24px;color:var(--muted);font-size:.8rem">${msg}</div>`;
     return;
   }
 
@@ -6796,6 +6818,7 @@ function buildRegCounts(centre){
     return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
   };
 
+  const rows = filteredRows; // use filtered set for all rendering below
   const totalConfirmed = rows.reduce((s,r)=>s+(r.confirmed||0),0);
   const withCount = rows.filter(r=>r.confirmed!==null).length;
 
@@ -7023,6 +7046,17 @@ function buildRegCounts(centre){
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         ${viewToggle}
         ${togBtn()}
+        <!-- Day filter toggle -->
+        <div style="display:inline-flex;background:#e8e4db;border-radius:8px;padding:3px;gap:2px">
+          ${[['All',0],['3d',3],['5d',5],['10d',10]].map(([lbl,n])=>{
+            const active = _regDayFilter===n;
+            return `<button onclick="_regDayFilter=${n};buildRegCounts('${centre||''}')"
+              style="padding:4px 10px;border:none;border-radius:6px;cursor:pointer;font-size:.68rem;font-weight:${active?'800':'600'};
+                     background:${active?'#fff':'transparent'};color:${active?'var(--navy)':'#888'};
+                     box-shadow:${active?'0 1px 4px rgba(0,0,0,.18)':'none'};white-space:nowrap"
+              title="${n===0?'Show all upcoming':'Show programmes starting in next '+n+' days'}">${lbl}</button>`;
+          }).join('')}
+        </div>
         <div style="background:#eef7ee;border:1px solid #b8ddb8;border-radius:20px;padding:5px 14px;font-size:.75rem;font-weight:800;color:#1a7a30">
           Total: ${totalConfirmed.toLocaleString()}
         </div>
@@ -8770,7 +8804,6 @@ function buildRegAnalytics(){
       <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;font-size:.7rem;min-width:400px">
         <thead><tr style="background:#f5f2eb">
-          <th style="text-align:left;padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;white-space:nowrap">Month</th>
           <th style="text-align:left;padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Programme</th>
           <th style="text-align:right;padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Confirmed</th>
           <th style="padding:7px 10px;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;min-width:80px">Share of Month</th>
@@ -8778,33 +8811,63 @@ function buildRegAnalytics(){
         <tbody>
           ${monthKeys.map((mk,mi)=>{
             const mTotal = monthMap[mk].total;
-            // Group all rows for this month by programme label
-            const progAgg = {};
+            // Group rows for this month by programme, then by centre
+            const progCentreMap = {};
             rows.filter(r=>fmtMonthKey(r.startDate)===mk).forEach(r=>{
-              progAgg[r.progLabel] = (progAgg[r.progLabel]||0) + r.confirmed;
+              if(!progCentreMap[r.progLabel]) progCentreMap[r.progLabel] = {};
+              progCentreMap[r.progLabel][r.centre] = (progCentreMap[r.progLabel][r.centre]||0) + r.confirmed;
             });
-            const progRows = Object.entries(progAgg).sort((a,b)=>b[1]-a[1]);
-            return progRows.map(([prog, count], ri)=>{
-              const pct = mTotal>0?Math.round(count/mTotal*100):0;
-              const pi  = progLabels.indexOf(prog);
-              return `<tr style="background:${(mi+ri)%2===0?'#fff':'#faf8f5'};border-top:1px solid #f0ebe0">
-                ${ri===0?`<td style="padding:7px 10px;font-weight:700;color:var(--navy);white-space:nowrap;vertical-align:top" rowspan="${progRows.length}">${fmtMonthLabel(mk)}<div style="font-size:.58rem;font-weight:600;color:#1a7a30;margin-top:2px">${mTotal} total</div></td>`:''}
-                <td style="padding:7px 10px;color:var(--navy);font-weight:600">
-                  <span style="display:inline-flex;align-items:center;gap:5px">
-                    <span style="width:7px;height:7px;border-radius:50%;background:${PALETTE[pi>=0?pi%PALETTE.length:0]};flex-shrink:0"></span>${prog}
-                  </span>
+            const progRows = Object.entries(progCentreMap).map(([p,cm])=>([p, Object.values(cm).reduce((a,b)=>a+b,0), cm])).sort((a,b)=>b[1]-a[1]);
+            const rowId = `rcm_${mk.replace(/[^a-z0-9]/gi,'_')}`;
+            return `
+              <!-- Month header row -->
+              <tr style="background:#1e2a45">
+                <td colspan="3" style="padding:6px 10px;font-weight:700;color:#fff;font-size:.72rem">
+                  ${fmtMonthLabel(mk)}
+                  <span style="font-size:.6rem;font-weight:500;opacity:.75;margin-left:6px">${mTotal} confirmed</span>
                 </td>
-                <td style="padding:7px 10px;text-align:right;font-weight:700;color:#1a7a30">${count}</td>
-                <td style="padding:7px 10px">
-                  <div style="display:flex;align-items:center;gap:6px">
-                    <div style="flex:1;background:#f0ebe0;border-radius:3px;height:6px;overflow:hidden">
-                      <div style="width:${pct}%;background:${PALETTE[pi>=0?pi%PALETTE.length:0]};height:100%"></div>
+              </tr>
+              ${progRows.map(([prog, count, centreMap], ri)=>{
+                const pct = mTotal>0?Math.round(count/mTotal*100):0;
+                const pi  = progLabels.indexOf(prog);
+                const colour = PALETTE[pi>=0?pi%PALETTE.length:0];
+                const subId = `${rowId}_${ri}`;
+                const centreRows = Object.entries(centreMap).sort((a,b)=>b[1]-a[1]).map(([ctr,cv])=>{
+                  const cpct = count>0?Math.round(cv/count*100):0;
+                  return `<tr class="${subId}" style="display:none;background:#f5f9ff">
+                    <td style="padding:4px 10px 4px 32px;color:#3a5a8a;font-size:.65rem">↳ ${ctr}</td>
+                    <td style="padding:4px 10px;text-align:right;color:#3a5a8a;font-size:.65rem;font-weight:600">${cv}</td>
+                    <td style="padding:4px 10px">
+                      <div style="display:flex;align-items:center;gap:6px">
+                        <div style="flex:1;background:#dce8f8;border-radius:2px;height:4px;overflow:hidden">
+                          <div style="width:${cpct}%;background:${colour};height:100%;opacity:.6"></div>
+                        </div>
+                        <span style="font-size:.58rem;color:#3a5a8a;flex-shrink:0">${cpct}%</span>
+                      </div>
+                    </td>
+                  </tr>`;
+                }).join('');
+                return `<tr style="background:${ri%2===0?'#fff':'#faf8f5'};border-top:1px solid #f0ebe0;cursor:pointer"
+                    onclick="(function(id){const rs=document.querySelectorAll('.'+id);const hide=rs[0]&&rs[0].style.display!=='none';rs.forEach(r=>r.style.display=hide?'none':'');this.querySelector('.rc-arr').textContent=hide?'▶':'▼';}).call(this,'${subId}')">
+                  <td style="padding:7px 10px;color:var(--navy);font-weight:600">
+                    <span style="display:inline-flex;align-items:center;gap:6px">
+                      <span class="rc-arr" style="font-size:.55rem;color:var(--muted);width:10px">▶</span>
+                      <span style="width:7px;height:7px;border-radius:50%;background:${colour};flex-shrink:0"></span>
+                      ${prog}
+                    </span>
+                  </td>
+                  <td style="padding:7px 10px;text-align:right;font-weight:700;color:#1a7a30">${count}</td>
+                  <td style="padding:7px 10px">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <div style="flex:1;background:#f0ebe0;border-radius:3px;height:6px;overflow:hidden">
+                        <div style="width:${pct}%;background:${colour};height:100%"></div>
+                      </div>
+                      <span style="font-size:.6rem;color:var(--muted);flex-shrink:0">${pct}%</span>
                     </div>
-                    <span style="font-size:.6rem;color:var(--muted);flex-shrink:0">${pct}%</span>
-                  </div>
-                </td>
-              </tr>`;
-            }).join('');
+                  </td>
+                </tr>
+                ${centreRows}`;
+              }).join('')}`;
           }).join('')}
         </tbody>
       </table></div>
