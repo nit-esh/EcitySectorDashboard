@@ -6674,7 +6674,6 @@ function loadRegCounts(centre){
 let _regGroupBy  = 'date'; // 'date' | 'centre' | 'programme'
 let _regView     = 'tiles'; // 'tiles' | 'table'
 let _regCountRows = [];   // last rendered rows — used by export
-let _regDayFilter = 0;    // 0 = All, 3/5/10 = next N days
 
 function _exportRegCountsCSV(filename){
   const fmtDt = raw => {
@@ -6782,31 +6781,10 @@ function buildRegCounts(centre){
   }
 
   rows.sort((a,b)=> new Date(a.startDate||0)-new Date(b.startDate||0) || a.programme.localeCompare(b.programme));
+  _regCountRows = rows; // store for export
 
-  // Apply day filter if set
-  const _parseDate = raw => {
-    if(!raw) return null;
-    if(/^\d+\s+[A-Za-z]+\s+\d{4}$/.test(raw.trim())){
-      const [d,m,y]=raw.trim().split(' '); return new Date(`${m} ${d} ${y}`);
-    }
-    const d=new Date(raw.replace(' ','T')); return isNaN(d)?null:d;
-  };
-  let filteredRows = rows;
-  if(_regDayFilter > 0){
-    const today = new Date(); today.setHours(0,0,0,0);
-    const cutoff = new Date(today); cutoff.setDate(today.getDate() + _regDayFilter);
-    filteredRows = rows.filter(r=>{
-      const d = _parseDate(r.startDate);
-      return d && d >= today && d <= cutoff;
-    });
-  }
-  _regCountRows = filteredRows; // store for export
-
-  if(!filteredRows.length){
-    const msg = _regDayFilter > 0
-      ? `No programmes starting in the next ${_regDayFilter} days.`
-      : 'No upcoming programmes found.';
-    el.innerHTML=`<div style="padding:24px;color:var(--muted);font-size:.8rem">${msg}</div>`;
+  if(!rows.length){
+    el.innerHTML=`<div style="padding:24px;color:var(--muted);font-size:.8rem">No upcoming programmes found.</div>`;
     return;
   }
 
@@ -6818,7 +6796,6 @@ function buildRegCounts(centre){
     return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
   };
 
-  const rows = filteredRows; // use filtered set for all rendering below
   const totalConfirmed = rows.reduce((s,r)=>s+(r.confirmed||0),0);
   const withCount = rows.filter(r=>r.confirmed!==null).length;
 
@@ -7046,17 +7023,6 @@ function buildRegCounts(centre){
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         ${viewToggle}
         ${togBtn()}
-        <!-- Day filter toggle -->
-        <div style="display:inline-flex;background:#e8e4db;border-radius:8px;padding:3px;gap:2px">
-          ${[['All',0],['3d',3],['5d',5],['10d',10]].map(([lbl,n])=>{
-            const active = _regDayFilter===n;
-            return `<button onclick="_regDayFilter=${n};buildRegCounts('${centre||''}')"
-              style="padding:4px 10px;border:none;border-radius:6px;cursor:pointer;font-size:.68rem;font-weight:${active?'800':'600'};
-                     background:${active?'#fff':'transparent'};color:${active?'var(--navy)':'#888'};
-                     box-shadow:${active?'0 1px 4px rgba(0,0,0,.18)':'none'};white-space:nowrap"
-              title="${n===0?'Show all upcoming':'Show programmes starting in next '+n+' days'}">${lbl}</button>`;
-          }).join('')}
-        </div>
         <div style="background:#eef7ee;border:1px solid #b8ddb8;border-radius:20px;padding:5px 14px;font-size:.75rem;font-weight:800;color:#1a7a30">
           Total: ${totalConfirmed.toLocaleString()}
         </div>
