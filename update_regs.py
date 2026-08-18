@@ -569,6 +569,49 @@ def parse_ie_online(xlsx_path):
     return out
 
 
+# ── IE Online current month parsing ───────────────────────────────────────────
+IEO_CM_START = "/* __IEO_CURRENT_MONTH_START__ */"
+IEO_CM_END   = "/* __IEO_CURRENT_MONTH_END__ */"
+
+def parse_ieo_current_month(xlsx_path):
+    """Parse IE_Online_CurrentMonthStatus_*.xlsx.
+    Returns dict: {month: 'August 2026', centres: {centre: count}, total: N}
+    """
+    import re as _re
+    try:
+        import openpyxl as _opx
+        wb = _opx.load_workbook(xlsx_path, data_only=True)
+        ws = wb.active
+    except Exception as e:
+        print(f"  ⚠ Could not open current month IE Online file: {e}")
+        return {}
+
+    # Extract month from filename e.g. IE_Online_CurrentMonthStatus_August.xlsx
+    fname = os.path.basename(xlsx_path)
+    m = _re.search(r'CurrentMonthStatus[_\-]([A-Za-z]+)', fname)
+    month_name = m.group(1) if m else 'Current'
+    import datetime as _dt
+    month_str = f"{month_name} {_dt.date.today().year}"
+
+    centres = {}
+    total = 0
+    for row in ws.iter_rows(values_only=True):
+        v0, v1 = row[0], row[1]
+        if v0 is None or v1 is None: continue
+        s_raw = str(v0)
+        s = s_raw.strip()
+        if not s or s in ('Total', 'Karnataka', 'None', 'Count'): continue
+        try: count = int(v1)
+        except: continue
+        indent = len(s_raw) - len(s)
+        if indent >= 10:   # individual centre rows
+            centres[s] = count
+            total += count
+
+    print(f"  ✓ IE Online current month ({month_str}): {len(centres)} centres, {total} total")
+    return {'month': month_str, 'centres': centres, 'total': total}
+
+
 # ── Fetch upcoming programs from Isha API and build embedded data ─────────────
 UP_START = "/* __UPCOMING_DATA_START__ */"
 UP_END   = "/* __UPCOMING_DATA_END__ */"
@@ -912,10 +955,26 @@ def fetch_upcoming_programs():
 # ── Inject LIVE_REGS, CENTRE_DATA, MONTHLY_DATA, and CENTRE_TIMESTAMPS into HTML ─
 LIVE_START = "/* __LIVE_REGS_START__ */"
 LIVE_END   = "/* __LIVE_REGS_END__ */"
+RH_START   = "/* __REGS_HISTORY_START__ */"
+RH_END     = "/* __REGS_HISTORY_END__ */"
 TS_START   = "/* __CENTRE_TIMESTAMPS_START__ */"
 TS_END     = "/* __CENTRE_TIMESTAMPS_END__ */"
 
-def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timestamps=None, upcoming=None, ieo_data=None):
+def read_regs_history(html):
+    """Read existing LIVE_REGS_HISTORY array from HTML. Returns list of {date, regs} dicts."""
+    m = re.search(re.escape(RH_START) + r'(.*?)' + re.escape(RH_END), html, re.DOTALL)
+    if not m:
+        return []
+    block = m.group(1)
+    arr_m = re.search(r'const LIVE_REGS_HISTORY\s*=\s*(\[.*?\]);', block, re.DOTALL)
+    if not arr_m:
+        return []
+    try:
+        return json.loads(arr_m.group(1))
+    except json.JSONDecodeError:
+        return []
+
+def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timestamps=None, upcoming=None, ieo_data=None, ieo_cm_data=None, regs_history=None):
     # 1. LIVE_REGS block
     dt          = datetime.datetime.fromtimestamp(latest_mtime)
     updated_str = dt.strftime('%d %b %Y, %I:%M %p')
@@ -929,6 +988,16 @@ def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timest
     html = re.sub(re.escape(LIVE_START) + r'.*?' + re.escape(LIVE_END),
                   live_block, html, flags=re.DOTALL)
     print(f"  ✓ Updated LIVE_REGS  (as of {updated_str})")
+
+    # 1b. REGS_HISTORY block — keep last 3 daily snapshots
+    if regs_history is not None and RH_START in html:
+        rh_block = (f"{RH_START}\nconst LIVE_REGS_HISTORY = "
+                    f"{json.dumps(regs_history, ensure_ascii=False)};\n{RH_END}")
+        html = re.sub(re.escape(RH_START) + r'.*?' + re.escape(RH_END),
+                      rh_block, html, flags=re.DOTALL)
+        print(f"  ✓ Updated LIVE_REGS_HISTORY ({len(regs_history)} day(s))")
+    elif RH_START not in html:
+        print(f"  ⚠ REGS_HISTORY markers not found — skipping")
 
     # 2. CENTRE_DATA block
     if centre_data is not None and CD_START in html:
@@ -998,11 +1067,27 @@ def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timest
     elif IEO_START not in html:
         print(f"  ⚠ IE_ONLINE markers not found — skipping")
 
+    # 7. IEO_CURRENT_MONTH block
+    if ieo_cm_data is not None and IEO_CM_START in html:
+        cm_block = (f"{IEO_CM_START}\nconst IEO_CURRENT_MONTH = "
+                    f"{json.dumps(ieo_cm_data, ensure_ascii=False)};\n{IEO_CM_END}")
+        html = re.sub(re.escape(IEO_CM_START) + r'.*?' + re.escape(IEO_CM_END),
+                      cm_block, html, flags=re.DOTALL)
+        print(f"  ✓ Updated IEO_CURRENT_MONTH ({ieo_cm_data.get('month','?')})")
+    elif IEO_CM_START not in html:
+        print(f"  ⚠ IEO_CURRENT_MONTH markers not found — skipping")
+
     with open(HTML, 'w', encoding='utf-8') as f:
         f.write(html)
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--date', help='Override history date key (YYYY-MM-DD), e.g. 2026-08-17')
+    parser.add_argument('file', nargs='?', help='Optional single file path')
+    args, _ = parser.parse_known_args()
+
     print("\n── Karnataka Registration Counts Updater ──")
 
     files = find_all_files()
@@ -1120,6 +1205,35 @@ if __name__ == '__main__':
     else:
         print(f"\n  ⚠ IE Online file not found in {SANTHOSHA_DIR}")
 
+    # Parse IE Online current month data
+    cm_candidates = sorted(_glob.glob(os.path.join(SANTHOSHA_DIR, 'IE_Online_CurrentMonthStatus*.xlsx')))
+    ieo_cm_data = None
+    if cm_candidates:
+        cm_path = cm_candidates[-1]
+        print(f"\nParsing IE Online current month from {os.path.basename(cm_path)} …")
+        ieo_cm_data = parse_ieo_current_month(cm_path)
+        if ieo_cm_data is not None:
+            cm_mtime = os.path.getmtime(cm_path)
+            ieo_cm_data['as_of'] = datetime.datetime.fromtimestamp(cm_mtime).strftime('%d %b %Y')
+    else:
+        print(f"\n  ⚠ IE Online current month file not found in {SANTHOSHA_DIR}")
+
+    # Build 3-day registration history — use Pivot Event file's mtime as the date
+    pivot_files = [f for f in files if 'pivot event' in os.path.basename(f).lower()]
+    if pivot_files:
+        pivot_mtime = max(os.path.getmtime(f) for f in pivot_files)
+        today_str = datetime.datetime.fromtimestamp(pivot_mtime).strftime('%Y-%m-%d')
+    else:
+        today_str = datetime.datetime.fromtimestamp(latest_mtime).strftime('%Y-%m-%d')
+    regs_history = read_regs_history(html)
+    # Remove existing entry for today (will be replaced with fresh data)
+    regs_history = [h for h in regs_history if h.get('date') != today_str]
+    # Append today's snapshot
+    regs_history.append({'date': today_str, 'regs': regs})
+    # Sort chronologically so slice(-3) in JS always picks the 3 most recent dates
+    regs_history.sort(key=lambda h: h['date'])
+    # Keep all history (display limit handled in the dashboard UI)
+
     print(f"\nInjecting into dashboard …")
     inject_html(
         html,
@@ -1130,6 +1244,8 @@ if __name__ == '__main__':
         file_timestamps if file_timestamps else None,
         upcoming,
         ieo_data,
+        ieo_cm_data,
+        regs_history,
     )
 
     # Cleanup
