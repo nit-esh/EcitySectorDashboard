@@ -531,14 +531,14 @@ def parse_ie_online(xlsx_path):
         try: count = int(row[5] or 0)
         except: count = 0
 
-        if indent == 5:     # Year  e.g. "2026"
+        if indent == 5:     # Year  e.g. "2023"
             cur_year = s; cur_month = None; cur_centre = None
-        elif indent == 10:  # Month e.g. "January 2026"
+        elif indent == 10:  # Month e.g. "October 2023"
             cur_month = s; cur_centre = None
-        elif indent == 15:  # Centre
+        elif indent == 15:  # Centre e.g. "Hebbal"
             cur_centre = s
             raw.setdefault(s, {}).setdefault(cur_year, {}).setdefault(cur_month, {st: 0 for st in ALL_IEO_STATUSES})
-        elif indent == 25:  # Status
+        elif indent == 20:  # Status e.g. "Course Completed"
             if cur_centre and cur_year and cur_month:
                 m_dict = raw.get(cur_centre, {}).get(cur_year, {}).get(cur_month, {})
                 if s in m_dict:
@@ -1109,14 +1109,16 @@ if __name__ == '__main__':
     print(f"\nFetching upcoming programs from Isha API …")
     upcoming = fetch_upcoming_programs()
 
-    # Parse IE Online data
-    ieo_path = os.path.join(SANTHOSHA_DIR, 'IE Online - All center.xlsx')
+    # Parse IE Online data — glob for any matching file (handles version suffixes like -3)
+    import glob as _glob
+    ieo_candidates = sorted(_glob.glob(os.path.join(SANTHOSHA_DIR, 'IE Online - All center*.xlsx')))
     ieo_data = None
-    if os.path.exists(ieo_path):
-        print(f"\nParsing IE Online data …")
+    if ieo_candidates:
+        ieo_path = ieo_candidates[-1]  # use latest (alphabetically last)
+        print(f"\nParsing IE Online data from {os.path.basename(ieo_path)} …")
         ieo_data = parse_ie_online(ieo_path)
     else:
-        print(f"\n  ⚠ IE Online file not found at {ieo_path}")
+        print(f"\n  ⚠ IE Online file not found in {SANTHOSHA_DIR}")
 
     print(f"\nInjecting into dashboard …")
     inject_html(
