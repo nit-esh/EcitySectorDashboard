@@ -146,7 +146,23 @@ _MONTH_MAP = {
 }
 
 def extract_start_date(text):
-    m  = re.search(r'\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+(\d{1,2})\b', text.lower())
+    t = text.lower()
+    # Pattern 0: cross-month range "29 Oct - 01 Nov 2026" or "29 Oct – 01 Nov 2026"
+    # The year sits at the end with the end-month; we extract the start day+month.
+    m = re.search(
+        r'\b(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s*[-–]\s*\d{1,2}\s+\w+\s+(20\d{2})\b',
+        t)
+    if m:
+        return f"{m.group(3)}-{_MONTH_MAP[m.group(2)]}-{m.group(1).zfill(2)}"
+    # Pattern 1: "12-15 Nov 2026" or "12 Nov 2026" — day-first, same-month range.
+    # Requires a digit before the month name so "marathahalli" can never match.
+    m = re.search(
+        r'\b(\d{1,2})(?:-\d{1,2})?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+(20\d{2})\b',
+        t)
+    if m:
+        return f"{m.group(3)}-{_MONTH_MAP[m.group(2)]}-{m.group(1).zfill(2)}"
+    # Pattern 2 (fallback): "Nov 12 2026" or "Nov 12, 2026" — month-first format.
+    m  = re.search(r'\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+(\d{1,2})\b', t)
     ym = re.search(r'\b(20\d{2})\b', text)
     if m and ym:
         return f"{ym.group(1)}-{_MONTH_MAP[m.group(1)]}-{m.group(2).zfill(2)}"
