@@ -3586,6 +3586,73 @@ const LIVE_REGS = {
     "yogasanas|2026-08-20": 3
   }
 };
+const LIVE_REGS_LANG = {
+  "sadhguru sannidhi": {
+    "shoonya intensive|2026-10-15": "English",
+    "shoonya intensive|2026-10-22": "English",
+    "shoonya intensive|2026-10-29": "English"
+  },
+  "electronic": {
+    "inner engineering|2026-08-20": "English"
+  },
+  "hebbal": {
+    "inner engineering|2026-10-29": "English"
+  },
+  "indiranagar": {
+    "bhuta shuddhi|2026-09-05": "English",
+    "jala neti|2026-09-05": "English",
+    "shanmukhi|2026-09-05": "English",
+    "surya kriya|2026-09-02": "English",
+    "yogasanas|2026-09-02": "English"
+  },
+  "jayanagar": {
+    "angamardana|2026-09-02": "English",
+    "inner engineering|2026-08-20": "English",
+    "yogasanas|2026-09-16": "English"
+  },
+  "hsr": {
+    "angamardana|2026-08-23": "English",
+    "surya kriya|2026-08-19": "English"
+  },
+  "malleswaram": {
+    "bhuta shuddhi|2026-09-20": "English",
+    "inner engineering|2026-09-10": "English",
+    "surya kriya|2026-09-19": "English",
+    "yogasanas|2026-08-26": "English",
+    "yogasanas|2026-09-21": "English"
+  },
+  "marathahalli": {
+    "angamardana|2026-08-17": "English",
+    "angamardana|2026-08-31": "English",
+    "bhuta shuddhi|2026-08-30": "English",
+    "inner engineering|2026-11-12": "English",
+    "shanmukhi|2026-09-06": "English",
+    "surya kriya|2026-09-02": "English",
+    "surya kriya|2026-08-22": "English",
+    "yogasanas|2026-08-24": "English"
+  },
+  "mysuru": {
+    "inner engineering|2026-10-22": "English"
+  },
+  "vijayanagar": {
+    "angamardana|2026-08-22": "English",
+    "bhuta shuddhi|2026-09-12": "English",
+    "shanmukhi|2026-09-12": "English",
+    "surya kriya|2026-08-27": "English",
+    "yogasanas|2026-09-16": "English"
+  },
+  "kanakapura": {
+    "angamardana|2026-09-12": "English",
+    "surya kriya|2026-09-01": "English",
+    "bhuta shuddhi|2026-09-12": "English"
+  },
+  "budigere cross": {
+    "inner engineering|2026-08-20": "English"
+  },
+  "yelahanka": {
+    "yogasanas|2026-08-20": "English"
+  }
+};
 const LIVE_REGS_UPDATED = "22 Aug 2026, 01:58 AM";
 /* __LIVE_REGS_END__ */
 
@@ -6714,6 +6781,7 @@ function _exportRegCountsCSV(filename){
     const d = new Date((raw||'').replace(' ','T'));
     return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
   };
+  const _dc=(fr,to)=>{if(!fr)return'';const a=new Date((fr||'').slice(0,10)+'T00:00:00Z'),b=new Date((to||fr||'').slice(0,10)+'T00:00:00Z');const d=Math.round((b-a)/86400000)+1;return` (${d}\u00a0day${d===1?'':'s'})`;};
   const esc = v => `"${String(v==null?'':v).replace(/"/g,'""')}"`;
 
   // Metadata header
@@ -6794,7 +6862,7 @@ function _lookupHistCount(regsObj, progName, centreName, startDate){
 function buildRegCounts(centre){
   const el = document.getElementById('regCountsContent');
   const isAll = !centre || centre === '__all__';
-  const centres = isAll ? Object.keys(ALL_UPCOMING) : [centre];
+  const centres = isAll ? Object.keys(ALL_UPCOMING).filter(c=>!/coimbatore|isha\s+yoga\s+cent/i.test(c)) : [centre];
   const showCentreCol = isAll || currentRole==='admin';
 
   // Collect rows
@@ -6828,7 +6896,8 @@ function buildRegCounts(centre){
         startDate: p.fr||'',
         endDate: p.to||'',
         confirmed: reg !== null ? reg.confirmed : null,
-        url: p.url||''
+        url: p.url||'',
+        lang: (()=>{ if(typeof LIVE_REGS_LANG==='undefined') return ''; const _ck=_normCentreKey(c); const _ds=(p.fr||'').slice(0,10); const _pk=_normProgKey(p.name)+(_ds?'|'+_ds:''); return (LIVE_REGS_LANG[_ck]||{})[_pk]||''; })()
       });
     }
   }
@@ -6861,6 +6930,7 @@ function buildRegCounts(centre){
     const d = new Date(raw.replace(' ','T'));
     return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
   };
+  const _dc=(fr,to)=>{if(!fr)return'';const a=new Date((fr||'').slice(0,10)+'T00:00:00Z'),b=new Date((to||fr||'').slice(0,10)+'T00:00:00Z');const d=Math.round((b-a)/86400000)+1;return` (${d}\u00a0day${d===1?'':'s'})`;};
 
   const totalConfirmed = rows.reduce((s,r)=>s+(r.confirmed||0),0);
   const withCount = rows.filter(r=>r.confirmed!==null).length;
@@ -6912,12 +6982,13 @@ function buildRegCounts(centre){
     tilesHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px">
       ${rows.map(r=>{
         const dateStr = r.startDate
-          ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')
+          ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')+_dc(r.startDate,r.endDate)
           : '—';
         const clr = progColor(r.progLabel);
         return `<a href="${r.url||'#'}" target="_blank" rel="noopener" style="display:block;text-decoration:none">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 15px;border-left:3px solid ${clr};height:100%;box-sizing:border-box">
             <div style="font-size:.58rem;font-weight:700;color:${clr};text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.progLabel}</div>
+            ${r.lang?`<div style="font-size:.52rem;font-weight:600;color:#888;margin-bottom:2px;white-space:nowrap">${r.lang}</div>`:''}
             ${showCentreCol?`<div style="font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.centre}</div>`:''}
             <div style="font-size:.6rem;color:var(--muted);margin-bottom:10px">${dateStr}</div>
             <div style="font-size:1.7rem;font-weight:900;color:${r.confirmed===null?'#ccc':'var(--navy)'};line-height:1">${r.confirmed===null?'—':r.confirmed}</div>
@@ -6972,7 +7043,7 @@ function buildRegCounts(centre){
         <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px">
           ${pRows.map(r=>{
             const dateStr = r.startDate
-              ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')
+              ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')+_dc(r.startDate,r.endDate)
               : '—';
             return `<a href="${r.url||'#'}" target="_blank" rel="noopener" style="text-decoration:none">
               <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;min-width:110px">
@@ -7011,7 +7082,7 @@ function buildRegCounts(centre){
       lastGrp = grp; dataRowIdx = 0;
       const byProg = _regGroupBy==='programme';
       const grpClr = byProg ? progColor(grp) : '#1a2640';
-      const cols = (showCentreCol ? 3 : 2) + (useHist ? _histDisplay.length : 1);
+      const cols = (showCentreCol ? 4 : 3) + (useHist ? _histDisplay.length : 1);
       const total = grpTotals[grp]||0;
       const cnt   = grpCounts[grp]||0;
       const topBorder = grpIdx > 0 ? `border-top:3px solid ${grpClr};` : '';
@@ -7046,7 +7117,8 @@ function buildRegCounts(centre){
         ${_regGroupBy==='programme'
           ? 'font-weight:700;color:var(--navy);font-size:.76rem'
           : 'color:var(--text);font-size:.72rem'}">${r.centre}</td>`:''}
-      <td style="padding:9px 12px;color:var(--text);font-size:.72rem;white-space:nowrap">${r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''): '—'}</td>
+      <td style="padding:9px 12px;color:var(--text);font-size:.72rem;white-space:nowrap">${r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')+_dc(r.startDate,r.endDate): '—'}</td>
+      <td style="padding:9px 12px;color:var(--muted);font-size:.68rem;white-space:nowrap">${r.lang||'—'}</td>
       ${useHist ? r.histCounts.map((cnt,i)=>{
         const isLatest = i===_histDisplay.length-1;
         const val = (cnt!==null) ? cnt : (isLatest ? r.confirmed : null);
@@ -7064,7 +7136,7 @@ function buildRegCounts(centre){
         <tr style="background:var(--surface-3);border-bottom:2px solid var(--border)">
           ${_regGroupBy!=='programme'?th('Programme'):''}
           ${(showCentreCol&&_regGroupBy!=='centre')?th(_regGroupBy==='programme'?'Centre':'Centre'):''}
-          ${th('Date')}${useHist ? _histDates.map((d,i)=>thC(i===_histDisplay.length-1?`<span style="color:var(--navy)">${d} ✦</span>`:d)).join('') : thC('Confirmed')}
+          ${th('Date')}${th('Language')}${useHist ? _histDates.map((d,i)=>thC(i===_histDisplay.length-1?`<span style="color:var(--navy)">${d} ✦</span>`:d)).join('') : thC('Confirmed')}
         </tr>
       </thead>
       <tbody>${tblBodyRows.join('')}</tbody>
@@ -8202,75 +8274,67 @@ function buildIeoCurrentMonth(){
 
   const centres = Object.entries(cm.centres).sort((a,b)=>b[1]-a[1]);
   const total   = cm.total || centres.reduce((s,[,v])=>s+v, 0);
-  const max     = centres[0]?.[1] || 1;
+  const half    = Math.ceil(centres.length / 2);
+  const left    = centres.slice(0, half);
+  const right   = centres.slice(half);
 
-  // KPI strip
-  const kpiHtml = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
-      <div style="background:#1e2a45;border-radius:10px;padding:14px 16px;color:#fff">
-        <div style="font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.7;margin-bottom:4px">Total Registrations</div>
-        <div style="font-size:1.6rem;font-weight:900">${total.toLocaleString()}</div>
-        <div style="font-size:.6rem;opacity:.6;margin-top:2px">${cm.month}</div>
-        ${cm.as_of ? `<div style="font-size:.52rem;opacity:.45;margin-top:2px">file updated: ${cm.as_of}</div>` : ''}
+  // Prominent month header (no KPI tiles)
+  const headerHtml = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="background:#1e2a45;color:#fff;border-radius:8px;padding:6px 14px;font-size:.95rem;font-weight:900;letter-spacing:.5px">${cm.month}</div>
+        <div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--navy)">${total.toLocaleString()} total registrations &nbsp;·&nbsp; ${centres.length} active centres</div>
+          ${cm.as_of ? `<div style="font-size:.6rem;color:var(--muted);margin-top:1px">updated ${cm.as_of}</div>` : ''}
+        </div>
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
-        <div style="font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Centres Active</div>
-        <div style="font-size:1.6rem;font-weight:900;color:var(--navy)">${centres.length}</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
-        <div style="font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Top Centre</div>
-        <div style="font-size:.9rem;font-weight:800;color:var(--navy)">${centres[0]?.[0]||'—'}</div>
-        <div style="font-size:.65rem;color:#1a6b3a;font-weight:700">${centres[0]?.[1]||0} registrations</div>
+      <div style="display:flex;gap:10px;font-size:.65rem;font-weight:700">
+        <span style="background:#fff8e0;border:1.5px solid #e6c84a;border-radius:6px;padding:3px 8px;color:#7a5c00">🥇 ${centres[0]?.[0]||'—'}</span>
+        <span style="background:#f5f5f5;border:1.5px solid #bbb;border-radius:6px;padding:3px 8px;color:#555">${centres[1]?.[0]?'🥈 '+centres[1][0]:''}</span>
+        <span style="background:#fff3ec;border:1.5px solid #e8a87c;border-radius:6px;padding:3px 8px;color:#7a3800">${centres[2]?.[0]?'🥉 '+centres[2][0]:''}</span>
       </div>
     </div>`;
 
-  // Table
-  const tableHtml = `
+  // Row renderer — globalIdx is 0-based rank across full sorted list
+  const renderRow = ([centre, count], globalIdx) => {
+    const rank = globalIdx + 1;
+    const isTop3 = rank <= 3;
+    const medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
+    const rowBg = rank===1?'#fff8e0':rank===2?'#f4f4f4':rank===3?'#fff3ec':'transparent';
+    const countColor = isTop3 ? '#8a5c00' : '#1a6b3a';
+    const dashCentre = _ieoToDashCentre(centre);
+    const nameHtml = dashCentre
+      ? `<a href="javascript:void(0)" onclick="_navToIeoOnlineCentre('${dashCentre}')" style="color:var(--navy);text-decoration:none;font-weight:${isTop3?'800':'600'};border-bottom:1px dashed var(--navy)" onmouseover="this.style.color='var(--saffron)'" onmouseout="this.style.color='var(--navy)'">${centre}</a>`
+      : `<span style="font-weight:${isTop3?'700':'400'};color:${isTop3?'var(--navy)':'var(--muted)'}">${centre}</span>`;
+    return `<tr style="border-top:1px solid #f0ebe0;background:${rowBg}">
+      <td style="padding:5px 8px;font-size:.65rem;font-weight:${isTop3?'800':'400'};color:var(--muted);white-space:nowrap">${medal||rank}</td>
+      <td style="padding:5px 8px;font-size:.7rem">${nameHtml}</td>
+      <td style="padding:5px 10px;text-align:right;font-weight:${isTop3?'800':'700'};color:${countColor};font-size:.72rem;white-space:nowrap">${count.toLocaleString()}</td>
+    </tr>`;
+  };
+
+  const thS = `padding:6px 8px;text-align:left;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;background:#f5f2eb`;
+  const thR = `padding:6px 10px;text-align:right;font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;background:#f5f2eb`;
+
+  const mkTable = (rows, offset) => `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-      <table style="width:100%;border-collapse:collapse;font-size:.73rem">
-        <thead>
-          <tr style="background:#f5f2eb">
-            <th style="padding:8px 12px;text-align:left;font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">#</th>
-            <th style="padding:8px 12px;text-align:left;font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Centre</th>
-            <th style="padding:8px 12px;text-align:right;font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Registrations</th>
-            <th style="padding:8px 12px;font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">Share</th>
-            <th style="padding:8px 12px;text-align:right;font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase">% of Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${centres.map(([centre, count], idx)=>{
-            const pct = Math.round(count/max*100);
-            const sharePct = Math.round(count/total*100);
-            const dashCentre = _ieoToDashCentre(centre);
-            const nameHtml = dashCentre
-              ? `<a href="javascript:void(0)" onclick="_navToIeoOnlineCentre('${dashCentre}')" style="color:var(--navy);text-decoration:none;font-weight:600;border-bottom:1px dashed var(--navy)" onmouseover="this.style.color='var(--saffron)'" onmouseout="this.style.color='var(--navy)'">${centre}</a>`
-              : `<span style="color:var(--muted)">${centre}</span>`;
-            return `<tr style="border-top:1px solid #f0ebe0;background:${idx%2===0?'#fff':'#faf8f5'}">
-              <td style="padding:7px 12px;color:var(--muted);font-size:.65rem">${idx+1}</td>
-              <td style="padding:7px 12px">${nameHtml}</td>
-              <td style="padding:7px 12px;text-align:right;font-weight:700;color:#1a6b3a">${count.toLocaleString()}</td>
-              <td style="padding:7px 12px;min-width:120px">
-                <div style="display:flex;align-items:center;gap:6px">
-                  <div style="flex:1;background:#f0ebe0;border-radius:3px;height:7px;overflow:hidden">
-                    <div style="width:${pct}%;background:#1e4080;height:100%;border-radius:3px"></div>
-                  </div>
-                </div>
-              </td>
-              <td style="padding:7px 12px;text-align:right;color:var(--muted);font-size:.68rem">${sharePct}%</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-        <tfoot>
-          <tr style="background:#1e2a45;color:#fff;font-weight:800">
-            <td colspan="2" style="padding:8px 12px">Karnataka Total</td>
-            <td style="padding:8px 12px;text-align:right;color:#7be8a0">${total.toLocaleString()}</td>
-            <td colspan="2" style="padding:8px 12px;text-align:right;color:#7be8a0">100%</td>
-          </tr>
-        </tfoot>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="${thS}">#</th>
+          <th style="${thS}">Centre</th>
+          <th style="${thR}">Regs</th>
+        </tr></thead>
+        <tbody>${rows.map((row,i)=>renderRow(row, i+offset)).join('')}</tbody>
       </table>
     </div>`;
 
-  el.innerHTML = kpiHtml + tableHtml;
+  const tableHtml = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      ${mkTable(left, 0)}
+      ${mkTable(right, half)}
+    </div>`;
+
+  el.innerHTML = headerHtml + tableHtml;
 }
 
 function buildIeOnlinePage(){
@@ -8473,10 +8537,12 @@ function buildAdminRegCounts(){
     const d = new Date((raw||'').replace(' ','T'));
     return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
   };
+  const _dc=(fr,to)=>{if(!fr)return'';const a=new Date((fr||'').slice(0,10)+'T00:00:00Z'),b=new Date((to||fr||'').slice(0,10)+'T00:00:00Z');const d=Math.round((b-a)/86400000)+1;return` (${d}\u00a0day${d===1?'':'s'})`;};
 
   // Flatten all upcoming programmes into rows with centre label
   const rows = [];
   for(const [centre, progs] of Object.entries(ALL_UPCOMING)){
+    if(/coimbatore|isha\s+yoga\s+cent/i.test(centre)) continue;
     if(!(progs||[]).length) continue;
     for(const p of progs){
       const reg = _getRegInfo(p.name, centre, p.fr);
@@ -8496,7 +8562,8 @@ function buildAdminRegCounts(){
       else if(nl.includes('surya shakti'))   progLabel='Surya Shakti';
       else if(nl.includes('guru pooja')||nl.includes('guru puja')) progLabel='Guru Pooja';
       rows.push({ programme:p.name, progLabel, centre, startDate:p.fr||'', endDate:p.to||'',
-                  confirmed: reg!==null ? reg.confirmed : null, url:p.url||'' });
+                  confirmed: reg!==null ? reg.confirmed : null, url:p.url||'',
+                  lang: (()=>{ if(typeof LIVE_REGS_LANG==='undefined') return ''; const _ck=_normCentreKey(centre); const _ds=(p.fr||'').slice(0,10); const _pk=_normProgKey(p.name)+(_ds?'|'+_ds:''); return (LIVE_REGS_LANG[_ck]||{})[_pk]||''; })() });
     }
   }
   rows.sort((a,b)=>new Date(a.startDate||0)-new Date(b.startDate||0)||a.programme.localeCompare(b.programme));
@@ -8562,7 +8629,7 @@ function buildAdminRegCounts(){
     tilesHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px">
       ${rows.map(r=>{
         const dateStr = r.startDate
-          ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')
+          ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')+_dc(r.startDate,r.endDate)
           : '—';
         const clr = progColor(r.progLabel);
         return `<a href="${r.url||'#'}" target="_blank" rel="noopener" style="display:block;text-decoration:none">
@@ -8620,7 +8687,7 @@ function buildAdminRegCounts(){
         <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px">
           ${pRows.map(r=>{
             const dateStr = r.startDate
-              ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')
+              ? fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')+_dc(r.startDate,r.endDate)
               : '—';
             return `<a href="${r.url||'#'}" target="_blank" rel="noopener" style="text-decoration:none">
               <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;min-width:110px">
@@ -8650,6 +8717,8 @@ function buildAdminRegCounts(){
     if(k){ grpTotals[k]=(grpTotals[k]||0)+(r.confirmed||0); grpCounts[k]=(grpCounts[k]||0)+1; }
   }
 
+  const th = s => `<th style="padding:9px 12px;text-align:left;font-weight:700;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.5px">${s}</th>`;
+  const thC = s => `<th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.5px">${s}</th>`;
   let lastGrp = null; let dataRowIdx = 0; let grpIdx = 0;
   const tblBodyRows = tblRows.map(r=>{
     const grp = groupKey(r);
@@ -8662,7 +8731,7 @@ function buildAdminRegCounts(){
       const cnt   = grpCounts[grp]||0;
       const topBorder = grpIdx > 0 ? `border-top:3px solid ${grpClr};` : '';
       grpIdx++;
-      grpHdr = `<tr><td colspan="${2 + (useHist ? _histDisplay.length : 1)}" style="padding:0;${topBorder}">
+      grpHdr = `<tr><td colspan="${3 + (useHist ? _histDisplay.length : 1)}" style="padding:0;${topBorder}">
         <div style="display:flex;align-items:center;justify-content:space-between;
                     padding:12px 16px 12px 0;
                     background:${byProg ? grpClr+'1a' : 'rgba(26,38,64,.06)'};
@@ -8676,11 +8745,11 @@ function buildAdminRegCounts(){
           <div style="background:${grpClr};color:#fff;font-size:.7rem;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap">${total} confirmed</div>
         </div>
       </td></tr>
-      <tr style="background:var(--surface-3);border-bottom:1px solid var(--border)">
+      ${grpIdx > 1 ? `<tr style="background:var(--surface-3);border-bottom:1px solid var(--border)">
         ${_regGroupBy!=='programme'?th('Programme'):''}
         ${_regGroupBy!=='centre'?th('Centre'):''}
-        ${th('Date')}${useHist ? _histDates.map((d,i)=>thC(i===_histDisplay.length-1?`<span style="color:var(--navy)">${d} ✦</span>`:d)).join('') : thC('Confirmed')}
-      </tr>`;
+        ${th('Date')}${th('Language')}${useHist ? _histDates.map((d,i)=>thC(i===_histDisplay.length-1?'<span style="color:var(--navy)">'+d+' ✦</span>':d)).join('') : thC('Confirmed')}
+      </tr>` : ''}`;
     }
     const rowBg = dataRowIdx%2===1 ? 'background:var(--surface-2);' : '';
     const grpClrForRow = grp ? (_regGroupBy==='programme' ? progColor(grp) : '#1a2640') : 'transparent';
@@ -8697,7 +8766,8 @@ function buildAdminRegCounts(){
         ${_regGroupBy==='programme'
           ? 'font-weight:700;color:var(--navy);font-size:.76rem'
           : 'color:var(--text);font-size:.72rem'}">${r.centre}</td>`:''}
-      <td style="padding:9px 12px;color:var(--text);font-size:.72rem;white-space:nowrap">${r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):''): '—'}</td>
+      <td style="padding:9px 12px;color:var(--text);font-size:.72rem;white-space:nowrap">${r.startDate?fmtDt(r.startDate)+(r.endDate&&r.endDate!==r.startDate?' – '+fmtDt(r.endDate):'')+_dc(r.startDate,r.endDate): '—'}</td>
+      <td style="padding:9px 12px;color:var(--muted);font-size:.68rem;white-space:nowrap">${r.lang||'—'}</td>
       ${useHist ? r.histCounts.map((cnt,i)=>{
         const isLatest = i===_histDisplay.length-1;
         const val = (cnt!==null) ? cnt : (isLatest ? r.confirmed : null);
@@ -8707,15 +8777,13 @@ function buildAdminRegCounts(){
     </tr>`;
   });
 
-  const th = s => `<th style="padding:9px 12px;text-align:left;font-weight:700;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.5px">${s}</th>`;
-  const thC = s => `<th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.5px">${s}</th>`;
   const tableHtml = `<div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
     <table style="width:100%;border-collapse:collapse;font-size:.73rem">
       <thead>
         <tr style="background:var(--surface-3);border-bottom:2px solid var(--border)">
           ${_regGroupBy!=='programme'?th('Programme'):''}
           ${_regGroupBy!=='centre'?th('Centre'):''}
-          ${th('Date')}${useHist ? _histDates.map((d,i)=>thC(i===_histDisplay.length-1?`<span style="color:var(--navy)">${d} ✦</span>`:d)).join('') : thC('Confirmed')}
+          ${th('Date')}${th('Language')}${useHist ? _histDates.map((d,i)=>thC(i===_histDisplay.length-1?`<span style="color:var(--navy)">${d} ✦</span>`:d)).join('') : thC('Confirmed')}
         </tr>
       </thead>
       <tbody>${tblBodyRows.join('')}</tbody>
@@ -9808,6 +9876,7 @@ function buildCSV(centres){
     const d = new Date(raw.replace(' ','T'));
     return isNaN(d) ? raw : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
   };
+  const _dc=(fr,to)=>{if(!fr)return'';const a=new Date((fr||'').slice(0,10)+'T00:00:00Z'),b=new Date((to||fr||'').slice(0,10)+'T00:00:00Z');const d=Math.round((b-a)/86400000)+1;return` (${d}\u00a0day${d===1?'':'s'})`;};
 
   const centreSet = new Set(centres);
   const grouped = {};

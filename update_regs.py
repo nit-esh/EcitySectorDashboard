@@ -144,6 +144,7 @@ _MONTH_MAP = {
     'jan':'01','feb':'02','mar':'03','apr':'04','may':'05','jun':'06',
     'jul':'07','aug':'08','sep':'09','oct':'10','nov':'11','dec':'12'
 }
+_LANG_RE = re.compile(r'\b(English|Kannada|Tamil|Hindi|Telugu|Malayalam|Marathi)\b', re.IGNORECASE)
 
 def extract_start_date(text):
     t = text.lower()
@@ -378,7 +379,7 @@ def export_to_csv(file_path, tmp_csv):
         return export_numbers_to_csv(file_path, tmp_csv)
 
 # ── Parse one CSV, merge into regs (LIVE_REGS) and cd_updates (CENTRE_DATA) ──
-def parse_csv(csv_path, regs, cd_updates, source_label):
+def parse_csv(csv_path, regs, cd_updates, source_label, lang_map=None):
     skipped = 0
     matched = 0
 
@@ -413,6 +414,10 @@ def parse_csv(csv_path, regs, cd_updates, source_label):
             prog_key = f"{prog}|{date}" if date else prog
             if centre not in regs:
                 regs[centre] = {}
+            if lang_map is not None:
+                _lm = _LANG_RE.search(name)
+                if _lm and date:
+                    lang_map.setdefault(centre, {})[f"{prog}|{date}"] = _lm.group(1).title()
             if date:
                 regs[centre][prog_key] = count
             else:
@@ -990,12 +995,13 @@ def read_regs_history(html):
     except json.JSONDecodeError:
         return []
 
-def inject_html(html, regs, centre_data, monthly_data, latest_mtime, file_timestamps=None, upcoming=None, ieo_data=None, ieo_cm_data=None, regs_history=None):
+def inject_html(html, regs, centre_data=None, monthly_data=None, latest_mtime=None, file_timestamps=None, upcoming=None, ieo_data=None, ieo_cm_data=None, regs_history=None, lang_map=None):
     # 1. LIVE_REGS block
     dt          = datetime.datetime.fromtimestamp(latest_mtime)
     updated_str = dt.strftime('%d %b %Y, %I:%M %p')
     regs_json   = json.dumps(regs, indent=2, ensure_ascii=False)
-    live_block  = (f"{LIVE_START}\nconst LIVE_REGS = {regs_json};\n"
+    lang_json   = json.dumps(lang_map or {}, indent=2, ensure_ascii=False)
+    live_block  = (f"{LIVE_START}\nconst LIVE_REGS = {regs_json};\nconst LIVE_REGS_LANG = {lang_json};\n"
                    f"const LIVE_REGS_UPDATED = {json.dumps(updated_str)};\n{LIVE_END}")
 
     if LIVE_START not in html:
@@ -1125,6 +1131,7 @@ if __name__ == '__main__':
         print("  ⚠ Could not parse MONTHLY_DATA from HTML — will skip monthly chart update")
 
     regs            = {}   # merged LIVE_REGS
+    lang_map        = {}   # language per (centre, prog_key)
     cd_updates      = {}   # CENTRE_DATA changes to apply
     monthly_updates = {}   # MONTHLY_DATA changes to apply
     file_timestamps = {}   # per-centre XLS file mtimes (html_centre → mtime float)
@@ -1148,7 +1155,7 @@ if __name__ == '__main__':
         tmp_files.append(tmp_csv)
         print(f"\nExporting {label} → CSV …")
         if export_to_csv(xlsx, tmp_csv):
-            parse_csv(tmp_csv, regs, cd_updates, label)
+            parse_csv(tmp_csv, regs, cd_updates, label, lang_map=lang_map)
         else:
             print(f"  ⚠ Skipping {label} (export failed)")
 
@@ -1262,6 +1269,7 @@ if __name__ == '__main__':
         ieo_data,
         ieo_cm_data,
         regs_history,
+        lang_map=lang_map,
     )
 
     # Cleanup
