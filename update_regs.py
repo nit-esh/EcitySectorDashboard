@@ -63,6 +63,7 @@ CENTRE_PATTERNS = [
     (r'tumkur',                                               'tumkur'),
     (r'whitefield',                                           'whitefield'),
     (r'singasandra',                                          'singasandra'),
+    (r'kodagu|coorg',                                         'kodagu'),
 ]
 
 PROG_PATTERNS = [
@@ -130,6 +131,7 @@ CENTRE_KEY_MAP = {
     'shimoga':         'Shivamogga',
     'tumkur':          'Tumkur',
     'udupi':           'Udupi',
+    'kodagu':          'Kodagu',
 }
 
 # Maps normalised prog key → CENTRE_DATA / MONTHLY_DATA sub-key
