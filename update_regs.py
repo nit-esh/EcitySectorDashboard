@@ -542,8 +542,9 @@ def parse_ie_online(xlsx_path):
         return {}
 
     # raw[centre][year][month][status] = count
+    # Actual xlsx hierarchy: Year(indent5) → Month(indent10) → Status(indent15) → Centre(indent20)
     raw = {}
-    cur_year = cur_month = cur_centre = None
+    cur_year = cur_month = cur_status = None
 
     for row in ws.iter_rows(values_only=True):
         v0 = row[0]
@@ -551,21 +552,22 @@ def parse_ie_online(xlsx_path):
         s_raw = str(v0); s = s_raw.strip()
         if not s or s == 'Total': continue
         indent = len(s_raw) - len(s)
-        try: count = int(row[5] or 0)
+        # Grand total is always the last column in the row
+        try: count = int(row[-1] or 0)
         except: count = 0
 
         if indent == 5:     # Year  e.g. "2023"
-            cur_year = s; cur_month = None; cur_centre = None
+            cur_year = s; cur_month = None; cur_status = None
         elif indent == 10:  # Month e.g. "October 2023"
-            cur_month = s; cur_centre = None
-        elif indent == 15:  # Centre e.g. "Hebbal"
-            cur_centre = s
-            raw.setdefault(s, {}).setdefault(cur_year, {}).setdefault(cur_month, {st: 0 for st in ALL_IEO_STATUSES})
-        elif indent == 20:  # Status e.g. "Course Completed"
-            if cur_centre and cur_year and cur_month:
-                m_dict = raw.get(cur_centre, {}).get(cur_year, {}).get(cur_month, {})
-                if s in m_dict:
-                    m_dict[s] += count
+            cur_month = s; cur_status = None
+        elif indent == 15:  # Status e.g. "Started", "Course Completed"
+            cur_status = s
+        elif indent == 20:  # Centre e.g. "Hebbal"
+            if cur_status and cur_year and cur_month:
+                raw.setdefault(s, {}).setdefault(cur_year, {}).setdefault(cur_month, {st: 0 for st in ALL_IEO_STATUSES})
+                m_dict = raw[s][cur_year][cur_month]
+                if cur_status in m_dict:
+                    m_dict[cur_status] += count
 
     def _to_entry(yd):
         steps = [yd.get(f'Step {i} Completed', 0) for i in range(1, 7)]
