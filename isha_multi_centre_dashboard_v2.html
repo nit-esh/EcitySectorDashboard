@@ -208,8 +208,19 @@ main{max-width:1320px;margin:0 auto;padding:14px 12px 50px}
 
 /* Centre overview (admin all-centres view) */
 .overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:14px}
-.ov-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s;display:flex;flex-direction:column}
+.ov-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s;display:flex;flex-direction:column;position:relative}
 .ov-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:#c8922a}
+.blast-chip{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:.65rem;font-weight:700;cursor:pointer;border:1.5px solid #c8d0df;color:#6b7a99;background:#f5f7fb;transition:all .15s;user-select:none;white-space:nowrap}
+.blast-chip.active{background:#1e3d7a;color:#fff;border-color:#1e3d7a}
+.blast-chip:hover{filter:brightness(.93)}
+.ov-share-bar{position:absolute;bottom:0;left:0;right:0;display:flex;gap:8px;padding:10px 14px;background:linear-gradient(to top,rgba(255,255,255,1) 70%,rgba(255,255,255,.85));opacity:0;transform:translateY(6px);transition:opacity .22s ease,transform .22s ease;pointer-events:none;z-index:10}
+.ov-card:hover .ov-share-bar{opacity:1;transform:translateY(0);pointer-events:auto}
+.ov-share-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border:none;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;letter-spacing:.2px;transition:filter .15s}
+.ov-share-btn:hover{filter:brightness(.92)}
+.ov-share-btn.wa{background:#25D366;color:#fff}
+.ov-share-btn.cp{background:#f0ebe0;color:#1e2a45;border:1px solid #e0d8c8}
+[data-theme="dark"] .ov-share-bar{background:linear-gradient(to top,rgba(30,30,30,1) 70%,rgba(30,30,30,.85))}
+[data-theme="dark"] .ov-share-btn.cp{background:#2a2a2a;color:#eee;border-color:#444}
 .ov-card:active{transform:translateY(-1px)}
 /* Card header band */
 .ov-card-header{background:linear-gradient(135deg,#152a52 0%,#1e3d7a 60%,#2a4d96 100%);padding:14px 16px 13px;position:relative;overflow:hidden}
@@ -880,9 +891,62 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
       <button id="ovNavIeOnline" class="ov-nav-btn" onclick="showOvPage('ieonline')">IE Online</button>
     </div>
     <div id="ovOverviewPage">
-    <div style="margin-bottom:14px">
-      <div id="ovHeading" style="font-size:1.1rem;font-weight:800;color:var(--navy);margin-bottom:4px">All Karnataka Centres — Overview</div>
-      <div id="ovSubtitle" style="font-size:.68rem;color:var(--muted)"></div>
+    <div style="margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div>
+        <div id="ovHeading" style="font-size:1.1rem;font-weight:800;color:var(--navy);margin-bottom:4px">All Karnataka Centres — Overview</div>
+        <div id="ovSubtitle" style="font-size:.68rem;color:var(--muted)"></div>
+      </div>
+      <div id="blastBtn" style="display:none;gap:6px;flex-shrink:0">
+        <button onclick="_openBlastSelect('wa')" style="display:flex;align-items:center;gap:5px;background:#25D366;color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WA Blast
+        </button>
+        <button onclick="_openBlastSelect('copy')" style="display:flex;align-items:center;gap:5px;background:#f0ebe0;color:#1e2a45;border:1px solid #e0d8c8;border-radius:8px;padding:7px 13px;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          Copy Blast
+        </button>
+      </div>
+
+      <!-- Program Selection Modal -->
+      <div id="blastSelectModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)_closeBlastSelect()">
+        <div style="background:#fff;border-radius:16px;width:100%;max-width:420px;max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35);display:flex;flex-direction:column">
+          <!-- Header -->
+          <div style="background:linear-gradient(135deg,#152a52,#1e3d7a);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+            <div style="color:#fff;font-weight:800;font-size:.9rem" id="blastSelectTitle">Select Programmes to Share</div>
+            <button onclick="_closeBlastSelect()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">×</button>
+          </div>
+          <!-- Body -->
+          <div style="overflow-y:auto;padding:14px 18px;flex:1">
+            <!-- Select All -->
+            <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1.5px solid #e8edf5;margin-bottom:8px;cursor:pointer;font-weight:700;font-size:.82rem;color:#1e2a45">
+              <input type="checkbox" id="blastSelAll" style="width:16px;height:16px;accent-color:#1e3d7a" onchange="_blastToggleAll(this.checked)"> Select All
+            </label>
+            <div id="blastProgList" style="display:flex;flex-direction:column;gap:2px"></div>
+          </div>
+          <!-- Footer -->
+          <div style="padding:12px 18px;border-top:1px solid #e8edf5;display:flex;gap:8px;justify-content:flex-end;flex-shrink:0">
+            <button onclick="_closeBlastSelect()" style="padding:8px 16px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer;font-size:.78rem;font-weight:600;color:#666">Cancel</button>
+            <button id="blastSelectSendBtn" onclick="_blastSendSelected()" style="padding:8px 18px;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;color:#fff;background:#25D366">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp Blast Modal -->
+    <div id="blastModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);overflow-y:auto;padding:20px 12px" onclick="if(event.target===this)_closeBlastModal()">
+      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+        <div style="background:linear-gradient(135deg,#152a52,#1e3d7a);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+          <div style="color:#fff;font-weight:800;font-size:.95rem">WhatsApp Blast — All Centres</div>
+          <button onclick="_closeBlastModal()" style="background:rgba(255,255,255,.15);border:none;border-radius:50%;width:28px;height:28px;color:#fff;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+        </div>
+        <div style="padding:6px 16px 4px;background:#f8f6f2;border-bottom:1px solid #e8dfc8;font-size:.68rem;color:#7a7060">
+          Copy each centre's message and paste into their WhatsApp group
+        </div>
+        <div id="blastModalBody" style="padding:16px;display:block;max-height:70vh;overflow-y:auto"></div>
+        <div style="padding:12px 16px;border-top:1px solid #e8dfc8;text-align:right">
+          <button onclick="_closeBlastModal()" style="background:#f0ebe0;border:1px solid #e0d8c8;border-radius:8px;padding:7px 18px;font-size:.75rem;font-weight:600;cursor:pointer;color:#1e2a45">Close</button>
+        </div>
+      </div>
     </div>
     <div id="ovKpiStrip" style="display:none;margin-bottom:14px"></div>
     <div class="overview-grid" id="overviewGrid"></div>
@@ -6324,6 +6388,7 @@ function buildCentreSwitcher(role, userCentre){
   }
 }
 
+
 function goHome(){
   // Always land on the Overview tab (never Karnataka Insights)
   switchCentre('__all__', null);
@@ -7012,6 +7077,39 @@ function _exportRegCountsCSV(filename){
   a.download = filename || 'reg_counts.csv';
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+// Sum all programme registration counts for a centre in one historical snapshot
+function _centreHistTotal(regsObj, centreName){
+  if(!regsObj) return 0;
+  const cKey = _normCentreKey(centreName||'');
+  const cT   = cKey.split(' ').filter(t=>t.length>=4);
+  let total = 0;
+  for(const [lc, progs] of Object.entries(regsObj)){
+    const kT = lc.split(' ').filter(t=>t.length>=4);
+    const matches = cKey===lc || cT.some(t=>kT.includes(t));
+    if(matches) total += Object.values(progs).reduce((s,v)=>s+(v||0),0);
+  }
+  return total;
+}
+
+// Return trend direction for a centre based on last 3 days of LIVE_REGS_HISTORY
+// Returns null if no history, or {delta, pct, days, trending:'up'|'down'|'flat'}
+function _centreTrend(centreName){
+  const hist = (typeof LIVE_REGS_HISTORY!=='undefined') ? LIVE_REGS_HISTORY : [];
+  if(hist.length < 2) return null;
+  const last = hist.slice(-Math.min(3, hist.length));
+  const oldest = _centreHistTotal(last[0].regs, centreName);
+  const newest = _centreHistTotal(last[last.length-1].regs, centreName);
+  if(oldest === 0 && newest === 0) return null;
+  const delta = newest - oldest;
+  const pct   = oldest > 0 ? Math.round(Math.abs(delta) / oldest * 100) : 0;
+  const threshold = 0.03; // 3% change = meaningful
+  return {
+    delta, pct,
+    days: last.length,
+    trending: delta < -(oldest * threshold) ? 'down' : delta > (oldest * threshold) ? 'up' : 'flat'
+  };
 }
 
 // Look up count for a programme from a historical LIVE_REGS snapshot
@@ -7711,9 +7809,23 @@ function buildCentreInsights(centre){
   const barId   = 'ciBar_'+centre.replace(/\s/g,'_');
 
   el.innerHTML=`
-    <div style="margin-bottom:16px">
-      <div style="font-size:1.05rem;font-weight:800;color:var(--navy);margin-bottom:3px">${centre} — Centre Insights</div>
-      <div style="font-size:.68rem;color:var(--muted)">Analytics specific to this centre · Data through ${CY2} YTD${(CENTRE_DATA_TIMESTAMPS&&CENTRE_DATA_TIMESTAMPS[centre])?' · <span style="color:#b07a10;font-weight:700">Hist. data as of '+CENTRE_DATA_TIMESTAMPS[centre]+'</span>':''}</div>
+    <div style="margin-bottom:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div>
+        <div style="font-size:1.05rem;font-weight:800;color:var(--navy);margin-bottom:3px">${centre} — Centre Insights</div>
+        <div style="font-size:.68rem;color:var(--muted)">Analytics specific to this centre · Data through ${CY2} YTD${(CENTRE_DATA_TIMESTAMPS&&CENTRE_DATA_TIMESTAMPS[centre])?' · <span style="color:#b07a10;font-weight:700">Hist. data as of '+CENTRE_DATA_TIMESTAMPS[centre]+'</span>':''}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button onclick="_copyShareMsg('${centre.replace(/'/g,"\\'")}',this);event.stopPropagation()"
+          style="display:flex;align-items:center;gap:5px;background:#f0ebe0;color:#1e2a45;border:1px solid #e0d8c8;border-radius:8px;padding:7px 13px;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          Copy
+        </button>
+        <button onclick="_whatsappShare('${centre.replace(/'/g,"\\'")}');event.stopPropagation()"
+          style="display:flex;align-items:center;gap:6px;background:#25D366;color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </button>
+      </div>
     </div>
 
     <!-- Insight cards -->
@@ -8688,6 +8800,552 @@ function _ieoCurrentMonthCount(dashCentre){
 function _ieoToDashCentre(ieoName){
   const norm = _normCentreKey(ieoName);
   return CENTRES.find(c => _normCentreKey(c) === norm) || null;
+}
+
+// Build one consolidated blast message: IE Online current month + live reg counts
+function _buildBlastMsg(plain, sections, selectedKeys){
+  sections = sections || {ieo:true,ie:true,hatha:true,sat:true,other:true};
+  // If selectedKeys set provided, it overrides section-level flags per key
+  const keyOk = k => !selectedKeys || selectedKeys.has(k);
+  const ieoOk = () => !selectedKeys || selectedKeys.has('__ieo__');
+  const b      = t => plain ? t : `*${t}*`;
+  const today  = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+
+  const fmtD   = d => { const dt=new Date(d); return isNaN(dt)?d:dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}); };
+  const ieoMonth = (typeof IEO_CURRENT_MONTH!=='undefined'&&IEO_CURRENT_MONTH.month)||'This Month';
+  const HATHA_PROGRAMS = ['surya kriya','bhuta shuddhi','angamardana','yogasanas','jala neti','bhastrika','hatha yoga'];
+  const isHatha = name => { const nl=(name||'').toLowerCase(); return HATHA_PROGRAMS.some(h=>nl.includes(h)); };
+  const hathaShortName = name => {
+    const nl=(name||'').toLowerCase();
+    if(nl.includes('surya kriya'))   return 'Surya Kriya';
+    if(nl.includes('bhuta shuddhi')) return 'Bhuta Shuddhi';
+    if(nl.includes('angamardana'))   return 'Angamardana';
+    if(nl.includes('yogasanas'))     return 'Yogasanas';
+    if(nl.includes('jala neti'))     return 'Jala Neti';
+    if(nl.includes('bhastrika'))     return 'Bhastrika';
+    return 'Hatha Yoga';
+  };
+  const normLbl = name => {
+    const nl = (name||'').toLowerCase();
+    if(nl.includes('inner engineering')||nl.includes('isha yoga')) return 'IE';
+    if(nl.includes('bhava spandana')) return 'BSP';
+    if(nl.includes('shoonya'))        return 'Shoonya';
+    if(nl.includes('samyama'))        return 'Samyama';
+    if(nl.includes('guru pooja')||nl.includes('guru puja')) return 'Guru Pooja';
+    if(nl.includes('satsang'))        return 'Satsang';
+    return name;
+  };
+
+  const sorted = [...CENTRES].filter(c=>CENTRE_DATA[c]).sort();
+
+  // Group 1: IE Online current month — collect all centres
+  const ieoRows = [];
+  for(const c of sorted){
+    const cnt = _ieoCurrentMonthCount(c);
+    if(cnt !== null) ieoRows.push(`  ${c}: ${b(String(cnt))}`);
+  }
+
+  // Programs grouped by name only (date shown per centre row, not in heading)
+  // Hatha sub-programs use their specific short name; IE & Shanmukhi use their label
+  const isNameGrouped = name => {
+    const nl = (name||'').toLowerCase();
+    return isHatha(name) || nl.includes('inner engineering') || nl.includes('isha yoga') || nl.includes('shanmukhi') || nl.includes('satsang');
+  };
+  const progDays = (fr, to) => {
+    if(!fr || !to) return null;
+    const ldt = s => { const m = String(s).match(/(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; };
+    const dFr = ldt(fr), dTo = ldt(to);
+    if(!dFr || !dTo) return null;
+    const d = Math.round((dTo - dFr) / 86400000) + 1;
+    return (isNaN(d) || d < 1) ? null : d;
+  };
+  const groupedLabel = (name, fr, to) => {
+    if(isHatha(name)) return hathaShortName(name);
+    const nl = (name||'').toLowerCase();
+    if(nl.includes('inner engineering')||nl.includes('isha yoga')){
+      const d = progDays(fr, to);
+      return d ? `IE (${d} Days)` : 'IE';
+    }
+    if(nl.includes('shanmukhi')) return 'Shanmukhi Mudra';
+    if(nl.includes('satsang'))   return 'Satsang';
+    return normLbl(name);
+  };
+
+  // Group 2: per-program buckets (name+date key) for non-grouped programs
+  const progMap   = new Map(); // key → { fr, data[] }
+  const progOrder = [];
+  // grpMap: label → [{fr, centre, date, confirmed}], grouped by name only
+  const grpMap   = new Map();
+  const grpOrder = [];
+
+  for(const c of sorted){
+    for(const p of (ALL_UPCOMING[c]||[])){
+      const reg = _getRegInfo(p.name, c, p.fr);
+      if(reg && reg.confirmed !== null){
+        const ds = p.fr ? fmtD(p.fr)+(p.to&&p.to!==p.fr?' - '+fmtD(p.to):'') : '';
+        const confStr = String(reg.confirmed);
+        if(isNameGrouped(p.name)){
+          const gl = groupedLabel(p.name, p.fr, p.to);
+          if(!grpMap.has(gl)){ grpMap.set(gl, []); grpOrder.push(gl); }
+          grpMap.get(gl).push({ fr: p.fr||'', centre: c, date: ds, confirmed: confStr });
+        } else {
+          const lbl = normLbl(p.name);
+          const key = lbl + (ds ? ' ('+ds+')' : '');
+          if(!progMap.has(key)){
+            progMap.set(key, { fr: p.fr||'', data: [] });
+            progOrder.push(key);
+          }
+          progMap.get(key).data.push({ centre: c, confirmed: confStr });
+        }
+      }
+    }
+  }
+  // sort non-grouped buckets by date
+  progOrder.sort((a,bk)=>{
+    const fa = progMap.get(a).fr, fb = progMap.get(bk).fr;
+    return fa < fb ? -1 : fa > fb ? 1 : a.localeCompare(bk);
+  });
+  // sort each grouped program's rows by date
+  grpMap.forEach(rows => rows.sort((a,b)=> a.fr < b.fr ? -1 : a.fr > b.fr ? 1 : 0));
+
+  // Helper: build an ASCII table from column arrays
+  // cols: [{header, key}], data: [{key: value}]
+  function _tbl(cols, data){
+    const widths = cols.map(col => Math.max(col.header.length, ...data.map(r=>(r[col.key]||'').length)));
+    const pad = (s,w) => s + ' '.repeat(w - s.length);
+    const sep = '+-' + widths.map(w=>'-'.repeat(w)).join('-+-') + '-+';
+    const row = r => '| ' + cols.map((col,i)=>pad(r[col.key]||'',widths[i])).join(' | ') + ' |';
+    const hdr = '| ' + cols.map((col,i)=>pad(col.header,widths[i])).join(' | ') + ' |';
+    return [sep, hdr, sep, ...data.map(r=>row(r)), sep].join('\n');
+  }
+
+  const hdr = t => `*${t}*`; // always bold — for both WA and Copy
+  const lines = ['Namaskaram', '', hdr(`Karnataka (All Centers) Confirmed Registration Count as of ${today}`), ''];
+  let hasAny = false;
+
+  if(sections.ieo && ieoOk() && ieoRows.length){
+    lines.push(hdr(`IE Online (${ieoMonth})`));
+    for(const c of sorted){
+      const cnt = _ieoCurrentMonthCount(c);
+      if(cnt !== null) lines.push(`  ${c}: ${b(String(cnt))}`);
+    }
+    lines.push('');
+    hasAny = true;
+  }
+  // ── Section helpers ──────────────────────────────────────────
+  const HATHA_NAMES = new Set(['Surya Kriya','Bhuta Shuddhi','Angamardana','Yogasanas','Jala Neti','Bhastrika','Hatha Yoga']);
+  const isIEKey      = k => k === 'IE' || k.startsWith('IE (');
+  const isHathaKey   = k => HATHA_NAMES.has(k);
+  const isSatsangKey = k => k === 'Satsang';
+
+  const renderGrpRows = (gl) => {
+    const rows = grpMap.get(gl);
+    lines.push(hdr(gl));
+    rows.forEach(r => lines.push(`  ${r.centre}${r.date?' ('+r.date+')':''}: ${b(r.confirmed)}`));
+    lines.push('');
+  };
+
+  // ── Section 1: IE ─────────────────────────────────────────────
+  if(sections.ie){
+    const ieKeys = grpOrder.filter(gl => isIEKey(gl) && keyOk(gl));
+    if(ieKeys.length){
+      lines.push('◆ ' + hdr('IE'));
+      ieKeys.forEach(gl => renderGrpRows(gl));
+      hasAny = true;
+    }
+  }
+
+  // ── Section 2: Hatha Yoga ─────────────────────────────────────
+  if(sections.hatha){
+    const hathaKeys = grpOrder.filter(gl => isHathaKey(gl) && keyOk(gl));
+    if(hathaKeys.length){
+      lines.push('◆ ' + hdr('Hatha Yoga'));
+      hathaKeys.forEach(gl => renderGrpRows(gl));
+      hasAny = true;
+    }
+  }
+
+  // ── Section 3: Satsang ───────────────────────────────────────
+  if(sections.sat && grpMap.has('Satsang') && keyOk('Satsang')){
+    const sRows = grpMap.get('Satsang');
+    // If all satsangs share one date, show it in the header
+    const sDates = [...new Set(sRows.map(r=>r.date).filter(Boolean))];
+    const sHdr   = sDates.length === 1 ? `Satsang (${sDates[0]})` : 'Satsang';
+    lines.push('◆ ' + hdr(sHdr));
+    sRows.forEach(r => lines.push(`  ${r.centre}: ${b(r.confirmed)}`));
+    lines.push('');
+    hasAny = true;
+  }
+
+  // ── Section 4: Other programmes (non-grouped) ─────────────────
+  if(sections.other){
+    const otherGrp = grpOrder.filter(k => !isIEKey(k) && !isHathaKey(k) && !isSatsangKey(k) && keyOk(k));
+    const filteredProg = progOrder.filter(k => keyOk(k));
+    if(filteredProg.length || otherGrp.length){
+      lines.push('◆ ' + hdr('Other Programmes'));
+      for(const key of filteredProg){
+        const { data } = progMap.get(key);
+        lines.push(hdr(key));
+        data.forEach(r => lines.push(`  ${r.centre}: ${b(r.confirmed)}`));
+        lines.push('');
+      }
+      otherGrp.forEach(gl => renderGrpRows(gl));
+      hasAny = true;
+    }
+  }
+
+  if(!hasAny) lines.push('No data available.');
+  lines.push('Pranam', plain ? 'Isha Karnataka Programme Dashboard' : '_Isha Karnataka Programme Dashboard_');
+  return lines.join('\n');
+}
+
+let _blastPendingMode = 'wa'; // 'wa' or 'copy'
+let _blastPendingBtn  = null;
+
+// Build the list of selectable programme keys from live data
+function _blastProgKeys(){
+  const HATHA_NAMES = new Set(['Surya Kriya','Bhuta Shuddhi','Angamardana','Yogasanas','Jala Neti','Bhastrika','Hatha Yoga']);
+  const isIEKey      = k => k === 'IE' || k.startsWith('IE (');
+  const isHathaKey   = k => HATHA_NAMES.has(k);
+  const isSatKey     = k => k === 'Satsang';
+  // IE Online availability
+  const hasIeo = [...CENTRES].some(c => _ieoCurrentMonthCount(c) !== null);
+  const ieoMonth = (typeof IEO_CURRENT_MONTH!=='undefined'&&IEO_CURRENT_MONTH.month)||'This Month';
+  // Build grpMap snapshot (re-use blast builder logic minimally)
+  const fmtD = d => { const dt=new Date(d); return isNaN(dt)?d:dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}); };
+  const HATHA_PROGRAMS=['surya kriya','bhuta shuddhi','angamardana','yogasanas','jala neti','bhastrika','hatha yoga'];
+  const isHatha=name=>{const nl=(name||'').toLowerCase();return HATHA_PROGRAMS.some(h=>nl.includes(h));};
+  const hathaShortName=name=>{const nl=(name||'').toLowerCase();if(nl.includes('surya kriya'))return'Surya Kriya';if(nl.includes('bhuta shuddhi'))return'Bhuta Shuddhi';if(nl.includes('angamardana'))return'Angamardana';if(nl.includes('yogasanas'))return'Yogasanas';if(nl.includes('jala neti'))return'Jala Neti';if(nl.includes('bhastrika'))return'Bhastrika';return'Hatha Yoga';};
+  const progDays=(fr,to)=>{if(!fr||!to)return null;const ldt=s=>{const m=String(s).match(/(\d{4})-(\d{2})-(\d{2})/);return m?new Date(+m[1],+m[2]-1,+m[3]):null;};const dFr=ldt(fr),dTo=ldt(to);if(!dFr||!dTo)return null;const d=Math.round((dTo-dFr)/86400000)+1;return(isNaN(d)||d<1)?null:d;};
+  const keysSet=new Set(); const keysOrder=[];
+  for(const c of [...CENTRES].filter(c=>CENTRE_DATA[c]).sort()){
+    for(const p of (ALL_UPCOMING[c]||[])){
+      const reg=_getRegInfo(p.name,c,p.fr);
+      if(!(reg&&reg.confirmed!==null)) continue;
+      let gl;
+      const nl=(p.name||'').toLowerCase();
+      if(isHatha(p.name)) gl=hathaShortName(p.name);
+      else if(nl.includes('inner engineering')||nl.includes('isha yoga')){const d=progDays(p.fr,p.to);gl=d?`IE (${d} Days)`:'IE';}
+      else if(nl.includes('shanmukhi')) gl='Shanmukhi Mudra';
+      else if(nl.includes('satsang'))   gl='Satsang';
+      else { const ds=p.fr?fmtD(p.fr)+(p.to&&p.to!==p.fr?' - '+fmtD(p.to):''):''; gl=(p.name||'unnamed')+(ds?' ('+ds+')':''); }
+      if(!keysSet.has(gl)){ keysSet.add(gl); keysOrder.push(gl); }
+    }
+  }
+  const groups=[];
+  if(hasIeo) groups.push({key:'__ieo__',label:`IE Online (${ieoMonth})`,section:'IE Online'});
+  const ieK=keysOrder.filter(k=>k==='IE'||k.startsWith('IE ('));
+  ieK.forEach(k=>groups.push({key:k,label:k,section:'IE'}));
+  const hathaK=keysOrder.filter(k=>HATHA_NAMES.has(k));
+  hathaK.forEach(k=>groups.push({key:k,label:k,section:'Hatha Yoga'}));
+  if(keysSet.has('Satsang')) groups.push({key:'Satsang',label:'Satsang',section:'Satsang'});
+  const otherK=keysOrder.filter(k=>!['IE','Satsang'].includes(k)&&!k.startsWith('IE (')&&!HATHA_NAMES.has(k));
+  otherK.forEach(k=>groups.push({key:k,label:k,section:'Others'}));
+  return groups;
+}
+
+function _openBlastSelect(mode, btn){
+  _blastPendingMode = mode;
+  _blastPendingBtn  = btn || null;
+  const modal = document.getElementById('blastSelectModal');
+  const sendBtn = document.getElementById('blastSelectSendBtn');
+  const title   = document.getElementById('blastSelectTitle');
+  if(mode === 'wa'){
+    sendBtn.style.background = '#25D366';
+    sendBtn.textContent = 'Send on WhatsApp';
+    title.textContent = 'Select Programmes — WA Blast';
+  } else {
+    sendBtn.style.background = '#1e3d7a';
+    sendBtn.textContent = 'Copy to Clipboard';
+    title.textContent = 'Select Programmes — Copy Blast';
+  }
+  // Build checkbox list
+  const list = document.getElementById('blastProgList');
+  list.innerHTML = '';
+  const progs = _blastProgKeys();
+  let lastSection = '';
+  progs.forEach(({key, label, section}) => {
+    if(section !== lastSection){
+      lastSection = section;
+      const sec = document.createElement('div');
+      sec.style.cssText = 'font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#8090aa;padding:10px 0 4px;border-bottom:1px solid #e8edf5;margin-bottom:4px';
+      sec.textContent = section;
+      list.appendChild(sec);
+    }
+    const lbl = document.createElement('label');
+    lbl.style.cssText = 'display:flex;align-items:center;gap:10px;padding:7px 6px;border-radius:8px;cursor:pointer;font-size:.8rem;color:#1e2a45;transition:background .12s';
+    lbl.onmouseover = ()=>{ lbl.style.background='#f5f7fb'; };
+    lbl.onmouseout  = ()=>{ lbl.style.background=''; };
+    const cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.checked = true;
+    cb.dataset.key = key;
+    cb.style.cssText = 'width:15px;height:15px;accent-color:#1e3d7a;flex-shrink:0';
+    cb.onchange = () => {
+      const all = [...list.querySelectorAll('input[type=checkbox]')];
+      document.getElementById('blastSelAll').checked = all.every(c=>c.checked);
+      document.getElementById('blastSelAll').indeterminate = !all.every(c=>c.checked) && all.some(c=>c.checked);
+    };
+    const span = document.createElement('span'); span.textContent = label;
+    lbl.append(cb, span);
+    list.appendChild(lbl);
+  });
+  document.getElementById('blastSelAll').checked = true;
+  document.getElementById('blastSelAll').indeterminate = false;
+  modal.style.display = 'flex';
+}
+
+function _closeBlastSelect(){
+  document.getElementById('blastSelectModal').style.display = 'none';
+}
+
+function _blastToggleAll(checked){
+  document.querySelectorAll('#blastProgList input[type=checkbox]').forEach(cb => cb.checked = checked);
+  document.getElementById('blastSelAll').indeterminate = false;
+}
+
+function _blastSendSelected(){
+  const selected = new Set([...document.querySelectorAll('#blastProgList input[type=checkbox]')].filter(c=>c.checked).map(c=>c.dataset.key));
+  _closeBlastSelect();
+  const mode = _blastPendingMode;
+  const plain = mode === 'copy';
+  const msg = _buildBlastMsg(plain, null, selected);
+  if(mode === 'wa'){
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  } else {
+    navigator.clipboard.writeText(msg).then(()=>{
+      const btn = _blastPendingBtn;
+      if(btn){ const o=btn.innerHTML; btn.innerHTML='✓ Copied!'; btn.style.background='#2a7a2a'; btn.style.color='#fff'; setTimeout(()=>{ btn.innerHTML=o; btn.style.background=''; btn.style.color=''; },2200); }
+    }).catch(()=>alert('Copy failed.'));
+  }
+}
+
+function _blastSend(mode, btn){
+  const plain    = mode === 'copy';
+  const sections = {ieo:true,ie:true,hatha:true,sat:true,other:true};
+  const msg      = _buildBlastMsg(plain, sections);
+  if(mode === 'wa'){
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  } else {
+    navigator.clipboard.writeText(msg).then(()=>{
+      if(btn){ const o=btn.innerHTML; btn.innerHTML='✓ Copied!'; btn.style.background='#2a7a2a'; btn.style.color='#fff'; setTimeout(()=>{ btn.innerHTML=o; btn.style.background=''; btn.style.color=''; },2200); }
+    }).catch(()=>alert('Copy failed.'));
+  }
+}
+
+function _whatsappShare(c){
+  const msg = _buildCentreMsg(c, false);
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function _buildCentreMsg(c, plain){
+  // plain=true → no WhatsApp *bold* / _italic_ markers (for clipboard plain text)
+  const cd = CENTRE_DATA[c]||{};
+  const ie=cd.ie||{}, bsp=cd.bsp||{}, sho=cd.shoonya||{}, sam=cd.samyama||{};
+  const ieT=Object.values(ie).reduce((s,v)=>s+v,0);
+  const ieY=ie[CY]||0, bspY=bsp[CY]||0, shoY=sho[CY]||0, samY=sam[CY]||0;
+  const ieoCount=_ieoCurrentMonthCount(c);
+  const ieoMonth=(typeof IEO_CURRENT_MONTH!=='undefined'&&IEO_CURRENT_MONTH.month)||'This Month';
+  const fmtDate=d=>{const dt=new Date(d);return isNaN(dt)?d:dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});};
+  const regRows=[];
+  for(const p of (ALL_UPCOMING[c]||[])){
+    const reg=_getRegInfo(p.name,c,p.fr);
+    if(reg!==null&&reg.confirmed!==null){
+      const nl=(p.name||'').toLowerCase();
+      let lbl=p.name;
+      if(nl.includes('inner engineering')||nl.includes('isha yoga')) lbl='Inner Engineering';
+      else if(nl.includes('bhava spandana')) lbl='Bhava Spandana';
+      else if(nl.includes('shoonya'))        lbl='Shoonya Intensive';
+      else if(nl.includes('samyama'))        lbl='Samyama';
+      else if(nl.includes('angamardana'))    lbl='Angamardana';
+      else if(nl.includes('surya kriya'))    lbl='Surya Kriya';
+      else if(nl.includes('guru pooja')||nl.includes('guru puja')) lbl='Guru Pooja';
+      const ds=p.fr?fmtDate(p.fr)+(p.to&&p.to!==p.fr?' – '+fmtDate(p.to):''):'';
+      regRows.push(`• ${lbl}${ds?' ('+ds+')':''}: ${reg.confirmed} confirmed`);
+    }
+  }
+  // Build upcoming program lines — each with name, date range, and registration link
+  const _fmtUp = p => {
+    const nl = (p.name||'').toLowerCase();
+    let lbl = p.name;
+    let extra = '';
+    if(nl.includes('inner engineering')||nl.includes('isha yoga')) lbl='Inner Engineering';
+    else if(nl.includes('bhava spandana')){
+      lbl='Bhava Spandana';
+      // Extract language: look for known languages in name
+      const langM = (p.name||'').match(/\b(English|Tamil|Telugu|Kannada|Hindi|Malayalam)\b/i);
+      const gendM = (p.name||'').match(/\b(Gents|Ladies|Mixed|Men|Women)\b/i);
+      const parts = [langM?langM[1]:null, gendM?gendM[1]:null].filter(Boolean);
+      if(parts.length) extra = ' — ' + parts.join(', ');
+    }
+    else if(nl.includes('shoonya'))        lbl='Shoonya Intensive';
+    else if(nl.includes('samyama'))        lbl='Samyama';
+    else if(nl.includes('angamardana'))    lbl='Angamardana';
+    else if(nl.includes('surya kriya'))    lbl='Surya Kriya';
+    else if(nl.includes('bhuta shuddhi'))  lbl='Bhuta Shuddhi';
+    else if(nl.includes('yogasanas'))      lbl='Yogasanas';
+    const ds = p.date || '';
+    const link = p.url ? `\n    ${p.url}` : '';
+    return `- ${lbl}${extra}${ds?' ('+ds+')':''}${link}`;
+  };
+  const satsangUp = (ALL_UPCOMING[c]||[]).filter(p=>(p.name||'').toLowerCase().includes('satsang'));
+  const sortFr = arr => [...arr].sort((a,bk)=>(a.fr||'') < (bk.fr||'') ? -1 : 1);
+
+  const upCategories = [
+    { label: 'Inner Engineering', progs: sortFr(IE_UPCOMING[c]||[]) },
+    { label: 'Hatha Yoga',        progs: sortFr(HATHA_UPCOMING[c]||[]) },
+    { label: 'Advanced Programs', progs: sortFr([...BSP_UPCOMING,...SHOONYA_UPCOMING,...SAMYAMA_UPCOMING]) },
+    { label: 'Monthly Satsang',   progs: sortFr(satsangUp) },
+  ].filter(cat => cat.progs.length > 0);
+
+  const upLines = [];
+  upCategories.forEach(cat => {
+    upLines.push(`${cat.label}:`);
+    cat.progs.forEach(p => upLines.push(_fmtUp(p)));
+  });
+  const totalUp = upCategories.reduce((s,cat)=>s+cat.progs.length, 0);
+  const b=(t)=>plain?t:`*${t}*`;
+  const n=(v)=>plain?v:`*${v}*`;   // bold for numbers
+  const ytdParts=[
+    `IE: ${b(ieY.toLocaleString())} (all-time: ${ieT.toLocaleString()})`,
+    bspY?`BSP: ${b(bspY.toLocaleString())}`:null,
+    shoY?`Shoonya: ${b(shoY.toLocaleString())}`:null,
+    samY?`Samyama: ${b(samY.toLocaleString())}`:null,
+  ].filter(Boolean).join(' | ');
+  const lines=['Namaskaram','',b(`${c} — Programme Update`),''];
+  if(ieoCount!==null){ lines.push(`◆ IE Online Confirmed Registrations (${ieoMonth}): ${n(ieoCount.toLocaleString())}`,''); }
+  lines.push(`◆ ${b(CY+' YTD')}`);
+  lines.push(ytdParts);
+  if(regRows.length){ lines.push('',`◆ ${b('Registrations')}`,...regRows.map(r=>r.replace(/^[•]/,'-'))); }
+  if(totalUp){ lines.push('',`◆ ${b('Upcoming ('+totalUp+' programs)')}`, ...upLines); }
+  lines.push('','Pranam',`_Isha Karnataka Programme Dashboard_`);
+  return lines.join('\n');
+}
+
+function _openBlastModal(){
+  const modal = document.getElementById('blastModal');
+  const body  = document.getElementById('blastModalBody');
+  if(!modal||!body) return;
+
+  const centres = [...CENTRES].filter(c=>CENTRE_DATA[c]).sort();
+
+  // Build cards — store messages in a lookup so onclick can retrieve them safely
+  window._blastMsgs = {};
+  body.innerHTML = '';
+
+  centres.forEach(c => {
+    let plainMsg = 'Loading...';
+    try {
+      const cd = CENTRE_DATA[c]||{};
+      const ie=cd.ie||{}, bsp=cd.bsp||{}, sho=cd.shoonya||{}, sam=cd.samyama||{};
+      const ieT=Object.values(ie).reduce((s,v)=>s+v,0);
+      const ieY=ie[CY]||0, bspY=bsp[CY]||0, shoY=sho[CY]||0, samY=sam[CY]||0;
+      const ieoCount=_ieoCurrentMonthCount(c);
+      const ieoMonth=(typeof IEO_CURRENT_MONTH!=='undefined'&&IEO_CURRENT_MONTH.month)||'This Month';
+      const fmtD=d=>{const dt=new Date(d);return isNaN(dt)?d:dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});};
+      const regs=[];
+      for(const p of (ALL_UPCOMING[c]||[])){
+        const r=_getRegInfo(p.name,c,p.fr);
+        if(r&&r.confirmed!==null){
+          const nl=(p.name||'').toLowerCase();
+          let lbl=p.name;
+          if(nl.includes('inner engineering')||nl.includes('isha yoga'))lbl='Inner Engineering';
+          else if(nl.includes('bhava spandana'))lbl='Bhava Spandana';
+          else if(nl.includes('shoonya'))lbl='Shoonya Intensive';
+          else if(nl.includes('samyama'))lbl='Samyama';
+          else if(nl.includes('angamardana'))lbl='Angamardana';
+          else if(nl.includes('surya kriya'))lbl='Surya Kriya';
+          const ds=p.fr?fmtD(p.fr)+(p.to&&p.to!==p.fr?' - '+fmtD(p.to):''):'';
+          regs.push('- '+lbl+(ds?' ('+ds+')':'')+': '+r.confirmed+' confirmed');
+        }
+      }
+      const ieUp=(IE_UPCOMING[c]||[]).length,haUp=(HATHA_UPCOMING[c]||[]).length;
+      const bspUp=BSP_UPCOMING.length,shoUp=SHOONYA_UPCOMING.length,samUp=SAMYAMA_UPCOMING.length;
+      const totalUp=ieUp+haUp+bspUp+shoUp+samUp;
+      const up=[ieUp?'IE: '+ieUp:'',haUp?'Hatha: '+haUp:'',bspUp?'BSP: '+bspUp:'',shoUp?'Shoonya: '+shoUp:'',samUp?'Samyama: '+samUp:''].filter(Boolean).join(' | ');
+      const ln=[];
+      ln.push('Namaskaram');
+      ln.push('');
+      ln.push(c+' - Programme Update');
+      ln.push('');
+      if(ieoCount!==null) ln.push('IE Online ('+ieoMonth+'): '+ieoCount,'');
+      ln.push(CY+' YTD');
+      ln.push('Inner Engineering: '+ieY+' (All-time: '+ieT+')');
+      if(bspY) ln.push('BSP: '+bspY);
+      if(shoY) ln.push('Shoonya: '+shoY);
+      if(samY) ln.push('Samyama: '+samY);
+      if(regs.length){ln.push('');ln.push('Current Registrations');regs.forEach(r=>ln.push(r));}
+      if(totalUp){ln.push('');ln.push('Upcoming ('+totalUp+' programs)');ln.push(up);}
+      ln.push('');ln.push('Pranam');
+      plainMsg = ln.join('\n');
+    } catch(e){ plainMsg = c+' — error: '+e.message; }
+
+    const card = document.createElement('div');
+    card.style.cssText = 'border:1px solid #e0d8c8;border-radius:10px;overflow:hidden;background:#fff;margin-bottom:12px;flex-shrink:0';
+
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'background:#f0ebe0;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px';
+
+    const nameEl = document.createElement('b');
+    nameEl.style.cssText = 'font-size:13px;color:#1e2a45';
+    nameEl.textContent = c;
+
+    const btnWrap = document.createElement('div');
+    btnWrap.style.cssText = 'display:flex;gap:6px;flex-shrink:0';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.style.cssText = 'background:#e8e0d0;border:1px solid #ccc;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:#1e2a45';
+    copyBtn.textContent = 'Copy';
+    const _msg = plainMsg;
+    copyBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(_msg).then(()=>{ copyBtn.textContent='✓ Copied'; copyBtn.style.background='#2a7a2a'; copyBtn.style.color='#fff'; setTimeout(()=>{ copyBtn.textContent='Copy'; copyBtn.style.background=''; copyBtn.style.color=''; },2000); }).catch(()=>alert('Copy failed'));
+    });
+
+    const waBtn = document.createElement('button');
+    waBtn.style.cssText = 'background:#25D366;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:#fff';
+    waBtn.textContent = 'WhatsApp';
+    const _waMsg = _buildCentreMsg ? (() => { try { return _buildCentreMsg(c, false); } catch(e){ return _msg; } })() : _msg;
+    waBtn.addEventListener('click', e => { e.stopPropagation(); window.open('https://wa.me/?text='+encodeURIComponent(_waMsg),'_blank'); });
+
+    btnWrap.append(copyBtn, waBtn);
+    hdr.append(nameEl, btnWrap);
+
+    const ta = document.createElement('textarea');
+    ta.style.cssText = 'display:block;width:100%;box-sizing:border-box;border:none;border-top:1px solid #e8dfc8;padding:10px 14px;font-size:12px;color:#333;font-family:monospace;background:#fff;line-height:1.5;height:140px;resize:vertical;outline:none';
+    ta.value = plainMsg;
+    ta.readOnly = true;
+
+    card.append(hdr, ta);
+    body.appendChild(card);
+  });
+
+  modal.style.display='block';
+  document.body.style.overflow='hidden';
+}
+
+function _closeBlastModal(){
+  document.getElementById('blastModal').style.display='none';
+  document.body.style.overflow='';
+}
+
+function _blastCopy(btn, c, mode){
+  if(mode==='wa'){
+    const msg = _buildCentreMsg(c, false);
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+    return;
+  }
+  const msg = _buildCentreMsg(c, true);
+  navigator.clipboard.writeText(msg).then(()=>{
+    const orig=btn.textContent; btn.textContent='✓ Copied'; btn.style.background='#2a7a2a'; btn.style.color='#fff';
+    setTimeout(()=>{ btn.textContent=orig; btn.style.background=''; btn.style.color=''; },2000);
+  }).catch(()=>alert('Copy failed.'));
+}
+
+function _copyShareMsg(c, btn){
+  const msg = _buildCentreMsg(c, true);
+  navigator.clipboard.writeText(msg).then(()=>{
+    if(btn){ const orig=btn.innerHTML; btn.innerHTML='✓ Copied!'; btn.style.background='#2a7a2a'; btn.style.color='#fff'; setTimeout(()=>{ btn.innerHTML=orig; btn.style.background=''; btn.style.color=''; },2000); }
+  }).catch(()=>{ alert('Copy failed — please copy manually.'); });
 }
 
 function _navToIeoOnlineCentre(centre){
@@ -9847,6 +10505,7 @@ function buildOverview(){
   // When coordinator is logged in, filter to just their centre
   const centreList = overviewCentre ? [overviewCentre] : CENTRES;
   // Update section heading
+  const blastBtn = document.getElementById('blastBtn');
   if(overviewCentre){
     document.getElementById('ovHeading').textContent = overviewCentre + ' — Centre Overview';
     document.getElementById('ovSubtitle').textContent = 'IE, BSP, Shoonya and Samyama totals · Click card to open full dashboard';
@@ -9854,9 +10513,11 @@ function buildOverview(){
     document.getElementById('ovKpiStrip').style.display='none';
     document.getElementById('ovExtraCards').style.display='none';
     document.getElementById('ovNav').style.display='none';
+    if(blastBtn) blastBtn.style.display='none';
   } else {
     document.getElementById('ovNav').style.display='flex';
     document.getElementById('ovHeading').textContent = 'All Karnataka Centres — Overview';
+    if(blastBtn){ blastBtn.style.display='flex'; }
     document.getElementById('ovSubtitle').textContent = `Showing IE, BSP, Shoonya and Samyama totals across all ${CENTRES.length} centres · Green badge = % of IE participants · ${CY} YTD in brackets`;
     // Insights (extra cards + comparison chart) now live on the Karnataka Insights tab
     document.getElementById('ovKpiStrip').style.display='none';
@@ -9915,6 +10576,19 @@ function buildOverview(){
     const totalUp = ieUp+haUp+bspUp+shoUp+samUp;
     const ieoCount = _ieoCurrentMonthCount(c);
     const ieoMonth = (typeof IEO_CURRENT_MONTH!=='undefined'&&IEO_CURRENT_MONTH.month)||'This Month';
+    const trend = _centreTrend(c);
+    const trendBanner = (trend && trend.trending !== 'flat') ? (() => {
+      const isDown = trend.trending === 'down';
+      const bg   = isDown ? '#fff5f5' : '#f2fff5';
+      const col  = isDown ? '#b33'    : '#2a7a2a';
+      const bord = isDown ? '#fcc'    : '#b7e8c0';
+      const icon = isDown ? '📉'      : '📈';
+      const word = isDown ? 'declining' : 'growing';
+      return `<div style="padding:5px 14px;font-size:.63rem;background:${bg};color:${col};border-top:1px solid ${bord};display:flex;align-items:center;gap:5px;letter-spacing:.2px">
+        <span>${icon}</span>
+        <span>Registrations ${word} <strong>${trend.pct}%</strong> over last ${trend.days} snapshot${trend.days>1?'s':''}</span>
+      </div>`;
+    })() : '';
     const medalClass = r => r===1?'medal-1':r===2?'medal-2':r===3?'medal-3':'';
     const medalIcon  = r => r===1?'🥇':r===2?'🥈':r===3?'🥉':'';
     const rankChip = (r, label) => {
@@ -9924,11 +10598,23 @@ function buildOverview(){
     return `<div class="ov-card" onclick="switchCentreToTab('${c}','centre-insights',event)">
       <!-- Header band -->
       <div class="ov-card-header">
-        <div class="ov-card-name">${c}</div>
-        <div class="ov-card-ranks">
-          ${rankChip(rankTotal,'All-Time')}
-          ${rankChip(rankCY,CY)}
+        <div>
+          <div class="ov-card-name">${c}</div>
+          <div class="ov-card-ranks">${rankChip(rankTotal,'All-Time')}${rankChip(rankCY,CY)}</div>
         </div>
+        ${overviewCentre ? `
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+          <button onclick="event.stopPropagation();_whatsappShare('${c}')"
+            style="display:flex;align-items:center;gap:4px;background:#25D366;color:#fff;border:none;border-radius:6px;padding:4px 9px;font-size:.65rem;font-weight:700;cursor:pointer;white-space:nowrap">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            WhatsApp
+          </button>
+          <button onclick="event.stopPropagation();_copyShareMsg('${c}',this)"
+            style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 9px;font-size:.65rem;font-weight:700;cursor:pointer;white-space:nowrap">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            Copy
+          </button>
+        </div>` : ''}
       </div>
       <!-- Body -->
       <div class="ov-card-body">
@@ -9969,6 +10655,19 @@ function buildOverview(){
           </div>`:''}
         </div>
       </div>
+      ${trendBanner}
+      ${!overviewCentre ? `
+      <!-- Hover share bar (admin multi-card view only) -->
+      <div class="ov-share-bar" onclick="event.stopPropagation()">
+        <button class="ov-share-btn wa" onclick="_whatsappShare('${c}')">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </button>
+        <button class="ov-share-btn cp" onclick="_copyShareMsg('${c}',this)">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          Copy
+        </button>
+      </div>` : ''}
       <!-- Upcoming footer -->
       <div class="ov-upcoming">
         <div class="ov-upcoming-lbl">
