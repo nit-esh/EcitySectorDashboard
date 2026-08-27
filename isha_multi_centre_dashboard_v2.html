@@ -223,9 +223,9 @@ main{max-width:1320px;margin:0 auto;padding:14px 12px 50px}
 [data-theme="dark"] .ov-share-btn.cp{background:#2a2a2a;color:#eee;border-color:#444}
 .ov-card:active{transform:translateY(-1px)}
 /* Card header band */
-.ov-card-header{background:linear-gradient(135deg,#152a52 0%,#1e3d7a 60%,#2a4d96 100%);padding:14px 16px 13px;position:relative;overflow:hidden}
-.ov-card-header::after{content:'';position:absolute;right:-24px;top:-24px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.07)}
-.ov-card-header::before{content:'';position:absolute;left:-10px;bottom:-20px;width:60px;height:60px;border-radius:50%;background:rgba(240,201,85,.06)}
+.ov-card-header{background:linear-gradient(135deg,#152a52 0%,#1e3d7a 60%,#2a4d96 100%);padding:14px 16px 13px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ov-card-header::after{content:'';position:absolute;right:-24px;top:-24px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none}
+.ov-card-header::before{content:'';position:absolute;left:-10px;bottom:-20px;width:60px;height:60px;border-radius:50%;background:rgba(240,201,85,.06);pointer-events:none}
 .ov-card-name{font-size:.95rem;font-weight:800;color:#fff;letter-spacing:.2px;margin-bottom:6px}
 .ov-card-ranks{display:flex;gap:8px}
 .ov-rank-chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;font-size:.68rem;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
@@ -907,8 +907,7 @@ footer{text-align:center;padding:13px;font-size:.54rem;letter-spacing:1px;text-t
         </button>
       </div>
 
-      <!-- Program Selection Modal -->
-      <div id="blastSelectModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)_closeBlastSelect()">
+<div id="blastSelectModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)_closeBlastSelect()">
         <div style="background:#fff;border-radius:16px;width:100%;max-width:420px;max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35);display:flex;flex-direction:column">
           <!-- Header -->
           <div style="background:linear-gradient(135deg,#152a52,#1e3d7a);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
@@ -5818,22 +5817,9 @@ function applySession(email,role,centre,name,picture){
   fetchLivePrograms(); // refresh upcoming program cards from Isha API
   fetchSheetRegistrations(); // load registration counts from Google Sheet
 
-  // ── Auto-refresh: every 30 minutes, re-fetch live programs and update label ──
+  // ── Auto-refresh: every 30 minutes, re-fetch live programs ──
   (function startAutoRefresh(){
-    function _refreshTick(){
-      fetchLivePrograms();
-      const lbl = document.getElementById('dataUpdatedLbl');
-      if(lbl) lbl.textContent = 'Updated just now';
-      let mins = 0;
-      const ticker = setInterval(()=>{
-        mins++;
-        if(lbl) lbl.textContent = 'Updated ' + mins + ' min ago';
-      }, 60000);
-      // Clear the per-minute ticker when the next refresh fires
-      setTimeout(()=>{ clearInterval(ticker); }, 30*60000 - 1000);
-    }
-    const lbl = document.getElementById('dataUpdatedLbl');
-    if(lbl) lbl.textContent = 'Updated just now';
+    function _refreshTick(){ fetchLivePrograms(); }
     setInterval(_refreshTick, 30 * 60 * 1000);
   })();
 }
@@ -9132,13 +9118,51 @@ function _blastSend(mode, btn){
   }
 }
 
-function _whatsappShare(c){
-  const msg = _buildCentreMsg(c, false);
-  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+let _centreShareState = { centre: '', mode: 'wa', btn: null };
+
+function _openCentreSharePicker(c, mode, btn){
+  _centreShareState = { centre: c, mode, btn: btn||null };
+  const picker = document.getElementById('centreSharePicker');
+  const title  = document.getElementById('centreSharePickerTitle');
+  const sendBtn = document.getElementById('centreShareConfirmBtn');
+  title.textContent = mode === 'wa' ? `WhatsApp — ${c}` : `Copy — ${c}`;
+  sendBtn.style.background = mode === 'wa' ? '#25D366' : '#1e3d7a';
+  sendBtn.textContent = mode === 'wa' ? 'Open WhatsApp' : 'Copy to Clipboard';
+  // reset to first option
+  const radios = picker.querySelectorAll('input[type=radio]');
+  if(radios.length) radios[0].checked = true;
+  picker.style.display = 'flex';
 }
 
-function _buildCentreMsg(c, plain){
+function _closeCentreSharePicker(){
+  document.getElementById('centreSharePicker').style.display = 'none';
+}
+
+function _centreShareConfirm(){
+  const { centre, mode, btn } = _centreShareState;
+  const sel = document.querySelector('#centreSharePicker input[type=radio]:checked');
+  const type = sel ? sel.value : 'both'; // 'reg', 'upcoming', 'both'
+  _closeCentreSharePicker();
+  const plain = mode === 'copy';
+  const msg = _buildCentreMsg(centre, plain, type);
+  if(mode === 'wa'){
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  } else {
+    navigator.clipboard.writeText(msg).then(()=>{
+      if(btn){ const o=btn.innerHTML; btn.innerHTML='✓ Copied!'; btn.style.background='#2a7a2a'; btn.style.color='#fff'; setTimeout(()=>{ btn.innerHTML=o; btn.style.background=''; btn.style.color=''; },2000); }
+    }).catch(()=>alert('Copy failed.'));
+  }
+}
+
+function _whatsappShare(c){
+  _openCentreSharePicker(c, 'wa');
+}
+
+function _buildCentreMsg(c, plain, type){
+  // type: 'reg' | 'upcoming' | 'both' (default 'both')
   // plain=true → no WhatsApp *bold* / _italic_ markers (for clipboard plain text)
+  const showReg      = !type || type === 'reg'      || type === 'both';
+  const showUpcoming = !type || type === 'upcoming'  || type === 'both';
   const cd = CENTRE_DATA[c]||{};
   const ie=cd.ie||{}, bsp=cd.bsp||{}, sho=cd.shoonya||{}, sam=cd.samyama||{};
   const ieT=Object.values(ie).reduce((s,v)=>s+v,0);
@@ -9212,11 +9236,13 @@ function _buildCentreMsg(c, plain){
     samY?`Samyama: ${b(samY.toLocaleString())}`:null,
   ].filter(Boolean).join(' | ');
   const lines=['Namaskaram','',b(`${c} — Programme Update`),''];
-  if(ieoCount!==null){ lines.push(`◆ IE Online Confirmed Registrations (${ieoMonth}): ${n(ieoCount.toLocaleString())}`,''); }
-  lines.push(`◆ ${b(CY+' YTD')}`);
-  lines.push(ytdParts);
-  if(regRows.length){ lines.push('',`◆ ${b('Registrations')}`,...regRows.map(r=>r.replace(/^[•]/,'-'))); }
-  if(totalUp){ lines.push('',`◆ ${b('Upcoming ('+totalUp+' programs)')}`, ...upLines); }
+  if(showReg){
+    if(ieoCount!==null){ lines.push(`◆ IE Online Confirmed Registrations (${ieoMonth}): ${n(ieoCount.toLocaleString())}`,''); }
+    lines.push(`◆ ${b(CY+' YTD')}`);
+    lines.push(ytdParts);
+    if(regRows.length){ lines.push('',`◆ ${b('Registrations')}`,...regRows.map(r=>r.replace(/^[•]/,'-'))); }
+  }
+  if(showUpcoming && totalUp){ lines.push('',`◆ ${b('Upcoming ('+totalUp+' programs)')}`, ...upLines); }
   lines.push('','Pranam',`_Isha Karnataka Programme Dashboard_`);
   return lines.join('\n');
 }
@@ -9342,10 +9368,7 @@ function _blastCopy(btn, c, mode){
 }
 
 function _copyShareMsg(c, btn){
-  const msg = _buildCentreMsg(c, true);
-  navigator.clipboard.writeText(msg).then(()=>{
-    if(btn){ const orig=btn.innerHTML; btn.innerHTML='✓ Copied!'; btn.style.background='#2a7a2a'; btn.style.color='#fff'; setTimeout(()=>{ btn.innerHTML=orig; btn.style.background=''; btn.style.color=''; },2000); }
-  }).catch(()=>{ alert('Copy failed — please copy manually.'); });
+  _openCentreSharePicker(c, 'copy', btn);
 }
 
 function _navToIeoOnlineCentre(centre){
@@ -10603,7 +10626,7 @@ function buildOverview(){
           <div class="ov-card-ranks">${rankChip(rankTotal,'All-Time')}${rankChip(rankCY,CY)}</div>
         </div>
         ${overviewCentre ? `
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+        <div style="display:flex;flex-direction:row;align-items:center;gap:6px;flex-shrink:0">
           <button onclick="event.stopPropagation();_whatsappShare('${c}')"
             style="display:flex;align-items:center;gap:4px;background:#25D366;color:#fff;border:none;border-radius:6px;padding:4px 9px;font-size:.65rem;font-weight:700;cursor:pointer;white-space:nowrap">
             <svg viewBox="0 0 24 24" width="10" height="10" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -10659,11 +10682,11 @@ function buildOverview(){
       ${!overviewCentre ? `
       <!-- Hover share bar (admin multi-card view only) -->
       <div class="ov-share-bar" onclick="event.stopPropagation()">
-        <button class="ov-share-btn wa" onclick="_whatsappShare('${c}')">
+        <button class="ov-share-btn wa" onclick="event.stopPropagation();_whatsappShare('${c}')">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           WhatsApp
         </button>
-        <button class="ov-share-btn cp" onclick="_copyShareMsg('${c}',this)">
+        <button class="ov-share-btn cp" onclick="event.stopPropagation();_copyShareMsg('${c}',this)">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
           Copy
         </button>
@@ -10951,5 +10974,34 @@ initAuth();    // load Firebase users + check session in parallel
 })();
 </script>
 </div><!-- end #mainApp -->
+
+<!-- Centre Share Picker Modal — placed at body level to avoid fixed-position trapping -->
+<div id="centreSharePicker" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)_closeCentreSharePicker()">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:340px;box-shadow:0 16px 48px rgba(0,0,0,.3);overflow:hidden">
+    <div style="background:linear-gradient(135deg,#152a52,#1e3d7a);padding:13px 16px;display:flex;align-items:center;justify-content:space-between">
+      <div style="color:#fff;font-weight:800;font-size:.85rem" id="centreSharePickerTitle">Share</div>
+      <button onclick="_closeCentreSharePicker()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:.9rem">×</button>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:.72rem;color:#6b7a99;font-weight:600;margin-bottom:2px">What would you like to share?</div>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #e0e8f5;border-radius:10px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='#1e3d7a'" onmouseout="this.style.borderColor='#e0e8f5'">
+        <input type="radio" name="centreShareType" value="reg" checked style="accent-color:#1e3d7a;width:15px;height:15px">
+        <div><div style="font-size:.82rem;font-weight:700;color:#1e2a45">Registration Count</div><div style="font-size:.68rem;color:#8090aa">IE Online, YTD stats &amp; confirmed registrations</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #e0e8f5;border-radius:10px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='#1e3d7a'" onmouseout="this.style.borderColor='#e0e8f5'">
+        <input type="radio" name="centreShareType" value="upcoming" style="accent-color:#1e3d7a;width:15px;height:15px">
+        <div><div style="font-size:.82rem;font-weight:700;color:#1e2a45">Upcoming Programs</div><div style="font-size:.68rem;color:#8090aa">IE, Hatha, Advanced &amp; Satsang with dates &amp; links</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #e0e8f5;border-radius:10px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='#1e3d7a'" onmouseout="this.style.borderColor='#e0e8f5'">
+        <input type="radio" name="centreShareType" value="both" style="accent-color:#1e3d7a;width:15px;height:15px">
+        <div><div style="font-size:.82rem;font-weight:700;color:#1e2a45">Both</div><div style="font-size:.68rem;color:#8090aa">Full programme update</div></div>
+      </label>
+    </div>
+    <div style="padding:0 16px 14px;display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="_closeCentreSharePicker()" style="padding:7px 14px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer;font-size:.75rem;font-weight:600;color:#666">Cancel</button>
+      <button id="centreShareConfirmBtn" onclick="_centreShareConfirm()" style="padding:7px 16px;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;color:#fff;background:#25D366">Send</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
