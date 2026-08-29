@@ -6764,9 +6764,21 @@ async function fetchLivePrograms(){
       if(bi>=0) return 1;
       return a.localeCompare(b);
     });
+    // Preserve Python-injected satsang entries (they have real program-ID URLs)
+    const _savedSatsang={};
+    for(const [c,progs] of Object.entries(ALL_UPCOMING)){
+      const sat=progs.filter(p=>(p.name||'').toLowerCase().includes('satsang'));
+      if(sat.length) _savedSatsang[c]=sat;
+    }
     ALL_UPCOMING={};
     for(const k of allKeys) ALL_UPCOMING[k]=newAll[k];
-
+    // Restore satsang for centres not already covered by live fetch
+    for(const [c,sats] of Object.entries(_savedSatsang)){
+      if(!ALL_UPCOMING[c]) ALL_UPCOMING[c]=[];
+      if(!ALL_UPCOMING[c].some(p=>(p.name||'').toLowerCase().includes('satsang'))){
+        ALL_UPCOMING[c].push(...sats);
+      }
+    }
     console.log('[Dashboard] Live programs loaded from Isha API ✓');
   }catch(e){
     console.warn('[Dashboard] Live fetch unavailable, using static data:', e.message);
@@ -6809,19 +6821,25 @@ async function fetchLivePrograms(){
     return mon?`${m[3]}-${mon}-${m[1].padStart(2,'0')} 00:00:00`:null;
   };
   try {
-    const SAT_URL='https://api.ishafoundation.org/scheduleApi/api.php?option=com_program&v=2&format=json&task=filter&count=200&startrec=0&category=173';
+    // near_user=true uses the browser's IP → returns Karnataka results when user is in Bengaluru
+    const SAT_URL_LOCAL='https://api.ishafoundation.org/scheduleApi/api.php?option=com_program&v=2&format=json&task=filter&count=100&startrec=0&category=173&near_user=true';
+    const SAT_URL_ALL  ='https://api.ishafoundation.org/scheduleApi/api.php?option=com_program&v=2&format=json&task=filter&count=200&startrec=0&category=173';
     const SAT_SOURCES=[
-      {label:'direct', url:SAT_URL},
-      {label:'corsproxy.io', url:`https://corsproxy.io/?url=${encodeURIComponent(SAT_URL)}`},
-      {label:'allorigins', url:`https://api.allorigins.win/raw?url=${encodeURIComponent(SAT_URL)}`},
+      // gas-proxy runs server-side on Google's infra — no CORS. Needs GAS script to support ?type=satsang
+      {label:'gas-proxy', url: GAS_PROXY+'?type=satsang&_t='+Date.now(), simple:true},
+      {label:'near_user', url:SAT_URL_LOCAL},
+      {label:'global',    url:SAT_URL_ALL},
+      {label:'corsproxy.io', url:`https://corsproxy.io/?url=${encodeURIComponent(SAT_URL_ALL)}`},
+      {label:'allorigins', url:`https://api.allorigins.win/raw?url=${encodeURIComponent(SAT_URL_ALL)}`},
     ];
     let satData=null;
-    for(const {label,url} of SAT_SOURCES){
+    for(const {label,url,simple} of SAT_SOURCES){
       try{
-        const res=await fetch(url,{cache:'no-store'});
+        const res=await fetch(url, simple ? {} : {cache:'no-store'});
         if(!res.ok) continue;
         const d=await res.json();
-        if(d&&d.results){ satData=d; console.log(`[Dashboard] Satsang API loaded via ${label} ✓`); break; }
+        // Satsang API returns results as an Array; main-programs API returns an Object — guard against false match
+        if(d&&Array.isArray(d.results)&&d.results.length){ satData=d; console.log(`[Dashboard] Satsang API loaded via ${label} ✓`); break; }
       }catch(e){ console.warn(`[Dashboard] Satsang via ${label} failed:`,e.message); }
     }
     if(satData){
