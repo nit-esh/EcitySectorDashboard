@@ -542,9 +542,9 @@ def parse_ie_online(xlsx_path):
         return {}
 
     # raw[centre][year][month][status] = count
-    # xlsx hierarchy: Year(indent5) → Month(indent10) → Centre(indent15) → Status(indent20)
+    # xlsx hierarchy: Year(indent5) → Month(indent10) → Status(indent15) → Centre(indent20)
     raw = {}
-    cur_year = cur_month = cur_centre = None
+    cur_year = cur_month = cur_status = None
 
     for row in ws.iter_rows(values_only=True):
         v0 = row[0]
@@ -557,17 +557,17 @@ def parse_ie_online(xlsx_path):
         except: count = 0
 
         if indent == 5:     # Year  e.g. "2023"
-            cur_year = s; cur_month = None; cur_centre = None
+            cur_year = s; cur_month = None; cur_status = None
         elif indent == 10:  # Month e.g. "October 2023"
-            cur_month = s; cur_centre = None
-        elif indent == 15:  # Centre e.g. "Hebbal"
-            cur_centre = s
-            raw.setdefault(s, {}).setdefault(cur_year, {}).setdefault(cur_month, {st: 0 for st in ALL_IEO_STATUSES})
-        elif indent == 20:  # Status e.g. "Course Completed"
-            if cur_centre and cur_year and cur_month:
-                m_dict = raw.get(cur_centre, {}).get(cur_year, {}).get(cur_month, {})
-                if s in m_dict:
-                    m_dict[s] += count
+            cur_month = s; cur_status = None
+        elif indent == 15:  # Status e.g. "Started", "Course Completed", "Step 1 Completed"
+            cur_status = s
+        elif indent == 20:  # Centre e.g. "Hebbal"
+            if cur_status and cur_year and cur_month:
+                raw.setdefault(s, {}).setdefault(cur_year, {}).setdefault(cur_month, {st: 0 for st in ALL_IEO_STATUSES})
+                m_dict = raw[s][cur_year][cur_month]
+                if cur_status in m_dict:
+                    m_dict[cur_status] += count
 
     def _to_entry(yd):
         steps = [yd.get(f'Step {i} Completed', 0) for i in range(1, 7)]
@@ -597,6 +597,8 @@ def parse_ie_online(xlsx_path):
 # ── IE Online current month parsing ───────────────────────────────────────────
 IEO_CM_START = "/* __IEO_CURRENT_MONTH_START__ */"
 IEO_CM_END   = "/* __IEO_CURRENT_MONTH_END__ */"
+IEO_LM_START = "/* __IEO_LAST_MONTH_START__ */"
+IEO_LM_END   = "/* __IEO_LAST_MONTH_END__ */"
 
 def parse_ieo_current_month(xlsx_path):
     """Parse IE_Online_CurrentMonthStatus_*.xlsx.
@@ -1093,8 +1095,25 @@ def inject_html(html, regs, centre_data=None, monthly_data=None, latest_mtime=No
     elif IEO_START not in html:
         print(f"  ⚠ IE_ONLINE markers not found — skipping")
 
-    # 7. IEO_CURRENT_MONTH block
+    # 7. IEO_CURRENT_MONTH block — promote existing month to LAST_MONTH if month changed
     if ieo_cm_data is not None and IEO_CM_START in html:
+        # Read the existing IEO_CURRENT_MONTH value from the HTML
+        existing_cm = None
+        cm_match = re.search(re.escape(IEO_CM_START) + r'.*?const IEO_CURRENT_MONTH\s*=\s*(\{.*?\});' + r'.*?' + re.escape(IEO_CM_END), html, flags=re.DOTALL)
+        if cm_match:
+            try: existing_cm = json.loads(cm_match.group(1))
+            except: pass
+
+        # Promote to last month only when the month has actually changed
+        if (existing_cm and existing_cm.get('month') and
+                existing_cm.get('month') != ieo_cm_data.get('month') and
+                IEO_LM_START in html):
+            lm_block = (f"{IEO_LM_START}\nconst IEO_LAST_MONTH = "
+                        f"{json.dumps(existing_cm, ensure_ascii=False)}; // promoted from previous current month\n{IEO_LM_END}")
+            html = re.sub(re.escape(IEO_LM_START) + r'.*?' + re.escape(IEO_LM_END),
+                          lm_block, html, flags=re.DOTALL)
+            print(f"  ✓ Promoted IEO_CURRENT_MONTH ({existing_cm.get('month','?')}) → IEO_LAST_MONTH")
+
         cm_block = (f"{IEO_CM_START}\nconst IEO_CURRENT_MONTH = "
                     f"{json.dumps(ieo_cm_data, ensure_ascii=False)};\n{IEO_CM_END}")
         html = re.sub(re.escape(IEO_CM_START) + r'.*?' + re.escape(IEO_CM_END),
